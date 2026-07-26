@@ -11,6 +11,7 @@ use App\Services\PatientService;
 use App\Jobs\SendPatientToHISJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class HisPatientController
 {

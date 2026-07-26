@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\HisPatientController;
+use Symfony\Component\HttpFoundation\Response;
 
 Route::prefix('his')
     ->middleware([
@@ -58,17 +59,20 @@ middleware('his.auth')
 
     try {
         DB::connection()->getPdo();
-
+        $status = 'OK';
         $dbStatus = 'connected';
+        $code = Response::HTTP_OK;
     } catch (\Exception $e) {
+        $status = 'ERROR';
         $dbStatus = 'disconnected';
+        $code = Response::HTTP_INTERNAL_SERVER_ERROR;
     }
 
     return response()->json([
-        'status' => 'ok',
+        'status' => $status,
         'db' => $dbStatus,
         'time' => now(),
-    ]);
+    ], $code);
 });
 
 

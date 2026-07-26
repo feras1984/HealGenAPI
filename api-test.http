@@ -21,8 +21,8 @@
 #  "error_message": "Duplicate patient"
 #}
 
-//GET http://127.0.0.1:8000/api/his/health
-//X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=
+#GET http://127.0.0.1:8000/api/his/health
+#X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=
 
-POST http://127.0.0.1:8000/api/his/patients/1/send
-X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=
+#POST http://127.0.0.1:8000/api/his/patients/1/send
+#X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=

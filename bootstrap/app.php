@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -30,6 +31,23 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
                 'data' => null,
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        });
+
+        $exceptions->render(function (
+            Throwable $e,
+            Request $request
+        ) {
+            if (! $request->is('api/*')) {
+                return null; // Let Laravel render normal web errors.
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug')
+                    ? $e->getMessage()
+                    : 'Internal server error.',
+                'data' => null,
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         });
     })->create();
