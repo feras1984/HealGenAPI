@@ -1,8 +1,8 @@
 #GET http://127.0.0.1:8000/api/his/patients/pending
 #X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=
 
-#GET http://127.0.0.1:8000/api/his/patients/pending?patient_id=2604122561-U&per_page=10
-#X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=
+GET http://127.0.0.1:8000/api/his/patients/pending?patient_id=2604122561-U&per_page=10
+X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=
 
 #GET http://127.0.0.1:8000/api/his/patients/1
 #X-API-Key: EGdpng1IamgZRZ1dD9SB/EFQyN+XYyjdOcrKt93q6xo=

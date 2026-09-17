@@ -10,9 +10,18 @@ class PatientService
 {
     public function getPendingPatients(array $filters, int $perPage = 50): LengthAwarePaginator
     {
+//        $query = DB::table('PatientHeader')
+//            ->where('Status', 'Imported')
+////            ->OrWhere('Status', 'FailedToSend')
+//        ;
+
         $query = DB::table('PatientHeader')
-            ->where('Status', 'Imported')
-            ->OrWhere('Status', 'FailedToSend');
+            ->where(function ($query) use ($filters) {
+                $query->where('Status', 'Imported')
+                    ->orWhere('Status', 'FailedToSend');
+            });
+
+//        dd(!empty($filters['patient_id']));
 
         if (!empty($filters['patient_id'])) {
             $query->where('PatientId', $filters['patient_id']);
