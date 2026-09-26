@@ -1,22 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace  App\Http\Controllers\Auth;
 
+//use  Modules\User\Http\Controllers\Controller;
+//use Modules\User\Providers\RouteServiceProvider;
 use App\Http\Controllers\Controller;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ConfirmablePasswordController extends Controller
 {
     /**
      * Show the confirm password view.
      */
-    public function show(): View
+    public function show(): Response
     {
-        return view('auth.confirm-password');
+        return Inertia::render('Auth/ConfirmPassword');
     }
 
     /**
@@ -35,6 +39,6 @@ class ConfirmablePasswordController extends Controller
 
         $request->session()->put('auth.password_confirmed_at', time());
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(RouteServiceProvider::HOME);
     }
 }

@@ -1,0 +1,56 @@
+import React, {PropsWithChildren, ReactNode, useState} from "react";
+import {User} from "@/types";
+import {usePage} from "@inertiajs/react";
+import {Box} from "@mui/material";
+import styles from "@/Layouts/Admin/styles.module.scss";
+import Sidebar from "@/Layouts/Admin/Partials/Sidebar";
+import Header from "@/Layouts/Admin/Partials/Header";
+import {useAppSelector, useAppDispatch} from "@/Redux/Store/hook";
+import {setLanguages} from "@/Redux/Reducers/LanguageSlice/LanguageSlice";
+import Language from "@/models/language/Language";
+import SettingsProps from "@/Interfaces/SettingProps";
+import AppRoot from "@/AppRoot";
+import {getUser} from "@/Redux/Reducers/UserSlice/UserSlice";
+
+
+const AdminLayout = ({children }: PropsWithChildren<{header?: ReactNode }>) => {
+    const [expand, setExpand] = useState<boolean>(false);
+    const dark = useAppSelector(state => state.theme.dark);
+    const dispatch = useAppDispatch();
+    const handleExpand = () => {
+        // console.log(expand);
+        setExpand(expand => !expand);
+    }
+
+    // console.log(usePage().props.auth.user);
+
+    dispatch(getUser(usePage().props.auth.user))
+    return (
+        <AppRoot>
+            <Box className={`flex justify-start items-start ${dark ? 'dark' : 'light'}`}>
+
+                <Box component="div" className={
+                    `fixed h-screen p-[16px] overflow-y-auto
+                ${expand ? styles.showSidebar : styles.hideSidebar}
+                `
+                }
+                sx={{bgcolor: 'background.paper', zIndex: 999999}}
+                >
+                    <Sidebar expand={expand} />
+                </Box>
+                <Box component="div"
+                     className={` grow ${expand ? 'ms-[256px]' : 'ms-0'} ${expand ? styles.addMargin : styles.removeMargin}`}>
+                    <Box component="div" className={`h-[60px] ${styles.boxShadow} ${dark ? 'dark' : 'light'}`}>
+                        <Header handleExpand={handleExpand} />
+                    </Box>
+                    <Box component="div" className={`content p-[16px] bg-scroll`}>
+                        {children}
+                    </Box>
+                </Box>
+            </Box>
+        </AppRoot>
+
+    );
+}
+
+export default AdminLayout;

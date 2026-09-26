@@ -3,30 +3,37 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'reference_id',
+        'reference_type',
         'email',
+        'avatar',
+        'is_active',
         'password',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -34,15 +41,53 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_active' => 'boolean',
+    ];
+
+    public function getName() {
+        if ($this->userable()->first() instanceof Customer) {
+            return $this->userable()->first()->name;
+        }
+
+        if ($this->userable()->first() instanceof Admin) {
+            return $this->userable()->first()->first_name . ' ' . $this->userable()->first()->last_name;
+        }
+    }
+
+    public function sendPasswordResetNotification($token)
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        $this->notify(new CustomizedResetPassword($token, $this->getName(), $this->email));
+    }
+
+    protected static function newFactory(): UserFactory
+    {
+        return UserFactory::new();
+    }
+
+    public function reference(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function avatar(): MorphOne
+    {
+        return $this->morphOne(File::class, 'reference')->where('is_image', true);
+    }
+
+    public function customerView(): HasOne
+    {
+        return $this->hasOne(CustomerView::class, 'user_id', 'id');
+    }
+
+    public function adminView(): HasOne
+    {
+        return $this->hasOne(AdminView::class, 'user_id', 'id');
     }
 }
