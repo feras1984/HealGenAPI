@@ -61,7 +61,7 @@ class InspectorService
         }
 
         if (!empty($filters['deviceId'])) {
-            $query->where('device_id', $filters['deviceId']);
+            $query->where('DeviceId', $filters['deviceId']);
         }
 
         if (!empty($filters['date'])) {
@@ -74,7 +74,7 @@ class InspectorService
                 $q->where('PatientId', 'like', "%{$search}%")
                   ->orWhere('DonorId', 'like', "%{$search}%")
                   ->orWhere('CollectionSite', 'like', "%{$search}%")
-                  ->orWhere('device_code', 'like', "%{$search}%");
+                  ->orWhere('DeviceCode', 'like', "%{$search}%");
             });
         }
 

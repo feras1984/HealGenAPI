@@ -32,10 +32,22 @@ const Header: React.FC<{handleExpand: () => void}> = ({handleExpand}) => {
             direction="row"
             className="h-100 items-center p-[10px]"
         >
-            <Box className="grow justify-self-start">
+            <Box className="grow justify-self-start flex items-center gap-3">
                 <IconButton onClick={() => handleExpand()} >
                     <MenuIcon className={handleIconClass()}/>
                 </IconButton>
+                <Box className="flex items-center gap-3 ms-1">
+                    <img
+                        src="/images/logo-1.png"
+                        alt="Logo 1"
+                        style={{ maxHeight: '30px', width: 'auto', objectFit: 'contain' }}
+                    />
+                    <img
+                        src="/images/logo-2.png"
+                        alt="Logo 2"
+                        style={{ maxHeight: '30px', width: 'auto', objectFit: 'contain' }}
+                    />
+                </Box>
             </Box>
             <Box className="flex flex-nowrap ">
                 {

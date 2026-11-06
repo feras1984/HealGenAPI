@@ -133,6 +133,14 @@ return [
             'level' => 'info',
         ],
 
+        'device' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/device.log'),
+            'level' => 'debug',
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

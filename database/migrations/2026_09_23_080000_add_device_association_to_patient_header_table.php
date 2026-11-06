@@ -12,13 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('PatientHeader', function (Blueprint $table) {
-            $table->foreignId('device_id')
-                ->nullable()
-                ->constrained('devices')
-                ->nullOnDelete();
+            if (!Schema::hasColumn('PatientHeader', 'DeviceId')) {
+                $table->unsignedBigInteger('DeviceId')->nullable();
+            }
 
-            $table->string('device_code', 100)
-                ->nullable();
+            if (!Schema::hasColumn('PatientHeader', 'DeviceCode')) {
+                $table->string('DeviceCode', 100)->nullable();
+            }
+
+            $table->foreign('DeviceId')
+                ->references('id')
+                ->on('devices')
+                ->nullOnDelete();
         });
     }
 
@@ -27,9 +32,20 @@ return new class extends Migration
      */
     public function down(): void
     {
+//        Schema::table('PatientHeader', function (Blueprint $table) {
+//            $table->dropForeign(['DeviceId']);
+//            if (Schema::hasColumn('PatientHeader', 'DeviceId')) {
+//                $table->dropColumn('DeviceId');
+//            }
+//            if (Schema::hasColumn('PatientHeader', 'DeviceCode')) {
+//                $table->dropColumn('DeviceCode');
+//            }
+//        });
+
         Schema::table('PatientHeader', function (Blueprint $table) {
-            $table->dropForeign(['device_id']);
-            $table->dropColumn(['device_id', 'device_code']);
+            // Preserve DeviceId and DeviceCode.
+            // Only remove the foreign key created by this migration.
+            $table->dropForeign(['DeviceId']);
         });
     }
 };

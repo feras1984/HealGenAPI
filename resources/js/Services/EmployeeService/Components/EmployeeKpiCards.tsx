@@ -2,9 +2,10 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { useEmployeeContext } from "@/Services/EmployeeService/State/EmployeeContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import StatusDonutChart from "@/Components/Charts/StatusDonutChart";
 
 const EmployeeKpiCards: React.FC = () => {
-    const { data } = useEmployeeContext();
+    const { data, loading } = useEmployeeContext();
     const kpis = data.kpis;
     const dark = useAppSelector(state => state.theme.dark);
 
@@ -48,7 +49,9 @@ const EmployeeKpiCards: React.FC = () => {
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
                 Employee Dashboard Overview
             </Typography>
-            <Grid container spacing={2} justifyContent="center">
+
+            {/* Line 1: Statistics Cards */}
+            <Grid container spacing={2} justifyContent="center" className="mb-4">
                 {cards.map((card, idx) => (
                     <Grid item xs={12} sm={6} md={3} key={idx}>
                         <Card
@@ -78,6 +81,18 @@ const EmployeeKpiCards: React.FC = () => {
                         </Card>
                     </Grid>
                 ))}
+            </Grid>
+
+            {/* Line 2: Donut Diagram */}
+            <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={12}>
+                    <StatusDonutChart
+                        data={data.testsByStatus || []}
+                        title="Status Distribution"
+                        subtitle="Distribution of test statuses across your assigned devices"
+                        loading={loading}
+                    />
+                </Grid>
             </Grid>
         </Box>
     );

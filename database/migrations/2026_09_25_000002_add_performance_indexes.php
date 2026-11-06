@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('PatientHeader', function (Blueprint $table) {
-            $table->index(['Status', 'device_id'], 'idx_ph_status_device');
+            $table->index(['Status', 'DeviceId'], 'idx_ph_status_device');
             $table->index(['CreatedAt'], 'idx_ph_created_at');
             $table->index(['PatientId'], 'idx_ph_patient_id');
             $table->index(['DonorId'], 'idx_ph_donor_id');

@@ -16,15 +16,21 @@ const Login = ({ status, canResetPassword }: PageProps<{ status?: string, canRes
                     <Card sx={{margin: 'auto', boxShadow: 'none'}}>
                         <Box
                             component="div"
-                            className="p-2 flex justify-center items-center"
+                            className="p-4 flex flex-col items-start gap-3 w-full"
                         >
-                            {/*<Box*/}
-                            {/*    className="px-2"*/}
-                            {/*>*/}
-                            {/*    <img src={logo} alt="LOGO" className={styles.logoImg} />*/}
-                            {/*</Box>*/}
-
-                            <Typography variant="h5"><strong>Log In</strong></Typography>
+                            <Box className="flex justify-start items-center gap-4 w-full">
+                                <img
+                                    src="/images/logo-1.png"
+                                    alt="Logo 1"
+                                    style={{ maxHeight: '55px', width: 'auto', objectFit: 'contain' }}
+                                />
+                                <img
+                                    src="/images/logo-2.png"
+                                    alt="Logo 2"
+                                    style={{ maxHeight: '55px', width: 'auto', objectFit: 'contain' }}
+                                />
+                                <Typography sx={{margin: 'auto'}} variant="h5"><strong>Log In</strong></Typography>
+                            </Box>
                         </Box>
 
                         <CardContent>

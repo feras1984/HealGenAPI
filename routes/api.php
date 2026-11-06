@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\DeviceImportController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\HisPatientController;
@@ -74,5 +75,13 @@ middleware('his.auth')
         'time' => now(),
     ], $code);
 });
+
+//===================================================
+//API for HealGen D600
+Route::post('/device/imports', [
+    DeviceImportController::class,
+    'store'
+]);
+//===================================================
 
 

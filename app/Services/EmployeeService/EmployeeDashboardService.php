@@ -10,6 +10,8 @@ use App\Facades\PatientService\PatientHeaderService;
 use App\Facades\DeviceService\DeviceService;
 use Carbon\Carbon;
 
+use Illuminate\Support\Facades\DB;
+
 class EmployeeDashboardService
 {
     /**
@@ -42,17 +44,17 @@ class EmployeeDashboardService
         }
 
         $testsTodayCount = PatientHeader::query()
-            ->whereIn('device_id', $assignedDeviceIds)
+            ->whereIn('DeviceId', $assignedDeviceIds)
             ->whereDate('CreatedAt', $today)
             ->count();
 
         $pendingInspectionCount = PatientHeader::query()
-            ->whereIn('device_id', $assignedDeviceIds)
+            ->whereIn('DeviceId', $assignedDeviceIds)
             ->whereIn('Status', ['Imported', 'Awaiting Inspection'])
             ->count();
 
         $totalIngestedCount = PatientHeader::query()
-            ->whereIn('device_id', $assignedDeviceIds)
+            ->whereIn('DeviceId', $assignedDeviceIds)
             ->count();
 
         return [
@@ -94,7 +96,7 @@ class EmployeeDashboardService
         }
 
         $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests'])
-            ->whereIn('device_id', $assignedDeviceIds);
+            ->whereIn('DeviceId', $assignedDeviceIds);
 
         if (!empty($filters['locationId'])) {
             $query->whereHas('device', function ($q) use ($filters) {
@@ -103,7 +105,7 @@ class EmployeeDashboardService
         }
 
         if (!empty($filters['deviceId'])) {
-            $query->where('device_id', $filters['deviceId']);
+            $query->where('DeviceId', $filters['deviceId']);
         }
 
         if (!empty($filters['date'])) {
@@ -116,7 +118,7 @@ class EmployeeDashboardService
                 $q->where('PatientId', 'like', "%{$search}%")
                   ->orWhere('DonorId', 'like', "%{$search}%")
                   ->orWhere('CollectionSite', 'like', "%{$search}%")
-                  ->orWhere('device_code', 'like', "%{$search}%");
+                  ->orWhere('DeviceCode', 'like', "%{$search}%");
             });
         }
 
@@ -125,6 +127,49 @@ class EmployeeDashboardService
         $list = [];
         foreach ($patients as $patient) {
             $list[] = PatientHeaderService::mapPatientModel($patient);
+        }
+
+        return $list;
+    }
+
+    /**
+     * Get tests grouped by status for assigned devices distribution chart.
+     */
+    public function getTestsByStatus(array $assignedDeviceIds, array $filters = []): array
+    {
+        if (empty($assignedDeviceIds)) {
+            return [];
+        }
+
+        $query = PatientHeader::query()->whereIn('DeviceId', $assignedDeviceIds);
+
+        if (!empty($filters['locationId'])) {
+            $query->whereHas('device', function ($q) use ($filters) {
+                $q->where('location_id', $filters['locationId']);
+            });
+        }
+
+        if (!empty($filters['deviceId'])) {
+            $query->where('DeviceId', $filters['deviceId']);
+        }
+
+        if (!empty($filters['date'])) {
+            $query->whereDate('CreatedAt', $filters['date']);
+        }
+
+        $raw = $query->select('Status', DB::raw('COUNT(*) as count'))
+            ->groupBy('Status')
+            ->orderBy('count', 'desc')
+            ->get();
+
+        $list = [];
+        foreach ($raw as $item) {
+            if (!empty($item->Status)) {
+                $list[] = [
+                    'status' => $item->Status,
+                    'count' => (int) $item->count,
+                ];
+            }
         }
 
         return $list;
@@ -141,6 +186,7 @@ class EmployeeDashboardService
             'kpis' => $this->getDashboardKPIs($assignedDeviceIds),
             'assignedDevices' => $this->getAssignedDevices($assignedDeviceIds),
             'recentTests' => $this->getMyDeviceTests($assignedDeviceIds, $filters),
+            'testsByStatus' => $this->getTestsByStatus($assignedDeviceIds, $filters),
         ];
     }
 }

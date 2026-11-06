@@ -27,7 +27,7 @@ class MonitorService
         }
 
         if (!empty($filters['deviceId'])) {
-            $query->where('device_id', $filters['deviceId']);
+            $query->where('DeviceId', $filters['deviceId']);
         }
 
         if (!empty($filters['date'])) {
@@ -85,7 +85,7 @@ class MonitorService
         }
 
         if (!empty($filters['deviceId'])) {
-            $query->where('device_id', $filters['deviceId']);
+            $query->where('DeviceId', $filters['deviceId']);
         }
 
         if (!empty($filters['date'])) {
@@ -98,7 +98,7 @@ class MonitorService
                 $q->where('PatientId', 'like', "%{$search}%")
                   ->orWhere('DonorId', 'like', "%{$search}%")
                   ->orWhere('CollectionSite', 'like', "%{$search}%")
-                  ->orWhere('device_code', 'like', "%{$search}%");
+                  ->orWhere('DeviceCode', 'like', "%{$search}%");
             });
         }
 
@@ -133,18 +133,18 @@ class MonitorService
 
         // Database-side aggregations for device activity
         $resultsToday = PatientHeader::query()
-            ->whereNotNull('device_id')
+            ->whereNotNull('DeviceId')
             ->whereDate('CreatedAt', $today)
-            ->select('device_id', DB::raw('COUNT(*) as total_today'))
-            ->groupBy('device_id')
-            ->pluck('total_today', 'device_id')
+            ->select('DeviceId', DB::raw('COUNT(*) as total_today'))
+            ->groupBy('DeviceId')
+            ->pluck('total_today', 'DeviceId')
             ->toArray();
 
         $lastResults = PatientHeader::query()
-            ->whereNotNull('device_id')
-            ->select('device_id', DB::raw('MAX(CreatedAt) as last_result'))
-            ->groupBy('device_id')
-            ->pluck('last_result', 'device_id')
+            ->whereNotNull('DeviceId')
+            ->select('DeviceId', DB::raw('MAX(CreatedAt) as last_result'))
+            ->groupBy('DeviceId')
+            ->pluck('last_result', 'DeviceId')
             ->toArray();
 
         $list = [];
@@ -208,7 +208,7 @@ class MonitorService
         }
 
         if (!empty($filters['deviceId'])) {
-            $query->where('device_id', $filters['deviceId']);
+            $query->where('DeviceId', $filters['deviceId']);
         }
 
         if (!empty($filters['date'])) {
@@ -247,7 +247,7 @@ class MonitorService
         }
 
         if (!empty($filters['deviceId'])) {
-            $query->where('device_id', $filters['deviceId']);
+            $query->where('DeviceId', $filters['deviceId']);
         }
 
         $isSingleDate = !empty($filters['date']);
@@ -310,7 +310,7 @@ class MonitorService
     public function getTestsByLocation(array $filters = []): array
     {
         $query = DB::table('PatientHeader')
-            ->join('devices', 'PatientHeader.device_id', '=', 'devices.id')
+            ->join('devices', 'PatientHeader.DeviceId', '=', 'devices.id')
             ->join('locations', 'devices.location_id', '=', 'locations.id')
             ->select(
                 'locations.id as locationId',
@@ -319,7 +319,7 @@ class MonitorService
             );
 
         if (!empty($filters['deviceId'])) {
-            $query->where('PatientHeader.device_id', $filters['deviceId']);
+            $query->where('PatientHeader.DeviceId', $filters['deviceId']);
         }
 
         if (!empty($filters['date'])) {
@@ -348,7 +348,7 @@ class MonitorService
     public function getTestsByDevice(array $filters = [], int $limit = 10): array
     {
         $query = DB::table('PatientHeader')
-            ->join('devices', 'PatientHeader.device_id', '=', 'devices.id')
+            ->join('devices', 'PatientHeader.DeviceId', '=', 'devices.id')
             ->leftJoin('locations', 'devices.location_id', '=', 'locations.id')
             ->select(
                 'devices.id as deviceId',

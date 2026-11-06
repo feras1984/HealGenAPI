@@ -15,6 +15,8 @@ class PatientHeader extends Model
     const UPDATED_AT = 'UpdatedAt';
 
     protected $fillable = [
+        'DeviceId',
+        'DeviceCode',
         'device_id',
         'device_code',
         'PatientId',
@@ -33,6 +35,16 @@ class PatientHeader extends Model
 
     public function device(): BelongsTo
     {
-        return $this->belongsTo(Device::class, 'device_id');
+        return $this->belongsTo(Device::class, 'DeviceId', 'id');
+    }
+
+    public function getDeviceIdAttribute()
+    {
+        return $this->attributes['DeviceId'] ?? $this->attributes['device_id'] ?? null;
+    }
+
+    public function getDeviceCodeAttribute()
+    {
+        return $this->attributes['DeviceCode'] ?? $this->attributes['device_code'] ?? null;
     }
 }

@@ -49,7 +49,7 @@ class PatientHeaderService
                     ->pluck('device_id')
                     ->toArray();
 
-                $query->whereIn('device_id', $assignedDeviceIds);
+                $query->whereIn('DeviceId', $assignedDeviceIds);
             }
         }
 
@@ -64,23 +64,23 @@ class PatientHeaderService
 
     public function associateDevice(PatientHeader $patientHeader, ?string $deviceCode): void
     {
-        $patientHeader->device_code = $deviceCode;
+        $patientHeader->DeviceCode = $deviceCode;
 
         if ($deviceCode) {
             $device = Device::where('device_code', $deviceCode)->first();
             if ($device) {
-                $patientHeader->device_id = $device->id;
+                $patientHeader->DeviceId = $device->id;
                 if (!$device->is_active) {
                     $patientHeader->Status = 'Blocked';
                 } else {
                     $patientHeader->Status = 'Imported';
                 }
             } else {
-                $patientHeader->device_id = null;
+                $patientHeader->DeviceId = null;
                 $patientHeader->Status = 'Imported';
             }
         } else {
-            $patientHeader->device_id = null;
+            $patientHeader->DeviceId = null;
         }
 
         $patientHeader->save();

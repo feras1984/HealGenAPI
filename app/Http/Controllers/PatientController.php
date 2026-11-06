@@ -33,7 +33,8 @@ class PatientController extends Controller
                     ->pluck('device_id')
                     ->toArray();
 
-                if (!in_array($patient->device_id, $assignedDeviceIds)) {
+                $patientDeviceId = $patient->DeviceId ?? $patient->device_id;
+                if (!in_array($patientDeviceId, $assignedDeviceIds)) {
                     abort(403, 'Unauthorized access to test record.');
                 }
             }

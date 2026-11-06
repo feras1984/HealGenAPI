@@ -1,5 +1,6 @@
 import PatientHeader from "@/models/patient/PatientHeader";
 import Device from "@/models/device/Device";
+import { StatusItem } from "@/models/monitor/MonitorData";
 
 export interface EmployeeKPIs {
     assignedDevicesCount: number;
@@ -19,4 +20,5 @@ export interface EmployeeDashboardData {
     kpis: EmployeeKPIs;
     assignedDevices: Device[];
     recentTests: PatientHeader[];
+    testsByStatus?: StatusItem[];
 }

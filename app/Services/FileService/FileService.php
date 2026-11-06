@@ -22,8 +22,31 @@ class FileService
     }
     public function storeFile(&$data, $property, $container): ?string
     {
+        $file = $data[$property];
+
+//        dd([
+//            'temp_path' => $file->getPathname(),
+//            'file_exists' => file_exists($file->getPathname()),
+//            'file_readable' => is_readable($file->getPathname()),
+//            'realpath' => realpath($file->getPathname()),
+//            'storage_writable' => is_writable(storage_path('app/public/users')),
+//            'temp_writable' => is_writable(sys_get_temp_dir()),
+//            'temp_directory' => sys_get_temp_dir(),
+//        ]);
+
+//        dd([
+//            'php_version' => PHP_VERSION,
+//            'php_ini' => php_ini_loaded_file(),
+//            'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+//            'sys_temp_dir' => ini_get('sys_temp_dir'),
+//            'temp_directory' => sys_get_temp_dir(),
+//            'temp_file' => $data[$property]->getPathname(),
+//        ]);
+
+
         if ($data[$property] === 'null') return null;
         $imageName = $container . "-" . uniqid() . '.' . $data[$property]->getClientOriginalExtension();
+
         Storage::disk('public')->putFileAs($container, $data[$property], $imageName);
         $data[$property] = $imageName;
         return $imageName;
