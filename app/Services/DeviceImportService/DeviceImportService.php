@@ -41,6 +41,39 @@ class DeviceImportService
 
                 $now = now();
                 $patient = $payload['patient'];
+                $status = 'Imported';
+
+                // Auto-resolve device details if one of them is missing
+                if (!$deviceId && $deviceCode) {
+                    $device = DB::table('devices')->where('device_code', $deviceCode)->first();
+                    if ($device) {
+                        $deviceId = $device->id;
+                        if (isset($device->is_active) && !$device->is_active) {
+                            $status = 'Blocked';
+                        }
+                    }
+                } elseif ($deviceId) {
+                    $device = DB::table('devices')->where('id', $deviceId)->first();
+                    if ($device) {
+                        if (!$deviceCode && isset($device->device_code)) {
+                            $deviceCode = $device->device_code;
+                        }
+                        if (isset($device->is_active) && !$device->is_active) {
+                            $status = 'Blocked';
+                        }
+                    }
+                }
+
+                // Update device last_seen_at timestamp if device is found
+                if ($deviceId) {
+                    try {
+                        DB::table('devices')
+                            ->where('id', $deviceId)
+                            ->update(['last_seen_at' => $now]);
+                    } catch (Throwable) {
+                        // Safe fallback if last_seen_at is unavailable
+                    }
+                }
 
                 $patientHeaderId = DB::table('PatientHeader')
                     ->insertGetId([
@@ -54,7 +87,7 @@ class DeviceImportService
                         'DateTime' => $patient['date_time'] ?? null,
                         'SourceFile' => $payload['file_name'] ?? null,
                         'ProcessedAt' => $now,
-                        'Status' => 'Imported',
+                        'Status' => $status,
                         'FileHash' => $fileHash,
                         'ErrorMessage' => null,
                         'CreatedAt' => $now,
@@ -81,7 +114,7 @@ class DeviceImportService
                     'duplicate' => false,
                     'patient_header_id' => $patientHeaderId,
                     'tests_inserted' => count($tests),
-                    'status' => 'Imported',
+                    'status' => $status,
                 ];
             }, 3);
 

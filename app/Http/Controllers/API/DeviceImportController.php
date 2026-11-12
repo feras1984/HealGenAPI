@@ -19,6 +19,10 @@ class DeviceImportController extends Controller
     {
         try {
             $validated = $request->validate([
+                'device_id' => ['nullable', 'integer'],
+
+                'device_code' => ['nullable', 'string', 'max:100'],
+
                 'file_name' => ['required', 'string', 'max:500'],
 
                 'file_hash' => [
@@ -96,7 +100,14 @@ class DeviceImportController extends Controller
             $validated['file_hash']
         );
 
-        $result = $this->deviceImportService->import($validated);
+        $deviceId = isset($validated['device_id']) ? (int) $validated['device_id'] : null;
+        $deviceCode = $validated['device_code'] ?? null;
+
+        $result = $this->deviceImportService->import(
+            $validated,
+            $deviceId,
+            $deviceCode
+        );
 
         $httpStatus = $result['duplicate'] ? 200 : 201;
 
