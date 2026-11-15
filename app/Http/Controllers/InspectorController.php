@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Facades\DeviceService\DeviceService;
 use App\Facades\InspectorService\InspectorService;
 use App\Facades\LocationService\LocationService;
+use App\Models\Device;
+use App\Models\Location;
 use App\Models\PatientHeader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,9 +21,34 @@ class InspectorController extends Controller
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
 
+        $role = InspectorService::getUserRole($user);
+        $assignedLocationId = $user->getAssignedLocationId();
+
+        if ($role === 'inspector') {
+            // Strictly enforce assigned location on backend
+            $filters['locationId'] = $assignedLocationId;
+
+            $assignedLocation = $assignedLocationId ? Location::find($assignedLocationId) : null;
+            $locations = $assignedLocation ? [LocationService::getLocation($assignedLocation)] : [];
+
+            $devices = $assignedLocationId
+                ? Device::where('location_id', $assignedLocationId)
+                    ->where('is_active', true)
+                    ->get()
+                    ->map(fn($dev) => [
+                        'id' => $dev->id,
+                        'name' => $dev->name,
+                        'device_code' => $dev->device_code,
+                        'location_id' => $dev->location_id,
+                    ])->toArray()
+                : [];
+        } else {
+            // Admin sees all locations and devices
+            $locations = LocationService::getLocations();
+            $devices = DeviceService::getDevices();
+        }
+
         $dashboardData = InspectorService::getInspectorDashboardData($user, $filters);
-        $locations = LocationService::getLocations();
-        $devices = DeviceService::getDevices();
 
         return Inertia::render('Admin/Inspector/InspectorDashboard', [
             'dashboardData' => $dashboardData,
@@ -35,6 +62,12 @@ class InspectorController extends Controller
     {
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
+        $role = InspectorService::getUserRole($user);
+
+        if ($role === 'inspector') {
+            $filters['locationId'] = $user->getAssignedLocationId();
+        }
+
         $data = InspectorService::getInspectorDashboardData($user, $filters);
 
         return response()->json([

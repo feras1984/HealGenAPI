@@ -52,8 +52,12 @@ class SupervisorService
      */
     public function getPendingQueue(array $filters = [], int $limit = 50): array
     {
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests'])
-            ->whereIn('Status', self::PENDING_STATUSES);
+        $query = PatientHeader::with([
+            'device.location',
+            'device.deviceType',
+            'tests',
+            'latestInspectorAction.user.reference',
+        ])->whereIn('Status', self::PENDING_STATUSES);
 
         if (!empty($filters['locationId'])) {
             $query->whereHas('device', function ($q) use ($filters) {
@@ -153,8 +157,11 @@ class SupervisorService
             $adminRef = $user->reference()->first();
             $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Supervisor';
 
+            $testLocationId = $patientHeader->device?->location_id;
+
             PatientTestAction::create([
                 'patient_header_id' => $patientHeader->Id,
+                'location_id' => $testLocationId,
                 'user_id' => $user->id,
                 'role' => $roleName,
                 'action' => 'SUPERVISOR_CONFIRM',
@@ -213,8 +220,11 @@ class SupervisorService
             $adminRef = $user->reference()->first();
             $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Supervisor';
 
+            $testLocationId = $patientHeader->device?->location_id;
+
             PatientTestAction::create([
                 'patient_header_id' => $patientHeader->Id,
+                'location_id' => $testLocationId,
                 'user_id' => $user->id,
                 'role' => $roleName,
                 'action' => 'SUPERVISOR_REJECT',

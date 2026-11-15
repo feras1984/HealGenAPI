@@ -9,6 +9,18 @@ class LocationService
 {
     public function mapLocationModel(Location $location): array
     {
+        $activeInspector = $location->activeInspector;
+        $inspectorData = null;
+        if ($activeInspector) {
+            $ref = $activeInspector->reference;
+            $name = $ref ? trim(($ref->first_name ?? '') . ' ' . ($ref->last_name ?? '')) : $activeInspector->email;
+            $inspectorData = [
+                'id' => $activeInspector->id,
+                'name' => !empty($name) ? $name : $activeInspector->email,
+                'email' => $activeInspector->email,
+            ];
+        }
+
         return [
             'id' => $location->id,
             'name' => $location->name,
@@ -18,13 +30,14 @@ class LocationService
             'country' => $location->country ?? '',
             'isActive' => (bool) $location->is_active,
             'notes' => $location->notes ?? '',
+            'activeInspector' => $inspectorData,
             'createdAt' => $location->created_at ? Carbon::make($location->created_at)->format('M d, Y') : '',
         ];
     }
 
     public function getLocations(): array
     {
-        $locations = Location::query()->orderBy('id', 'desc')->get();
+        $locations = Location::query()->with(['activeInspector.reference'])->orderBy('id', 'desc')->get();
         $list = [];
         foreach ($locations as $location) {
             $list[] = $this->mapLocationModel($location);

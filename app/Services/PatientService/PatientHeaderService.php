@@ -13,13 +13,42 @@ class PatientHeaderService
 {
     public function mapPatientModel(PatientHeader $patientHeader): array
     {
-        $device = $patientHeader->device()->first();
+        $device = $patientHeader->relationLoaded('device')
+            ? $patientHeader->device
+            : $patientHeader->device()->first();
         $deviceModel = $device ? DeviceService::mapDeviceModel($device) : null;
 
-        $tests = $patientHeader->tests()->get();
+        $tests = $patientHeader->relationLoaded('tests')
+            ? $patientHeader->tests
+            : $patientHeader->tests()->get();
         $testsModel = [];
         foreach ($tests as $test){
             $testsModel[] = PatientTestService::mapTestModel($test);
+        }
+
+        $inspectorAction = $patientHeader->relationLoaded('latestInspectorAction')
+            ? $patientHeader->latestInspectorAction
+            : $patientHeader->latestInspectorAction()->with('user.reference')->first();
+
+        $inspectorData = null;
+        if ($inspectorAction) {
+            $inspUser = $inspectorAction->user;
+            $inspName = $inspUser?->email ?? '';
+            if ($inspUser && $inspUser->reference) {
+                $ref = $inspUser->reference;
+                $name = trim(($ref->first_name ?? '') . ' ' . ($ref->last_name ?? ''));
+                if (!empty($name)) {
+                    $inspName = $name;
+                }
+            }
+            $inspectorData = [
+                'id' => $inspUser?->id,
+                'name' => $inspName,
+                'email' => $inspUser?->email ?? '',
+                'action' => $inspectorAction->action,
+                'reviewedAt' => $inspectorAction->created_at ? Carbon::make($inspectorAction->created_at)->format('M d, Y H:i') : '',
+                'reason' => $inspectorAction->reason ?? '',
+            ];
         }
 
         return [
@@ -31,6 +60,7 @@ class PatientHeaderService
             'status' => $patientHeader->Status,
             'device' => $deviceModel,
             'tests' => $testsModel,
+            'reviewedBy' => $inspectorData,
             'createdAt' => Carbon::make($patientHeader->CreatedAt)->format('M d, Y'),
         ];
     }
@@ -50,6 +80,14 @@ class PatientHeaderService
                     ->toArray();
 
                 $query->whereIn('DeviceId', $assignedDeviceIds);
+            } elseif ($role === 'inspector') {
+                $assignedLocationId = $user->getAssignedLocationId();
+                if ($assignedLocationId === null) {
+                    return [];
+                }
+                $query->whereHas('device', function ($q) use ($assignedLocationId) {
+                    $q->where('location_id', $assignedLocationId);
+                });
             }
         }
 

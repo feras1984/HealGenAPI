@@ -125,6 +125,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('SystemAuditLogService', function ($app) {
             return new \App\Services\SystemAuditLogService\SystemAuditLogService();
         });
+
+        $this->app->singleton('LocationInspectorService', function ($app) {
+            return new \App\Services\LocationInspectorService\LocationInspectorService();
+        });
     }
 
     /**

@@ -14,6 +14,7 @@ class PatientTestAction extends Model
 
     protected $fillable = [
         'patient_header_id',
+        'location_id',
         'user_id',
         'role',
         'action',
@@ -21,6 +22,11 @@ class PatientTestAction extends Model
         'new_status',
         'reason',
     ];
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class, 'location_id');
+    }
 
     public function user(): BelongsTo
     {

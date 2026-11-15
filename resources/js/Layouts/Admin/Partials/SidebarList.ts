@@ -76,7 +76,22 @@ const SidebarList: CustomTab [] = [
         icon: 'location',
         link: '/locations',
         roles: ['administrator'],
-        children: [],
+        children: [
+            {
+                name: 'Locations',
+                icon: 'location',
+                link: '/locations',
+                roles: ['administrator'],
+                children: [],
+            },
+            {
+                name: 'Inspector Assignments',
+                icon: 'assignment',
+                link: '/location-inspectors',
+                roles: ['administrator'],
+                children: [],
+            },
+        ],
     },
 
     {

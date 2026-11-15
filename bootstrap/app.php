@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -57,39 +58,87 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-//        $exceptions->render(function (
-//            ValidationException $e,
-//            Request $request
-//        ) {
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Validation failed',
-//                'errors' => $e->errors(),
-//                'data' => null,
-//            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-//        });
-//
-//        $exceptions->render(function (
-//            Throwable $e,
-//            Request $request
-//        ) {
-//            if (! $request->is('api/*')) {
-//                return null; // Let Laravel render normal web errors.
-//            }
-//
-//            return response()->json([
-//                'success' => false,
-//                'message' => config('app.debug')
-//                    ? $e->getMessage()
-//                    : 'Internal server error.',
-//                'data' => null,
-//            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-//        });
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+            $status = $response->getStatusCode();
+
+            // 401 Unauthorized
+            if ($status === Response::HTTP_UNAUTHORIZED) {
+                if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Authentication is required to access this resource.',
+                    ], Response::HTTP_UNAUTHORIZED);
+                }
+
+                return Inertia::render('Admin/Errors/Unauthorized', [
+                    'status' => 401,
+                    'title' => 'Unauthorized Access',
+                    'message' => 'Authentication is required to access this page or the requested resource.',
+                    'support' => 'Please sign in with valid credentials, or contact your administrator.',
+                ])->toResponse($request)->setStatusCode(Response::HTTP_UNAUTHORIZED);
+            }
+
+            // 403 Forbidden
+            if ($status === Response::HTTP_FORBIDDEN) {
+                if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => "You don't have permission to access this page or the requested resource.",
+                    ], Response::HTTP_FORBIDDEN);
+                }
+
+                return Inertia::render('Admin/Errors/Forbidden', [
+                    'status' => 403,
+                    'title' => 'Access Restricted',
+                    'message' => "You don't have permission to access this page or the requested resource.",
+                    'support' => 'Please contact your administrator if you believe this is a mistake.',
+                ])->toResponse($request)->setStatusCode(Response::HTTP_FORBIDDEN);
+            }
+
+            // 404 Not Found
+            if ($status === Response::HTTP_NOT_FOUND) {
+                if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'The requested page or resource was not found.',
+                    ], Response::HTTP_NOT_FOUND);
+                }
+
+                return Inertia::render('Admin/Errors/NotFound', [
+                    'status' => 404,
+                    'title' => 'Page Not Found',
+                    'message' => "Sorry, the page you're looking for doesn't exist or may have been moved.",
+                    'support' => 'You can return to your dashboard and continue working.',
+                ])->toResponse($request)->setStatusCode(Response::HTTP_NOT_FOUND);
+            }
+
+            // 500 Internal Server Error
+            if ($status === Response::HTTP_INTERNAL_SERVER_ERROR || $status === 500) {
+                if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => config('app.debug') ? $exception->getMessage() : 'An unexpected server error occurred.',
+                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+
+                if (!config('app.debug') || $request->header('X-Inertia')) {
+                    return Inertia::render('Admin/Errors/ServerError', [
+                        'status' => 500,
+                        'title' => 'Internal Server Error',
+                        'message' => 'Something went wrong on our end. We are actively working to fix the issue.',
+                        'support' => 'Please try again in a few moments or return to your dashboard.',
+                    ])->toResponse($request)->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+            }
+
+            return $response;
+        });
+
         $exceptions->render(function (
             ValidationException $e,
             Request $request
         ) {
-            if (! $request->is('api/*')) {
+            if (!$request->is('api/*')) {
                 return null;
             }
 
@@ -105,7 +154,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Throwable $e,
             Request $request
         ) {
-            if (! $request->is('api/*')) {
+            if (!$request->is('api/*')) {
+                return null;
+            }
+
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 return null;
             }
 

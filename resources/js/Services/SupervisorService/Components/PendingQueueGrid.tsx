@@ -56,6 +56,7 @@ const PendingQueueGrid: React.FC = () => {
         deviceCode: pt.device?.deviceCode || pt.deviceCode || '-',
         deviceName: pt.device?.name || pt.deviceName || '-',
         locationName: pt.device?.locationName || pt.locationName || '-',
+        inspectorName: pt.reviewedBy?.name || pt.reviewedBy?.email || '-',
         status: pt.status,
         createdAt: pt.createdAt,
         rawPatient: pt,
@@ -101,6 +102,7 @@ const PendingQueueGrid: React.FC = () => {
                                 <ColumnDirective field="deviceCode" headerText="Device Code" width="160" textAlign="Center" />
                                 <ColumnDirective field="deviceName" headerText="Device Name" width="180" textAlign="Center" />
                                 <ColumnDirective field="locationName" headerText="Location" width="160" textAlign="Center" />
+                                <ColumnDirective field="inspectorName" headerText="Inspector" width="160" textAlign="Center" />
                                 <ColumnDirective field="status" headerText="Status" width="180" textAlign="Center" template={StatusTemplate} />
                                 <ColumnDirective field="createdAt" headerText="Received Time" width="160" textAlign="Center" />
                                 <ColumnDirective headerText="Review" width="140" textAlign="Center" template={ActionTemplate} />

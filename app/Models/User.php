@@ -5,7 +5,9 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -89,5 +91,36 @@ class User extends Authenticatable
     public function adminView(): HasOne
     {
         return $this->hasOne(AdminView::class, 'user_id', 'id');
+    }
+
+    public function locationAssignments(): HasMany
+    {
+        return $this->hasMany(LocationInspector::class, 'user_id');
+    }
+
+    public function activeLocationAssignment(): HasOne
+    {
+        return $this->hasOne(LocationInspector::class, 'user_id')->where('is_active', true);
+    }
+
+    public function assignedLocation(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Location::class,
+            LocationInspector::class,
+            'user_id',     // Foreign key on LocationInspector table
+            'id',          // Foreign key on Location table
+            'id',          // Local key on User table
+            'location_id'  // Local key on LocationInspector table
+        )->where('location_inspectors.is_active', true);
+    }
+
+    public function getAssignedLocationId(): ?int
+    {
+        if ($this->relationLoaded('activeLocationAssignment')) {
+            return $this->activeLocationAssignment?->location_id;
+        }
+
+        return $this->activeLocationAssignment()->value('location_id');
     }
 }

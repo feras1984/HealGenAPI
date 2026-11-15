@@ -33,6 +33,7 @@ use Symfony\Component\HttpKernel\Profiler\Profile;
 //require __DIR__.'/auth.php';
 
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\LocationInspectorController;
 use App\Http\Controllers\DeviceTypeController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\DeviceUserController;
@@ -109,6 +110,12 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::post('/device-users/assign', [DeviceUserController::class, 'store'])->name('admin.device-users.store');
     Route::patch('/device-users/{deviceUser}/unassign', [DeviceUserController::class, 'unassign'])->name('admin.device-users.unassign');
     Route::patch('/device-users/{deviceUser}/reassign', [DeviceUserController::class, 'reassign'])->name('admin.device-users.reassign');
+
+    // Location Inspector Assignment Routes
+    Route::get('/location-inspectors', [LocationInspectorController::class, 'index'])->name('admin.location-inspectors');
+    Route::post('/location-inspectors/assign', [LocationInspectorController::class, 'store'])->name('admin.location-inspectors.store');
+    Route::patch('/location-inspectors/{locationInspector}/transfer', [LocationInspectorController::class, 'transfer'])->name('admin.location-inspectors.transfer');
+    Route::patch('/location-inspectors/{locationInspector}/unassign', [LocationInspectorController::class, 'unassign'])->name('admin.location-inspectors.unassign');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
 });

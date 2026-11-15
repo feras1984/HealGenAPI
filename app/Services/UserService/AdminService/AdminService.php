@@ -63,6 +63,20 @@ class AdminService extends UserService
         return $employeesModel;
     }
 
+    public function getInspectors(): array
+    {
+        $admins = parent::getUsers(Admin::class);
+        $inspectorsModel = [];
+        foreach ($admins as $admin) {
+            $ref = $admin->reference()->first();
+            if ($ref && strtolower($ref->role) === 'inspector') {
+                $inspectorsModel[] = $this->mapUserModel($admin);
+            }
+        }
+
+        return $inspectorsModel;
+    }
+
     public function getAdmin(User $user): array
     {
         return $this->mapUserModel($user);

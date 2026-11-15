@@ -37,6 +37,12 @@ class PatientController extends Controller
                 if (!in_array($patientDeviceId, $assignedDeviceIds)) {
                     abort(403, 'Unauthorized access to test record.');
                 }
+            } elseif ($role === 'inspector') {
+                $assignedLocationId = $user->getAssignedLocationId();
+                $patientLocationId = $patient->device?->location_id;
+                if (!$assignedLocationId || $patientLocationId !== $assignedLocationId) {
+                    abort(403, 'Unauthorized access to test record outside your assigned location.');
+                }
             }
         }
 

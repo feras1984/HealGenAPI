@@ -3,8 +3,9 @@ import { Head, Link } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/Admin/AdminLayout";
 import Location from "@/models/location/Location";
 import LocationContainer from "@/Services/LocationService/State/LocationContainer";
-import { Box, Stack } from "@mui/material";
+import { Box, Button, Stack } from "@mui/material";
 import CustomButton from "@/Components/Button/CustomButton";
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 
 const LocationList: React.FC<{ locations: Location[] }> = ({ locations }) => {
     return (
@@ -19,6 +20,16 @@ const LocationList: React.FC<{ locations: Location[] }> = ({ locations }) => {
                 >
                     <Link href={`/locations/add`}>
                         <CustomButton task='add' text={'Location'}></CustomButton>
+                    </Link>
+                    <Link href={`/location-inspectors`}>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<AssignmentIndIcon />}
+                            sx={{ textTransform: 'none', height: 40, borderRadius: 2 }}
+                        >
+                            Inspector Assignments
+                        </Button>
                     </Link>
                 </Stack>
             </Box>

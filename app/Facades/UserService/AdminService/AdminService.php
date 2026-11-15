@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static array getAdmins()
  * @method static array getEmployees()
+ * @method static array getInspectors()
  * @method static array getAdmin(User $user)
  * @method static User store(array $data)
  * @method static User update(array $data, User $user)

@@ -10,6 +10,14 @@ class PatientHeader {
     status: string;
     device?: Device | null;
     tests: PatientTest[];
+    reviewedBy?: {
+        id?: number;
+        name?: string;
+        email?: string;
+        action?: string;
+        reviewedAt?: string;
+        reason?: string;
+    } | null;
     createdAt: string;
 
     constructor( {
@@ -21,6 +29,7 @@ class PatientHeader {
         status = '',
         device = null as Device | null,
         tests = [] as PatientTest[],
+        reviewedBy = null,
         createdAt = '',
                  } = {}) {
         this.id = id;
@@ -31,6 +40,7 @@ class PatientHeader {
         this.status = status;
         this.device = device ? new Device(device) : null;
         this.tests = [...tests];
+        this.reviewedBy = reviewedBy;
         this.createdAt = createdAt;
     }
 }

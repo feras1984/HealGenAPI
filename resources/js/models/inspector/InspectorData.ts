@@ -27,6 +27,8 @@ export interface InspectorFilterParams {
 }
 
 export interface InspectorDashboardData {
+    userRole?: string;
+    assignedLocation?: { id: number; name: string; code: string } | null;
     kpis: InspectorKPIs;
     pendingQueue: PatientHeader[];
     recentActivity: InspectorActionAudit[];

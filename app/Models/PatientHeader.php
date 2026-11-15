@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PatientHeader extends Model
 {
@@ -36,6 +37,18 @@ class PatientHeader extends Model
     public function device(): BelongsTo
     {
         return $this->belongsTo(Device::class, 'DeviceId', 'id');
+    }
+
+    public function actions(): HasMany
+    {
+        return $this->hasMany(PatientTestAction::class, 'patient_header_id', 'Id');
+    }
+
+    public function latestInspectorAction(): HasOne
+    {
+        return $this->hasOne(PatientTestAction::class, 'patient_header_id', 'Id')
+            ->whereIn('action', ['INSPECTOR_ACCEPT', 'INSPECTOR_REJECT'])
+            ->latestOfMany('id');
     }
 
     public function getDeviceIdAttribute()

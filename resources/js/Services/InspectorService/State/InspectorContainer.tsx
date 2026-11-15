@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { usePage } from "@inertiajs/react";
 import { Container as ServiceContainer } from "typedi";
 import "typedi";
 import InspectorService from "@/Services/InspectorService/InspectorService";
@@ -30,10 +31,14 @@ import {
     FormControlLabel,
     Switch,
     IconButton,
-    Tooltip
+    Tooltip,
+    Chip,
+    Alert
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useAppSelector } from "@/Redux/Store/hook";
 
 const InspectorContainer: React.FC<InspectorContainerProps> = ({
@@ -57,6 +62,11 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
     const inspectorService = ServiceContainer.get(InspectorService);
     const dark = useAppSelector(state => state.theme.dark);
     const { snackbar, setSnackbar, handleClose } = useSnackbarHook({ open: false, message: '', severity: 'info' });
+
+    const pageProps = usePage().props as any;
+    const currentUser = pageProps?.auth?.user || pageProps?.user;
+    const role = String(data.userRole || currentUser?.role || '').toLowerCase();
+    const isAdmin = role === 'administrator' || role === 'admin';
 
     const fetchLatest = useCallback((currentFilters: InspectorFilterParams, showLoading: boolean = false) => {
         if (showLoading) setLoading(true);
@@ -229,11 +239,69 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
             }}
         >
             <Box className="p-6">
-                <Box className="flex justify-between items-center mb-6">
+                <Box className="flex flex-wrap justify-between items-center mb-6 gap-4">
                     <Typography variant="h4" color="text.primary" className="font-bold">
                         Inspector Dashboard
                     </Typography>
+
+                    {data.assignedLocation ? (
+                        <Chip
+                            icon={<LocationOnIcon />}
+                            label={`Assigned Location: ${data.assignedLocation.name} (${data.assignedLocation.code})`}
+                            color="primary"
+                            variant="outlined"
+                            sx={{
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                py: 1,
+                                px: 0.5,
+                                borderColor: 'primary.main',
+                                backgroundColor: dark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
+                            }}
+                        />
+                    ) : isAdmin ? (
+                        <Chip
+                            icon={<LocationOnIcon />}
+                            label="All Locations (Administrator)"
+                            color="info"
+                            variant="outlined"
+                            sx={{
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                py: 1,
+                                px: 0.5,
+                            }}
+                        />
+                    ) : (
+                        <Chip
+                            icon={<WarningAmberIcon />}
+                            label="No Assigned Location"
+                            color="warning"
+                            variant="outlined"
+                            sx={{
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                py: 1,
+                                px: 0.5,
+                            }}
+                        />
+                    )}
                 </Box>
+
+                {!isAdmin && !data.assignedLocation && (
+                    <Alert
+                        severity="warning"
+                        sx={{
+                            mb: 4,
+                            borderRadius: 2,
+                            fontWeight: 500,
+                            border: '1px solid',
+                            borderColor: 'warning.main',
+                        }}
+                    >
+                        <strong>Notice:</strong> You are not currently assigned to an active location. You will not see pending tests or be able to review tests until an administrator assigns you to a location.
+                    </Alert>
+                )}
 
                 {/* Operational Filters Toolbar */}
                 <Card
@@ -290,16 +358,20 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                 <FormControl fullWidth size="small">
                                     <InputLabel>Location</InputLabel>
                                     <Select
-                                        value={filters.locationId || ''}
+                                        value={filters.locationId || (locations.length === 1 ? locations[0].id : '')}
                                         label="Location"
+                                        disabled={locations.length <= 1}
                                         onChange={(e) => updateFilter('locationId', e.target.value)}
                                     >
-                                        <MenuItem value="">All Locations</MenuItem>
+                                        {locations.length > 1 && <MenuItem value="">All Locations</MenuItem>}
                                         {locations.map((loc) => (
                                             <MenuItem key={loc.id} value={loc.id}>
                                                 {loc.name} ({loc.code})
                                             </MenuItem>
                                         ))}
+                                        {locations.length === 0 && (
+                                            <MenuItem value="" disabled>No Assigned Location</MenuItem>
+                                        )}
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -310,6 +382,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                     <Select
                                         value={filters.deviceId || ''}
                                         label="Device"
+                                        disabled={devices.length === 0}
                                         onChange={(e) => updateFilter('deviceId', e.target.value)}
                                     >
                                         <MenuItem value="">All Devices</MenuItem>
@@ -318,6 +391,9 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                                 {dev.name} ({dev.deviceCode})
                                             </MenuItem>
                                         ))}
+                                        {devices.length === 0 && (
+                                            <MenuItem value="" disabled>No Devices Available</MenuItem>
+                                        )}
                                     </Select>
                                 </FormControl>
                             </Grid>

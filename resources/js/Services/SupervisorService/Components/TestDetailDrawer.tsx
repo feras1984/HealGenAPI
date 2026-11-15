@@ -178,6 +178,50 @@ const TestDetailDrawer: React.FC = () => {
                 </Grid>
             </Grid>
 
+            {/* Inspector Review Attribution */}
+            {selectedTest.reviewedBy && (
+                <>
+                    <Divider className="mb-4" />
+                    <Typography variant="subtitle2" color="text.primary" className="font-semibold mb-2">
+                        Inspector Review Attribution
+                    </Typography>
+                    <Grid container spacing={2} className="mb-4">
+                        <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary">Reviewed By</Typography>
+                            <Typography variant="body2" color="text.primary" className="font-semibold">
+                                {selectedTest.reviewedBy.name || selectedTest.reviewedBy.email || '-'}
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary">Inspector Decision</Typography>
+                            <Box sx={{ mt: 0.5 }}>
+                                <Chip
+                                    label={selectedTest.reviewedBy.action === 'INSPECTOR_ACCEPT' ? 'Accepted by Inspector' : selectedTest.reviewedBy.action}
+                                    color="success"
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontWeight: 600 }}
+                                />
+                            </Box>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography variant="caption" color="text.secondary">Review Timestamp</Typography>
+                            <Typography variant="body2" color="text.primary">
+                                {selectedTest.reviewedBy.reviewedAt || '-'}
+                            </Typography>
+                        </Grid>
+                        {selectedTest.reviewedBy.reason && (
+                            <Grid item xs={12}>
+                                <Typography variant="caption" color="text.secondary">Inspector Note</Typography>
+                                <Typography variant="body2" color="text.primary">
+                                    {selectedTest.reviewedBy.reason}
+                                </Typography>
+                            </Grid>
+                        )}
+                    </Grid>
+                </>
+            )}
+
             <Divider className="mb-4" />
 
             {/* Read-Only Medical Substances Results Table */}
