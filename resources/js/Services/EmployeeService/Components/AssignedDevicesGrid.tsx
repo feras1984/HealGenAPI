@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material';
 import {
     ColumnDirective,
@@ -7,8 +7,14 @@ import {
     Inject,
     Page,
     Sort,
-    Filter
+    Filter,
+    Toolbar,
+    Search,
+    ExcelExport,
+    PdfExport
 } from "@syncfusion/ej2-react-grids";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useEmployeeContext } from "@/Services/EmployeeService/State/EmployeeContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 
@@ -28,6 +34,7 @@ const AssignedDevicesGrid: React.FC = () => {
     const { data } = useEmployeeContext();
     const devices = data.assignedDevices || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const gridRef = useRef<GridComponent | null>(null);
 
     return (
         <Card
@@ -55,10 +62,21 @@ const AssignedDevicesGrid: React.FC = () => {
                 ) : (
                     <Box className="w-full overflow-x-auto">
                         <GridComponent
+                            ref={gridRef}
                             dataSource={devices}
                             allowPaging={true}
                             allowSorting={true}
                             allowFiltering={true}
+                            allowExcelExport={true}
+                            allowPdfExport={true}
+                            toolbar={['ExcelExport', 'PdfExport', 'Search']}
+                            toolbarClick={(args: ClickEventArgs) =>
+                                handleGridToolbarClick(gridRef.current, args, {
+                                    fileName: 'My_Assigned_Devices',
+                                    title: 'My Assigned Devices',
+                                    isLandscape: false
+                                })
+                            }
                             pageSettings={{ pageSize: 5 }}
                             rowHeight={45}
                         >
@@ -69,7 +87,7 @@ const AssignedDevicesGrid: React.FC = () => {
                                 <ColumnDirective field="locationName" headerText="Location" width="160" textAlign="Center" />
                                 <ColumnDirective field="isActive" headerText="Status" width="130" textAlign="Center" template={StatusTemplate} />
                             </ColumnsDirective>
-                            <Inject services={[Page, Sort, Filter]} />
+                            <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>
                     </Box>
                 )}

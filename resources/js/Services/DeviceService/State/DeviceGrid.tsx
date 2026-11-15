@@ -17,6 +17,8 @@ import { Box } from "@mui/material";
 import EditButton from "@/Services/DeviceService/Components/EditButton";
 import ActiveForm from "@/Services/DeviceService/Components/ActiveForm";
 import { useDeviceContext } from "@/Services/DeviceService/State/DeviceContext";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 
 const deviceGridColumns: (GridColumnModel | GridColumnDirTypecast)[] = [
     { type: 'checkbox', width: '50' },
@@ -124,7 +126,14 @@ const DeviceGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
-                toolbar={['Delete', 'Search']}
+                toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
+                toolbarClick={(args: ClickEventArgs) =>
+                    handleGridToolbarClick(grid, args, {
+                        fileName: 'Devices_Master_Catalog',
+                        title: 'Devices Master Catalog',
+                        isLandscape: true
+                    })
+                }
                 editSettings={{
                     allowDeleting: true,
                     showDeleteConfirmDialog: true,

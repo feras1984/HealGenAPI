@@ -18,6 +18,8 @@ import EditButton from "@/Services/LocationService/Components/EditButton";
 import ActiveForm from "@/Services/LocationService/Components/ActiveForm";
 import { useLocationContext } from "@/Services/LocationService/State/LocationContext";
 import { LocationGridProps } from "@/Services/LocationService/Interfaces/LocationProps";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 
 const locationGridColumns: (GridColumnModel | GridColumnDirTypecast)[] = [
     { type: 'checkbox', width: '50' },
@@ -113,7 +115,14 @@ const LocationGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
-                toolbar={['Delete', 'Search']}
+                toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
+                toolbarClick={(args: ClickEventArgs) =>
+                    handleGridToolbarClick(grid, args, {
+                        fileName: 'Locations_Master_Catalog',
+                        title: 'Locations Master Catalog',
+                        isLandscape: false
+                    })
+                }
                 editSettings={{
                     allowDeleting: true,
                     showDeleteConfirmDialog: true,

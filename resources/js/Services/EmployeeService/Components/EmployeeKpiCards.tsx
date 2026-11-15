@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { useEmployeeContext } from "@/Services/EmployeeService/State/EmployeeContext";
 import { useAppSelector } from "@/Redux/Store/hook";
-import StatusDonutChart from "@/Components/Charts/StatusDonutChart";
 
 const EmployeeKpiCards: React.FC = () => {
     const { data, loading } = useEmployeeContext();
@@ -81,18 +80,6 @@ const EmployeeKpiCards: React.FC = () => {
                         </Card>
                     </Grid>
                 ))}
-            </Grid>
-
-            {/* Line 2: Donut Diagram */}
-            <Grid container spacing={2} justifyContent="center">
-                <Grid item xs={12}>
-                    <StatusDonutChart
-                        data={data.testsByStatus || []}
-                        title="Status Distribution"
-                        subtitle="Distribution of test statuses across your assigned devices"
-                        loading={loading}
-                    />
-                </Grid>
             </Grid>
         </Box>
     );

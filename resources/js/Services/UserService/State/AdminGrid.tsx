@@ -20,6 +20,8 @@ import adminService from "@/Services/UserService/AdminService";
 import {useAdminContext} from "@/Services/UserService/State/AdminsContext";
 import ActiveForm from "@/Services/UserService/Components/ActiveForm";
 import ImageTemplate from "@/Services/UserService/Components/ImageTemplate";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 
 
 interface PatientElement extends Element{
@@ -138,7 +140,14 @@ const AdminGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
-                toolbar={['Delete', 'Search']}
+                toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
+                toolbarClick={(args: ClickEventArgs) =>
+                    handleGridToolbarClick(grid, args, {
+                        fileName: 'Users_Master_Catalog',
+                        title: 'Users Master Catalog',
+                        isLandscape: true
+                    })
+                }
                 editSettings={{allowDeleting: true,
                     // allowEditing: true,
                     showDeleteConfirmDialog:true}}

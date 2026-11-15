@@ -44,6 +44,16 @@ class PatientHeader extends Model
         return $this->hasMany(PatientTestAction::class, 'patient_header_id', 'Id');
     }
 
+    public function file(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    {
+        return $this->morphOne(File::class, 'reference', 'reference_type', 'reference_id', 'Id')->latestOfMany('id');
+    }
+
+    public function files(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(File::class, 'reference', 'reference_type', 'reference_id', 'Id');
+    }
+
     public function latestInspectorAction(): HasOne
     {
         return $this->hasOne(PatientTestAction::class, 'patient_header_id', 'Id')

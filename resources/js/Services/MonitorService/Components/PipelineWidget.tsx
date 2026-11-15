@@ -42,14 +42,14 @@ const PipelineWidget: React.FC = () => {
             className="mb-6"
             sx={{
                 borderRadius: 2,
-                backgroundColor: dark ? 'var(--clr-bg-content-dark, #334155)' : '#ffffff',
+                backgroundColor: dark ? '#1e293b' : '#ffffff',
                 border: '1px solid',
                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                 boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 4px rgba(0,0,0,0.05)',
             }}
         >
             <CardContent>
-                <Typography variant="h6" color="text.primary" className="mb-4 font-semibold">
+                <Typography variant="h6" sx={{ color: dark ? '#f8fafc' : '#0f172a', mb: 2, fontWeight: 600 }}>
                     Test Operations Pipeline
                 </Typography>
                 <Grid container spacing={2} alignItems="center" justifyContent="center">

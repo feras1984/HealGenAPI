@@ -36,12 +36,44 @@ const AdminFilterToolbar: React.FC = () => {
     } = useAdminDashboardContext();
     const dark = useAppSelector(state => state.theme.dark);
 
+    const inputSx = {
+        backgroundColor: dark ? '#0f172a' : '#ffffff',
+        color: dark ? '#f8fafc' : '#0f172a',
+        borderRadius: 1,
+        '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: dark ? '#475569' : '#cbd5e1',
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: dark ? '#94a3b8' : '#64748b',
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: dark ? '#38bdf8' : '#2563eb',
+        },
+        '& .MuiSelect-select': {
+            color: dark ? '#f8fafc' : '#0f172a',
+        },
+        '& .MuiSelect-icon': {
+            color: dark ? '#94a3b8' : '#64748b',
+        },
+        '& input': {
+            color: dark ? '#f8fafc' : '#0f172a',
+            backgroundColor: dark ? '#0f172a' : '#ffffff',
+        },
+    };
+
+    const labelSx = {
+        color: dark ? '#94a3b8' : '#475569',
+        '&.Mui-focused': {
+            color: dark ? '#38bdf8' : '#2563eb',
+        },
+    };
+
     return (
         <Card
             className="mb-6"
             sx={{
                 borderRadius: 2,
-                backgroundColor: dark ? 'var(--clr-bg-content-dark, #334155)' : '#ffffff',
+                backgroundColor: dark ? '#1e293b' : '#ffffff',
                 border: '1px solid',
                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                 boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 4px rgba(0,0,0,0.05)',
@@ -49,7 +81,7 @@ const AdminFilterToolbar: React.FC = () => {
         >
             <CardContent>
                 <Box className="flex flex-wrap items-center justify-between mb-4">
-                    <Typography variant="h6" color="text.primary" className="font-semibold">
+                    <Typography variant="h6" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
                         System Operations Filters
                     </Typography>
                     <Box className="flex items-center space-x-3">
@@ -63,7 +95,7 @@ const AdminFilterToolbar: React.FC = () => {
                                 />
                             }
                             label={
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography variant="body2" sx={{ color: dark ? '#cbd5e1' : '#475569' }}>
                                     Auto-refresh (10s)
                                 </Typography>
                             }
@@ -80,7 +112,7 @@ const AdminFilterToolbar: React.FC = () => {
                                 </IconButton>
                             </span>
                         </Tooltip>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" sx={{ color: dark ? '#94a3b8' : '#64748b' }}>
                             Updated: {lastUpdated.toLocaleTimeString()}
                         </Typography>
                     </Box>
@@ -89,11 +121,20 @@ const AdminFilterToolbar: React.FC = () => {
                 <Grid container spacing={2} alignItems="center" justifyContent="flex-start">
                     <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                         <FormControl fullWidth size="small">
-                            <InputLabel>Location</InputLabel>
+                            <InputLabel sx={labelSx}>Location</InputLabel>
                             <Select
                                 value={filters.locationId || ''}
                                 label="Location"
                                 onChange={(e) => updateFilter('locationId', e.target.value)}
+                                sx={inputSx}
+                                MenuProps={{
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: dark ? '#1e293b' : '#ffffff',
+                                            color: dark ? '#f8fafc' : '#0f172a',
+                                        }
+                                    }
+                                }}
                             >
                                 <MenuItem value="">All Locations</MenuItem>
                                 {locations.map((loc) => (
@@ -107,11 +148,20 @@ const AdminFilterToolbar: React.FC = () => {
 
                     <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                         <FormControl fullWidth size="small">
-                            <InputLabel>Device</InputLabel>
+                            <InputLabel sx={labelSx}>Device</InputLabel>
                             <Select
                                 value={filters.deviceId || ''}
                                 label="Device"
                                 onChange={(e) => updateFilter('deviceId', e.target.value)}
+                                sx={inputSx}
+                                MenuProps={{
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: dark ? '#1e293b' : '#ffffff',
+                                            color: dark ? '#f8fafc' : '#0f172a',
+                                        }
+                                    }
+                                }}
                             >
                                 <MenuItem value="">All Devices</MenuItem>
                                 {devices.map((dev) => (
@@ -129,9 +179,10 @@ const AdminFilterToolbar: React.FC = () => {
                             size="small"
                             type="date"
                             label="Date"
-                            InputLabelProps={{ shrink: true }}
+                            InputLabelProps={{ shrink: true, sx: labelSx }}
                             value={filters.date || ''}
                             onChange={(e) => updateFilter('date', e.target.value)}
+                            sx={inputSx}
                         />
                     </Grid>
 
@@ -141,8 +192,10 @@ const AdminFilterToolbar: React.FC = () => {
                             size="small"
                             label="Search"
                             placeholder="Patient ID, Donor, Site..."
+                            InputLabelProps={{ sx: labelSx }}
                             value={filters.search || ''}
                             onChange={(e) => updateFilter('search', e.target.value)}
+                            sx={inputSx}
                         />
                     </Grid>
 
@@ -154,6 +207,14 @@ const AdminFilterToolbar: React.FC = () => {
                             onClick={clearFilters}
                             size="small"
                             fullWidth
+                            sx={{
+                                color: dark ? '#cbd5e1' : '#475569',
+                                borderColor: dark ? '#475569' : '#cbd5e1',
+                                '&:hover': {
+                                    borderColor: dark ? '#94a3b8' : '#64748b',
+                                    backgroundColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                                }
+                            }}
                         >
                             Reset
                         </Button>

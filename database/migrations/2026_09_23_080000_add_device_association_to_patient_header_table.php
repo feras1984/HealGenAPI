@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('PatientHeader')) {
+            return;
+        }
+
         Schema::table('PatientHeader', function (Blueprint $table) {
             if (!Schema::hasColumn('PatientHeader', 'DeviceId')) {
                 $table->unsignedBigInteger('DeviceId')->nullable();
@@ -32,15 +36,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-//        Schema::table('PatientHeader', function (Blueprint $table) {
-//            $table->dropForeign(['DeviceId']);
-//            if (Schema::hasColumn('PatientHeader', 'DeviceId')) {
-//                $table->dropColumn('DeviceId');
-//            }
-//            if (Schema::hasColumn('PatientHeader', 'DeviceCode')) {
-//                $table->dropColumn('DeviceCode');
-//            }
-//        });
+        if (!Schema::hasTable('PatientHeader')) {
+            return;
+        }
 
         Schema::table('PatientHeader', function (Blueprint $table) {
             // Preserve DeviceId and DeviceCode.

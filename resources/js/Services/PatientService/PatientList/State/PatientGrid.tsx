@@ -17,6 +17,8 @@ import {usePatientContext} from "@/Services/PatientService/PatientList/State/Pat
 import {GridActionEventArgs, SearchEventArgs} from "@syncfusion/ej2-grids/src/grid/base/interface";
 import {Box} from "@mui/material";
 import EditButton from "@/Services/PatientService/PatientList/Components/EditButton";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 
 
 interface PatientElement extends Element{
@@ -168,7 +170,7 @@ const PatientGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
-                toolbar={['Delete', 'Search']}
+                toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
                 editSettings={{allowDeleting: true,
                     // allowEditing: true,
                     showDeleteConfirmDialog:true}}
@@ -178,7 +180,13 @@ const PatientGrid = () => {
                 allowRowDragAndDrop={true}
                 selectionSettings={selectionSettings}
                 rowDrop={rowDrop}
-                // toolbarClick={handleExport}
+                toolbarClick={(args: ClickEventArgs) =>
+                    handleGridToolbarClick(grid, args, {
+                        fileName: 'Patients_Test_Results',
+                        title: 'Patients Test Results',
+                        isLandscape: true
+                    })
+                }
             >
                 <ColumnsDirective>
                     {blocksGrid.map((item, key) => (

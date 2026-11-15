@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Box, Card, CardContent, Typography, Button, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
@@ -10,8 +10,12 @@ import {
     Sort,
     Filter,
     Toolbar,
-    Search
+    Search,
+    ExcelExport,
+    PdfExport
 } from "@syncfusion/ej2-react-grids";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useInspectorContext } from "@/Services/InspectorService/State/InspectorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 
@@ -48,6 +52,7 @@ const PendingQueueGrid: React.FC = () => {
     const { data } = useInspectorContext();
     const queue = data.pendingQueue || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const gridRef = useRef<GridComponent | null>(null);
 
     const mappedGridData = queue.map(pt => ({
         id: pt.id,
@@ -87,10 +92,21 @@ const PendingQueueGrid: React.FC = () => {
                 ) : (
                     <Box className="w-full overflow-x-auto">
                         <GridComponent
+                            ref={gridRef}
                             dataSource={mappedGridData}
                             allowPaging={true}
                             allowSorting={true}
                             allowFiltering={true}
+                            allowExcelExport={true}
+                            allowPdfExport={true}
+                            toolbar={['ExcelExport', 'PdfExport', 'Search']}
+                            toolbarClick={(args: ClickEventArgs) =>
+                                handleGridToolbarClick(gridRef.current, args, {
+                                    fileName: 'Pending_Inspection_Queue',
+                                    title: 'Pending Inspection Queue',
+                                    isLandscape: true
+                                })
+                            }
                             pageSettings={{ pageSize: 10 }}
                             rowHeight={50}
                         >
@@ -105,7 +121,7 @@ const PendingQueueGrid: React.FC = () => {
                                 <ColumnDirective field="createdAt" headerText="Received Time" width="160" textAlign="Center" />
                                 <ColumnDirective headerText="Inspect" width="140" textAlign="Center" template={ActionTemplate} />
                             </ColumnsDirective>
-                            <Inject services={[Page, Sort, Filter, Toolbar, Search]} />
+                            <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>
                     </Box>
                 )}

@@ -40,7 +40,7 @@ const AdminLayout = ({children }: PropsWithChildren<{header?: ReactNode }>) => {
                 </Box>
                 <Box component="div"
                      className={` grow ${expand ? 'ms-[256px]' : 'ms-0'} ${expand ? styles.addMargin : styles.removeMargin}`}>
-                    <Box component="div" className={`h-[60px] ${styles.boxShadow} ${dark ? 'dark' : 'light'}`}>
+                    <Box component="div" className={`h-[60px] ${styles.boxShadow} ${dark ? 'dark' : 'light'}`} sx={{ bgcolor: dark ? '#1f2937' : '#ffffff', color: dark ? '#f8fafc' : '#1e293b' }}>
                         <Header handleExpand={handleExpand} />
                     </Box>
                     <Box component="div" className={`content p-[16px] bg-scroll`}>

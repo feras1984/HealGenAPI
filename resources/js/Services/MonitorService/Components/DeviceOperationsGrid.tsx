@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material';
 import {
     ColumnDirective,
@@ -7,8 +7,14 @@ import {
     Inject,
     Page,
     Sort,
-    Filter
+    Filter,
+    Toolbar,
+    Search,
+    ExcelExport,
+    PdfExport
 } from "@syncfusion/ej2-react-grids";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useMonitorContext } from "@/Services/MonitorService/State/MonitorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 
@@ -28,13 +34,14 @@ const DeviceOperationsGrid: React.FC = () => {
     const { data } = useMonitorContext();
     const devices = data.deviceOperations || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const gridRef = useRef<GridComponent | null>(null);
 
     return (
         <Card
             className="mb-6"
             sx={{
                 borderRadius: 2,
-                backgroundColor: dark ? 'var(--clr-bg-content-dark, #334155)' : '#ffffff',
+                backgroundColor: dark ? '#1e293b' : '#ffffff',
                 border: '1px solid',
                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                 boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 4px rgba(0,0,0,0.05)',
@@ -42,16 +49,27 @@ const DeviceOperationsGrid: React.FC = () => {
         >
             <CardContent>
                 <Box className="flex justify-between items-center mb-3">
-                    <Typography variant="h6" color="text.primary" className="font-semibold">
+                    <Typography variant="h6" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
                         Device Operations ({devices.length})
                     </Typography>
                 </Box>
                 <Box className="w-full overflow-x-auto">
                     <GridComponent
+                        ref={gridRef}
                         dataSource={devices}
                         allowPaging={true}
                         allowSorting={true}
                         allowFiltering={true}
+                        allowExcelExport={true}
+                        allowPdfExport={true}
+                        toolbar={['ExcelExport', 'PdfExport', 'Search']}
+                        toolbarClick={(args: ClickEventArgs) =>
+                            handleGridToolbarClick(gridRef.current, args, {
+                                fileName: 'Device_Operations',
+                                title: 'Device Operations',
+                                isLandscape: true
+                            })
+                        }
                         pageSettings={{ pageSize: 10 }}
                         rowHeight={45}
                     >
@@ -64,7 +82,7 @@ const DeviceOperationsGrid: React.FC = () => {
                             <ColumnDirective field="lastResultAt" headerText="Last Result" width="180" textAlign="Center" />
                             <ColumnDirective field="resultsTodayCount" headerText="Results Today" width="140" textAlign="Center" />
                         </ColumnsDirective>
-                        <Inject services={[Page, Sort, Filter]} />
+                        <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                     </GridComponent>
                 </Box>
             </CardContent>

@@ -1,10 +1,28 @@
 import React from 'react';
-import { Box, Card, CardContent, Typography, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import {
+    Box,
+    Card,
+    CardContent,
+    Typography,
+    Grid,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Button,
+    Stack
+} from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import DevicesIcon from '@mui/icons-material/Devices';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useMonitorContext } from "@/Services/MonitorService/State/MonitorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { exportCustomTableToExcel, exportCustomTableToPdf } from "@/Utils/GridExportHelper";
 
 const RoleOperationsGrid: React.FC = () => {
     const { data } = useMonitorContext();
@@ -24,21 +42,96 @@ const RoleOperationsGrid: React.FC = () => {
         { role: 'Employee', count: roleOps.roles.Employee || 0 },
     ];
 
+    const getExportData = () => {
+        const columns = ['Metric / Role', 'Count'];
+        const rows: (string | number)[][] = [
+            ['Total System Users', roleOps.totalUsers],
+            ['Active Account Users', roleOps.activeUsers],
+            ['Assigned to Devices', roleOps.assignedDeviceUsers],
+            ...roleRows.map(r => [r.role, r.count])
+        ];
+        return { columns, rows };
+    };
+
+    const handleExportExcel = () => {
+        const { columns, rows } = getExportData();
+        exportCustomTableToExcel({
+            fileName: 'Role_User_Operations',
+            title: 'Role & User Operational State',
+            columns,
+            rows
+        });
+    };
+
+    const handleExportPdf = () => {
+        const { columns, rows } = getExportData();
+        exportCustomTableToPdf({
+            fileName: 'Role_User_Operations',
+            title: 'Role & User Operational State',
+            columns,
+            rows
+        });
+    };
+
     return (
         <Card
             className="mb-6"
             sx={{
                 borderRadius: 2,
-                backgroundColor: dark ? 'var(--clr-bg-content-dark, #334155)' : '#ffffff',
+                backgroundColor: dark ? '#1e293b' : '#ffffff',
                 border: '1px solid',
                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                 boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 4px rgba(0,0,0,0.05)',
             }}
         >
             <CardContent>
-                <Typography variant="h6" color="text.primary" className="mb-4 font-semibold">
-                    Role & User Operational State
-                </Typography>
+                <Box className="flex flex-wrap items-center justify-between mb-3 gap-2">
+                    <Typography variant="h6" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
+                        Role & User Operational State
+                    </Typography>
+                    <Stack direction="row" spacing={1.5}>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<TableChartIcon sx={{ color: '#10b981' }} />}
+                            onClick={handleExportExcel}
+                            sx={{
+                                textTransform: 'none',
+                                borderRadius: 1.5,
+                                fontWeight: 600,
+                                borderColor: dark ? '#475569' : '#cbd5e1',
+                                color: dark ? '#f8fafc' : '#0f172a',
+                                backgroundColor: dark ? '#0f172a' : '#ffffff',
+                                '&:hover': {
+                                    borderColor: '#10b981',
+                                    backgroundColor: dark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
+                                }
+                            }}
+                        >
+                            Export Excel
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<PictureAsPdfIcon sx={{ color: '#ef4444' }} />}
+                            onClick={handleExportPdf}
+                            sx={{
+                                textTransform: 'none',
+                                borderRadius: 1.5,
+                                fontWeight: 600,
+                                borderColor: dark ? '#475569' : '#cbd5e1',
+                                color: dark ? '#f8fafc' : '#0f172a',
+                                backgroundColor: dark ? '#0f172a' : '#ffffff',
+                                '&:hover': {
+                                    borderColor: '#ef4444',
+                                    backgroundColor: dark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
+                                }
+                            }}
+                        >
+                            Export PDF
+                        </Button>
+                    </Stack>
+                </Box>
                 <Grid container spacing={3} justifyContent="center">
                     <Grid item xs={12} md={4}>
                         <Paper
@@ -112,24 +205,24 @@ const RoleOperationsGrid: React.FC = () => {
                             variant="outlined"
                             sx={{
                                 borderRadius: 2,
-                                backgroundColor: dark ? 'rgba(15, 23, 42, 0.4)' : '#ffffff',
+                                backgroundColor: dark ? '#0f172a' : '#ffffff',
                                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                             }}
                         >
                             <Table size="small">
-                                <TableHead sx={{ backgroundColor: dark ? 'rgba(15, 23, 42, 0.8)' : '#f8fafc' }}>
+                                <TableHead sx={{ backgroundColor: dark ? '#111827' : '#f1f5f9' }}>
                                     <TableRow>
-                                        <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Role Name</TableCell>
-                                        <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>User Count</TableCell>
+                                        <TableCell sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#374151' : '#cbd5e1' }}>Role Name</TableCell>
+                                        <TableCell align="right" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#374151' : '#cbd5e1' }}>User Count</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {roleRows.map((r) => (
                                         <TableRow key={r.role} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                            <TableCell component="th" scope="row" sx={{ color: dark ? '#cbd5e1' : '#334155' }}>
+                                            <TableCell component="th" scope="row" sx={{ color: dark ? '#f8fafc' : '#0f172a', borderColor: dark ? '#334155' : '#f1f5f9' }}>
                                                 {r.role}
                                             </TableCell>
-                                            <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#1e293b', fontWeight: 600 }}>
+                                            <TableCell align="right" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#334155' : '#f1f5f9' }}>
                                                 {r.count}
                                             </TableCell>
                                         </TableRow>

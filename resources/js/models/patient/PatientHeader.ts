@@ -18,6 +18,15 @@ class PatientHeader {
         reviewedAt?: string;
         reason?: string;
     } | null;
+    attachment?: {
+        id: number;
+        name: string;
+        url: string;
+        downloadUrl: string;
+        isImage: boolean;
+        description?: string;
+        createdAt: string;
+    } | null;
     createdAt: string;
 
     constructor( {
@@ -30,6 +39,7 @@ class PatientHeader {
         device = null as Device | null,
         tests = [] as PatientTest[],
         reviewedBy = null,
+        attachment = null,
         createdAt = '',
                  } = {}) {
         this.id = id;
@@ -41,6 +51,7 @@ class PatientHeader {
         this.device = device ? new Device(device) : null;
         this.tests = [...tests];
         this.reviewedBy = reviewedBy;
+        this.attachment = attachment;
         this.createdAt = createdAt;
     }
 }

@@ -95,7 +95,7 @@ class EmployeeDashboardService
             return [];
         }
 
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests'])
+        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests', 'file'])
             ->whereIn('DeviceId', $assignedDeviceIds);
 
         if (!empty($filters['locationId'])) {

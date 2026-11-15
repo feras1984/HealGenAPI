@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Head } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/Admin/AdminLayout";
 import {
@@ -25,8 +25,12 @@ import {
     Sort,
     Filter,
     Toolbar,
-    Search
+    Search,
+    ExcelExport,
+    PdfExport
 } from "@syncfusion/ej2-react-grids";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { SystemAuditLogItem, AuditLogFilterParams } from "@/models/audit/SystemAuditLogData";
 import { useAppSelector } from "@/Redux/Store/hook";
 import axios from 'axios';
@@ -64,6 +68,7 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
     const [filters, setFiltersState] = useState<AuditLogFilterParams>(initialFilters);
     const [loading, setLoading] = useState<boolean>(false);
     const dark = useAppSelector(state => state.theme.dark);
+    const gridRef = useRef<GridComponent | null>(null);
 
     const fetchLogs = (currentFilters: AuditLogFilterParams) => {
         setLoading(true);
@@ -195,10 +200,21 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                         ) : (
                             <Box className="w-full overflow-x-auto">
                                 <GridComponent
+                                    ref={gridRef}
                                     dataSource={logs}
                                     allowPaging={true}
                                     allowSorting={true}
                                     allowFiltering={true}
+                                    allowExcelExport={true}
+                                    allowPdfExport={true}
+                                    toolbar={['ExcelExport', 'PdfExport', 'Search']}
+                                    toolbarClick={(args: ClickEventArgs) =>
+                                        handleGridToolbarClick(gridRef.current, args, {
+                                            fileName: 'System_Audit_Logs',
+                                            title: 'System Audit Logs',
+                                            isLandscape: true
+                                        })
+                                    }
                                     pageSettings={{ pageSize: 15 }}
                                     rowHeight={45}
                                 >
@@ -213,7 +229,7 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                                         <ColumnDirective field="ipAddress" headerText="IP Address" width="130" textAlign="Center" />
                                         <ColumnDirective field="createdAt" headerText="Timestamp" width="180" textAlign="Center" />
                                     </ColumnsDirective>
-                                    <Inject services={[Page, Sort, Filter, Toolbar, Search]} />
+                                    <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                                 </GridComponent>
                             </Box>
                         )}

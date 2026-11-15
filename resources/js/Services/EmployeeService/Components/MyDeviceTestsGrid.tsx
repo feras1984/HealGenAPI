@@ -1,5 +1,9 @@
-import React from 'react';
-import { Box, Card, CardContent, Typography, Chip } from '@mui/material';
+import React, { useRef } from 'react';
+import { Box, Card, CardContent, Typography, Chip, Button } from '@mui/material';
+import { Link } from '@inertiajs/react';
+import DownloadIcon from '@mui/icons-material/Download';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     ColumnDirective,
     ColumnsDirective,
@@ -9,8 +13,12 @@ import {
     Sort,
     Filter,
     Toolbar,
-    Search
+    Search,
+    ExcelExport,
+    PdfExport
 } from "@syncfusion/ej2-react-grids";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useEmployeeContext } from "@/Services/EmployeeService/State/EmployeeContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 
@@ -42,10 +50,59 @@ const StatusTemplate = (props: any) => {
     );
 };
 
+const AttachmentTemplate = (props: any) => {
+    if (props.attachment) {
+        return (
+            <Button
+                component="a"
+                href={`/tests/${props.id}/file/download`}
+                variant="outlined"
+                color={props.attachment.isImage ? "primary" : "error"}
+                size="small"
+                startIcon={<DownloadIcon sx={{ fontSize: 16 }} />}
+                sx={{ textTransform: 'none', borderRadius: 1.5, py: 0.25, fontSize: '0.75rem' }}
+            >
+                {props.attachment.isImage ? 'Image' : 'PDF'}
+            </Button>
+        );
+    }
+
+    return (
+        <Button
+            component={Link}
+            href={`/tests/${props.id}`}
+            variant="text"
+            color="primary"
+            size="small"
+            startIcon={<CloudUploadIcon sx={{ fontSize: 16 }} />}
+            sx={{ textTransform: 'none', py: 0.25, fontSize: '0.75rem' }}
+        >
+            Upload
+        </Button>
+    );
+};
+
+const ActionTemplate = (props: any) => {
+    return (
+        <Button
+            component={Link}
+            href={`/tests/${props.id}`}
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<VisibilityIcon sx={{ fontSize: 16 }} />}
+            sx={{ textTransform: 'none', borderRadius: 1.5, py: 0.25, fontSize: '0.75rem' }}
+        >
+            Details
+        </Button>
+    );
+};
+
 const MyDeviceTestsGrid: React.FC = () => {
     const { data } = useEmployeeContext();
     const tests = data.recentTests || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const gridRef = useRef<GridComponent | null>(null);
 
     const mappedGridData = tests.map(pt => ({
         id: pt.id,
@@ -55,6 +112,7 @@ const MyDeviceTestsGrid: React.FC = () => {
         deviceName: pt.device?.name || pt.deviceName || '-',
         locationName: pt.device?.locationName || pt.locationName || '-',
         status: pt.status,
+        attachment: pt.attachment,
         createdAt: pt.createdAt,
     }));
 
@@ -84,24 +142,37 @@ const MyDeviceTestsGrid: React.FC = () => {
                 ) : (
                     <Box className="w-full overflow-x-auto">
                         <GridComponent
+                            ref={gridRef}
                             dataSource={mappedGridData}
                             allowPaging={true}
                             allowSorting={true}
                             allowFiltering={true}
+                            allowExcelExport={true}
+                            allowPdfExport={true}
+                            toolbar={['ExcelExport', 'PdfExport', 'Search']}
+                            toolbarClick={(args: ClickEventArgs) =>
+                                handleGridToolbarClick(gridRef.current, args, {
+                                    fileName: 'My_Assigned_Device_Tests',
+                                    title: 'Tests Ingested from My Assigned Devices',
+                                    isLandscape: true
+                                })
+                            }
                             pageSettings={{ pageSize: 10 }}
                             rowHeight={45}
                         >
                             <ColumnsDirective>
-                                <ColumnDirective field="id" headerText="Id" width="80" textAlign="Center" />
-                                <ColumnDirective field="patientId" headerText="Patient Code" width="180" textAlign="Center" />
-                                <ColumnDirective field="donorId" headerText="Donor Name" width="200" textAlign="Center" />
-                                <ColumnDirective field="deviceCode" headerText="Device Code" width="160" textAlign="Center" />
-                                <ColumnDirective field="deviceName" headerText="Device Name" width="180" textAlign="Center" />
-                                <ColumnDirective field="locationName" headerText="Location" width="160" textAlign="Center" />
-                                <ColumnDirective field="status" headerText="Status" width="180" textAlign="Center" template={StatusTemplate} />
-                                <ColumnDirective field="createdAt" headerText="Received Time" width="160" textAlign="Center" />
+                                <ColumnDirective field="id" headerText="Id" width="70" textAlign="Center" />
+                                <ColumnDirective field="patientId" headerText="Patient Code" width="160" textAlign="Center" />
+                                <ColumnDirective field="donorId" headerText="Donor Name" width="180" textAlign="Center" />
+                                <ColumnDirective field="deviceCode" headerText="Device Code" width="140" textAlign="Center" />
+                                <ColumnDirective field="deviceName" headerText="Device Name" width="160" textAlign="Center" />
+                                <ColumnDirective field="locationName" headerText="Location" width="150" textAlign="Center" />
+                                <ColumnDirective field="status" headerText="Status" width="170" textAlign="Center" template={StatusTemplate} />
+                                <ColumnDirective field="attachment" headerText="File" width="130" textAlign="Center" template={AttachmentTemplate} />
+                                <ColumnDirective field="actions" headerText="View" width="110" textAlign="Center" template={ActionTemplate} />
+                                <ColumnDirective field="createdAt" headerText="Received" width="140" textAlign="Center" />
                             </ColumnsDirective>
-                            <Inject services={[Page, Sort, Filter, Toolbar, Search]} />
+                            <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>
                     </Box>
                 )}

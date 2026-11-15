@@ -17,6 +17,8 @@ import { Box } from "@mui/material";
 import UnassignButton from "@/Services/DeviceUserService/Components/UnassignButton";
 import ActiveForm from "@/Services/DeviceUserService/Components/ActiveForm";
 import { useDeviceUserContext } from "@/Services/DeviceUserService/State/DeviceUserContext";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 
 const deviceUserGridColumns: (GridColumnModel | GridColumnDirTypecast)[] = [
     { type: 'checkbox', width: '50' },
@@ -118,7 +120,14 @@ const DeviceUserGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
-                toolbar={['Delete', 'Search']}
+                toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
+                toolbarClick={(args: ClickEventArgs) =>
+                    handleGridToolbarClick(grid, args, {
+                        fileName: 'Device_User_Assignments',
+                        title: 'Device User Assignments',
+                        isLandscape: true
+                    })
+                }
                 editSettings={{
                     allowDeleting: true,
                     showDeleteConfirmDialog: true,

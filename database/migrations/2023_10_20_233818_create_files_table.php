@@ -26,7 +26,7 @@ return new class extends Migration
             $table->boolean('is_cover')->default(false);
             $table->timestamps();
 
-            $table->index(['reference_id', 'reference_type'], 'reference');
+            $table->index(['reference_id', 'reference_type'], 'files_reference_index');
         });
         //====================================================================
         /*
@@ -37,7 +37,13 @@ return new class extends Migration
         /*
          * For SQL Sever
          */
-        DB::statement("ALTER TABLE files ADD description NVARCHAR(MAX) NULL;");
+        if (DB::getDriverName() === 'sqlsrv') {
+            DB::statement("ALTER TABLE files ADD description NVARCHAR(MAX) NULL;");
+        } else {
+            Schema::table('files', function (Blueprint $table) {
+                $table->text('description')->nullable();
+            });
+        }
         //====================================================================
 
 

@@ -51,6 +51,23 @@ class PatientHeaderService
             ];
         }
 
+        $file = $patientHeader->relationLoaded('file')
+            ? $patientHeader->file
+            : $patientHeader->file()->first();
+
+        $attachment = null;
+        if ($file) {
+            $attachment = [
+                'id' => $file->id,
+                'name' => $file->name,
+                'url' => \Illuminate\Support\Facades\Storage::disk('public')->url($file->url),
+                'downloadUrl' => route('admin.tests.file.download', $patientHeader->Id),
+                'isImage' => (bool) $file->is_image,
+                'description' => $file->description,
+                'createdAt' => $file->created_at ? Carbon::make($file->created_at)->format('M d, Y H:i') : '',
+            ];
+        }
+
         return [
             'id' => $patientHeader->Id,
             'patientId' => $patientHeader->PatientId,
@@ -61,13 +78,14 @@ class PatientHeaderService
             'device' => $deviceModel,
             'tests' => $testsModel,
             'reviewedBy' => $inspectorData,
+            'attachment' => $attachment,
             'createdAt' => Carbon::make($patientHeader->CreatedAt)->format('M d, Y'),
         ];
     }
 
     public function getPatients(?\App\Models\User $user = null): array
     {
-        $query = PatientHeader::query()->with(['device.location', 'device.deviceType']);
+        $query = PatientHeader::query()->with(['device.location', 'device.deviceType', 'file']);
 
         if ($user) {
             $adminRef = $user->reference()->first();

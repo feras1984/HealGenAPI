@@ -49,19 +49,138 @@ body {
 }
 
 .dark {
-
     background-color: var(--clr-bg-dark);
     color: var(--clr-text-light);
+
     .content {
         background-color: var(--clr-bg-content-dark);
+    }
+
+    /* Form controls in dark mode: dark background and light text */
+    input[type='text'],
+    input[type='date'],
+    input[type='search'],
+    input[type='email'],
+    input[type='password'],
+    input[type='number'],
+    input[type='tel'],
+    input:where(:not([type])),
+    textarea,
+    select {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border-color: #475569 !important;
+
+        &::placeholder {
+            color: #94a3b8 !important;
+        }
+    }
+
+    /* MUI inputs in dark mode */
+    .MuiOutlinedInput-root {
+        background-color: #1e293b;
+        color: #f8fafc;
+        .MuiOutlinedInput-notchedOutline {
+            border-color: #475569;
+        }
+        &:hover .MuiOutlinedInput-notchedOutline {
+            border-color: #94a3b8;
+        }
+        &.Mui-focused .MuiOutlinedInput-notchedOutline {
+            border-color: #38bdf8;
+        }
+        .MuiSelect-icon {
+            color: #94a3b8;
+        }
+    }
+
+    .MuiInputLabel-root {
+        color: #94a3b8;
+        &.Mui-focused {
+            color: #38bdf8;
+        }
+    }
+
+    .MuiMenu-paper {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        .MuiMenuItem-root {
+            color: #f8fafc !important;
+            &:hover {
+                background-color: #334155 !important;
+            }
+            &.Mui-selected {
+                background-color: #0f172a !important;
+            }
+        }
     }
 }
 
 .light {
     background-color: var(--clr-bg-light);
     color: var(--clr-text-dark);
+
     .content {
         background-color: var(--clr-bg-content-light);
+    }
+
+    /* Form controls in light mode: light background and dark text */
+    input[type='text'],
+    input[type='date'],
+    input[type='search'],
+    input[type='email'],
+    input[type='password'],
+    input[type='number'],
+    input[type='tel'],
+    input:where(:not([type])),
+    textarea,
+    select {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+
+        &::placeholder {
+            color: #64748b !important;
+        }
+    }
+
+    /* MUI inputs in light mode */
+    .MuiOutlinedInput-root {
+        background-color: #ffffff;
+        color: #0f172a;
+        .MuiOutlinedInput-notchedOutline {
+            border-color: #cbd5e1;
+        }
+        &:hover .MuiOutlinedInput-notchedOutline {
+            border-color: #64748b;
+        }
+        &.Mui-focused .MuiOutlinedInput-notchedOutline {
+            border-color: #2563eb;
+        }
+        .MuiSelect-icon {
+            color: #475569;
+        }
+    }
+
+    .MuiInputLabel-root {
+        color: #475569;
+        &.Mui-focused {
+            color: #2563eb;
+        }
+    }
+
+    .MuiMenu-paper {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        .MuiMenuItem-root {
+            color: #0f172a !important;
+            &:hover {
+                background-color: #f1f5f9 !important;
+            }
+            &.Mui-selected {
+                background-color: #e2e8f0 !important;
+            }
+        }
     }
 }
 

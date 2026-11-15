@@ -11,16 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('PatientHeader', function (Blueprint $table) {
-            $table->index(['Status', 'DeviceId'], 'idx_ph_status_device');
-            $table->index(['CreatedAt'], 'idx_ph_created_at');
-            $table->index(['PatientId'], 'idx_ph_patient_id');
-            $table->index(['DonorId'], 'idx_ph_donor_id');
-        });
+        if (Schema::hasTable('PatientHeader')) {
+            Schema::table('PatientHeader', function (Blueprint $table) {
+                $table->index(['Status', 'DeviceId'], 'idx_ph_status_device');
+                $table->index(['CreatedAt'], 'idx_ph_created_at');
+                $table->index(['PatientId'], 'idx_ph_patient_id');
+                $table->index(['DonorId'], 'idx_ph_donor_id');
+            });
+        }
 
-        Schema::table('PatientTests', function (Blueprint $table) {
-            $table->index(['PatientHeaderId', 'Substance'], 'idx_pt_header_substance');
-        });
+        if (Schema::hasTable('PatientTests')) {
+            Schema::table('PatientTests', function (Blueprint $table) {
+                $table->index(['PatientHeaderId', 'Substance'], 'idx_pt_header_substance');
+            });
+        }
 
         Schema::table('device_user', function (Blueprint $table) {
             $table->index(['user_id', 'is_active'], 'idx_du_user_active');
@@ -43,16 +47,20 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('PatientHeader', function (Blueprint $table) {
-            $table->dropIndex('idx_ph_status_device');
-            $table->dropIndex('idx_ph_created_at');
-            $table->dropIndex('idx_ph_patient_id');
-            $table->dropIndex('idx_ph_donor_id');
-        });
+        if (Schema::hasTable('PatientHeader')) {
+            Schema::table('PatientHeader', function (Blueprint $table) {
+                $table->dropIndex('idx_ph_status_device');
+                $table->dropIndex('idx_ph_created_at');
+                $table->dropIndex('idx_ph_patient_id');
+                $table->dropIndex('idx_ph_donor_id');
+            });
+        }
 
-        Schema::table('PatientTests', function (Blueprint $table) {
-            $table->dropIndex('idx_pt_header_substance');
-        });
+        if (Schema::hasTable('PatientTests')) {
+            Schema::table('PatientTests', function (Blueprint $table) {
+                $table->dropIndex('idx_pt_header_substance');
+            });
+        }
 
         Schema::table('device_user', function (Blueprint $table) {
             $table->dropIndex('idx_du_user_active');

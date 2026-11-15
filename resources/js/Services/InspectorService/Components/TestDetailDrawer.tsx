@@ -14,13 +14,19 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Chip
+    Chip,
+    Stack
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ImageIcon from '@mui/icons-material/Image';
+import TableChartIcon from '@mui/icons-material/TableChart';
 import { useInspectorContext } from "@/Services/InspectorService/State/InspectorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { exportTestDetailsToExcel, exportTestDetailsToPdf } from "@/Utils/TestDetailsExportHelper";
 
 import { usePage } from '@inertiajs/react';
 import Tooltip from '@mui/material/Tooltip';
@@ -56,7 +62,7 @@ const TestDetailDrawer: React.FC = () => {
                 }
             }}
         >
-            <Box className="flex justify-between items-center mb-4">
+            <Box className="flex justify-between items-center mb-3">
                 <Box>
                     <Typography variant="h5" color="text.primary" className="font-bold">
                         Test Inspection
@@ -69,6 +75,51 @@ const TestDetailDrawer: React.FC = () => {
                     <CloseIcon />
                 </IconButton>
             </Box>
+
+            <Stack direction="row" spacing={1.5} sx={{ mb: 3 }}>
+                <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<TableChartIcon sx={{ color: '#10b981', fontSize: 16 }} />}
+                    onClick={() => exportTestDetailsToExcel(selectedTest)}
+                    sx={{
+                        textTransform: 'none',
+                        borderRadius: 1.5,
+                        fontSize: '0.75rem',
+                        py: 0.3,
+                        borderColor: dark ? '#475569' : '#cbd5e1',
+                        color: dark ? '#f8fafc' : '#0f172a',
+                        backgroundColor: dark ? '#1e293b' : '#ffffff',
+                        '&:hover': {
+                            borderColor: '#10b981',
+                            backgroundColor: dark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
+                        }
+                    }}
+                >
+                    Export Excel
+                </Button>
+                <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<PictureAsPdfIcon sx={{ color: '#ef4444', fontSize: 16 }} />}
+                    onClick={() => exportTestDetailsToPdf(selectedTest)}
+                    sx={{
+                        textTransform: 'none',
+                        borderRadius: 1.5,
+                        fontSize: '0.75rem',
+                        py: 0.3,
+                        borderColor: dark ? '#475569' : '#cbd5e1',
+                        color: dark ? '#f8fafc' : '#0f172a',
+                        backgroundColor: dark ? '#1e293b' : '#ffffff',
+                        '&:hover': {
+                            borderColor: '#ef4444',
+                            backgroundColor: dark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
+                        }
+                    }}
+                >
+                    Export PDF
+                </Button>
+            </Stack>
 
             <Divider className="mb-4" />
 
@@ -177,6 +228,51 @@ const TestDetailDrawer: React.FC = () => {
                     <Typography variant="body2" color="text.primary">{selectedTest.device?.locationName || selectedTest.locationName || '-'}</Typography>
                 </Grid>
             </Grid>
+
+            {/* Attached Document Section */}
+            {selectedTest.attachment && (
+                <>
+                    <Divider className="mb-4" />
+                    <Typography variant="subtitle2" color="text.primary" className="font-semibold mb-2">
+                        Attached Test Document (PDF / Image)
+                    </Typography>
+                    <Paper
+                        variant="outlined"
+                        className="p-3 mb-4 flex items-center justify-between"
+                        sx={{
+                            backgroundColor: dark ? 'rgba(15, 23, 42, 0.4)' : '#f8fafc',
+                            borderRadius: 2,
+                            borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                        }}
+                    >
+                        <Box className="flex items-center space-x-2">
+                            {selectedTest.attachment.isImage ? (
+                                <ImageIcon color="primary" />
+                            ) : (
+                                <PictureAsPdfIcon color="error" />
+                            )}
+                            <Box>
+                                <Typography variant="body2" fontWeight={600} color="text.primary">
+                                    {selectedTest.attachment.name}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    Uploaded: {selectedTest.attachment.createdAt}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Button
+                            component="a"
+                            href={selectedTest.attachment.downloadUrl}
+                            variant="outlined"
+                            size="small"
+                            startIcon={<DownloadIcon />}
+                            sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                        >
+                            Download
+                        </Button>
+                    </Paper>
+                </>
+            )}
 
             <Divider className="mb-4" />
 

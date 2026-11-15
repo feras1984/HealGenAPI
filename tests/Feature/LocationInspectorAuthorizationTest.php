@@ -159,6 +159,21 @@ class LocationInspectorAuthorizationTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::create('files', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->nullable();
+            $table->string('url');
+            $table->unsignedBigInteger('reference_id');
+            $table->string('reference_type');
+            $table->integer('order')->default(1);
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_image')->default(true);
+            $table->boolean('is_cover')->default(false);
+            $table->text('description')->nullable();
+            $table->timestamps();
+            $table->index(['reference_id', 'reference_type'], 'reference');
+        });
+
         Schema::create('system_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();

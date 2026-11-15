@@ -11,7 +11,10 @@ import AssignedDevicesGrid from "@/Services/EmployeeService/Components/AssignedD
 import MyDeviceTestsGrid from "@/Services/EmployeeService/Components/MyDeviceTestsGrid";
 import useSnackbarHook from "@/Hooks/SnackbarHook";
 import CustomSnackbar from "@/Components/Snackbar/CustomSnackbar";
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Tabs, Tab } from '@mui/material';
+import ScienceIcon from '@mui/icons-material/Science';
+import DevicesIcon from '@mui/icons-material/Devices';
+import StatusDonutChart from "@/Components/Charts/StatusDonutChart";
 
 const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
     initialData,
@@ -21,6 +24,7 @@ const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
 }) => {
     const [data, setData] = useState<EmployeeDashboardData>(initialData);
     const [filters, setFiltersState] = useState<EmployeeFilterParams>(initialFilters);
+    const [activeTab, setActiveTab] = useState<'tests' | 'devices'>('tests');
     const [loading, setLoading] = useState<boolean>(false);
     const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -112,8 +116,53 @@ const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
 
                 <EmployeeFilterToolbar />
                 <EmployeeKpiCards />
-                <AssignedDevicesGrid />
-                <MyDeviceTestsGrid />
+
+                {/* Dashboard Navigation Tabs */}
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                    <Tabs
+                        value={activeTab}
+                        onChange={(_, val) => setActiveTab(val)}
+                        textColor="primary"
+                        indicatorColor="primary"
+                    >
+                        <Tab
+                            value="tests"
+                            label={`Tests (${data.recentTests?.length || 0})`}
+                            icon={<ScienceIcon />}
+                            iconPosition="start"
+                            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.95rem' }}
+                        />
+                        <Tab
+                            value="devices"
+                            label={`Assigned Devices (${data.assignedDevices?.length || 0})`}
+                            icon={<DevicesIcon />}
+                            iconPosition="start"
+                            sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.95rem' }}
+                        />
+                    </Tabs>
+                </Box>
+
+                {/* Tests Tab: Status Donut Diagram + Tests Grid */}
+                {activeTab === 'tests' && (
+                    <Box>
+                        <Box className="mb-6">
+                            <StatusDonutChart
+                                data={data.testsByStatus || []}
+                                title="Test Status Distribution"
+                                subtitle="Distribution of test statuses across your assigned devices"
+                                loading={loading}
+                            />
+                        </Box>
+                        <MyDeviceTestsGrid />
+                    </Box>
+                )}
+
+                {/* Devices Tab: Assigned Devices Grid */}
+                {activeTab === 'devices' && (
+                    <Box>
+                        <AssignedDevicesGrid />
+                    </Box>
+                )}
             </Box>
 
             <CustomSnackbar

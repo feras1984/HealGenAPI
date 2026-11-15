@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material';
 import {
     ColumnDirective,
@@ -9,8 +9,12 @@ import {
     Sort,
     Filter,
     Toolbar,
-    Search
+    Search,
+    ExcelExport,
+    PdfExport
 } from "@syncfusion/ej2-react-grids";
+import { ClickEventArgs } from "@syncfusion/ej2-navigations";
+import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useAdminDashboardContext } from "@/Services/AdminDashboardService/State/AdminDashboardContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 
@@ -46,6 +50,7 @@ const SystemRecentOperationsGrid: React.FC = () => {
     const { data } = useAdminDashboardContext();
     const tests = data.recentOperations || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const gridRef = useRef<GridComponent | null>(null);
 
     const mappedGridData = tests.map(pt => ({
         id: pt.id,
@@ -84,10 +89,21 @@ const SystemRecentOperationsGrid: React.FC = () => {
                 ) : (
                     <Box className="w-full overflow-x-auto">
                         <GridComponent
+                            ref={gridRef}
                             dataSource={mappedGridData}
                             allowPaging={true}
                             allowSorting={true}
                             allowFiltering={true}
+                            allowExcelExport={true}
+                            allowPdfExport={true}
+                            toolbar={['ExcelExport', 'PdfExport', 'Search']}
+                            toolbarClick={(args: ClickEventArgs) =>
+                                handleGridToolbarClick(gridRef.current, args, {
+                                    fileName: 'System_Recent_Operations',
+                                    title: 'Recent System Test Operations',
+                                    isLandscape: true
+                                })
+                            }
                             pageSettings={{ pageSize: 10 }}
                             rowHeight={45}
                         >
@@ -101,7 +117,7 @@ const SystemRecentOperationsGrid: React.FC = () => {
                                 <ColumnDirective field="status" headerText="Status" width="180" textAlign="Center" template={StatusTemplate} />
                                 <ColumnDirective field="createdAt" headerText="Received Time" width="160" textAlign="Center" />
                             </ColumnsDirective>
-                            <Inject services={[Page, Sort, Filter, Toolbar, Search]} />
+                            <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>
                     </Box>
                 )}

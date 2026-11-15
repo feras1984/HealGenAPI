@@ -70,6 +70,9 @@ Route::middleware(['admin.auth'])->group(function () {
 
     Route::get('/tests', [PatientController::class, 'index'])->name('patient.test');
     Route::get('/tests/{patient}', [PatientController::class, 'show'])->name('patient.show');
+    Route::post('/tests/{patient}/file', [PatientController::class, 'uploadFile'])->name('admin.tests.file.upload');
+    Route::get('/tests/{patient}/file/download', [PatientController::class, 'downloadFile'])->name('admin.tests.file.download');
+    Route::delete('/tests/{patient}/file', [PatientController::class, 'deleteFile'])->name('admin.tests.file.delete');
     Route::get('/users', [AdminController::class, 'index'])->name('admin.users');
     Route::get('/users/add', [AdminController::class, 'create'])->name('admin.users.add');
     Route::post('/users/add', [AdminController::class, 'store'])->name('admin.users.store');
