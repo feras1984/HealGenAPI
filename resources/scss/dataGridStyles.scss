@@ -132,182 +132,121 @@
     }
 
     .e-grid {
-        border-color: #374151 !important;
-        background-color: #1e293b !important;
-
         .e-rowdragheader {
-            background-color: #111827 !important;
+            background-color: var(--clr-bg-dark) !important;
         }
         td.e-active {
-            background-color: #0f172a !important;
+            background-color: var(--clr-bg-grid-dark) !important;
         }
 
-        .e-emptyrow, .e-emptyrow td {
-            background-color: #1e293b !important;
-            color: #cbd5e1 !important;
+        .e-emptyrow {
+            color: var(--clr-text-light) !important;
         }
 
-        /* Table header in dark mode: dark background and light text */
-        .e-gridheader,
-        .e-headercontent,
-        .e-headercontent table,
-        .e-columnheader,
-        .e-headercell,
-        .e-headercell .e-headercelldiv {
-            background-color: #111827 !important;
-            color: #f8fafc !important;
-            border-color: #374151 !important;
+        .e-gridheader, .e-headercell {
+            background-color: var(--clr-bg-dark) !important;
+            color: var(--clr-text-light) !important;
+            border-color: var(--clr-text-light);
         }
 
-        .e-headercell .e-headertext {
-            color: #f8fafc !important;
-            font-weight: 600 !important;
-        }
-
-        .e-headercell .e-icons,
-        .e-headercell .e-sortfilterdiv,
-        .e-headercell .e-rhandler {
-            color: #f8fafc !important;
-        }
-
-        /* Table filter bar in dark mode: dark background and light text */
         .e-filterbar,
         .e-filterbarcell,
-        .e-filterbarcell .e-fltrinputdiv,
-        .e-filterbarcell .e-input-group,
-        .e-filterbarcell .e-input-group.e-control-wrapper {
-            background-color: #0f172a !important;
-            border-color: #374151 !important;
-            color: #f8fafc !important;
-        }
+        .e-filterbarcelldisabled {
+            background-color: var(--clr-bg-dark) !important;
+            border-color: var(--clr-bg-dark) !important;
+            color: var(--clr-text-light) !important;
 
-        .e-filterbarcell input,
-        .e-filterbarcell input.e-input,
-        .e-filterbarcell .e-input-group input,
-        .e-filterbarcell .e-input-group input.e-input {
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-            border-color: #475569 !important;
-
-            &::placeholder {
-                color: #94a3b8 !important;
+            .e-fltrinputdiv,
+            .e-filterdiv {
+                background-color: var(--clr-bg-dark) !important;
             }
-        }
 
-        .e-filterbarcell .e-clear-icon,
-        .e-filterbarcell .e-input-group-icon,
-        .e-filterbarcell .e-filtericon {
-            color: #cbd5e1 !important;
-        }
+            .e-input-group,
+            .e-input-group.e-control-wrapper {
+                background-color: var(--clr-bg-grid-dark) !important;
+                border-color: var(--clr-text-dark) !important;
+                border-bottom-color: var(--clr-text-dark) !important;
 
-        /* Table content and rows in dark mode */
-        .e-gridcontent,
-        .e-content,
-        .e-content table,
-        .e-table {
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-        }
+                input,
+                input.e-input,
+                input.e-filtertext {
+                    background-color: var(--clr-bg-grid-dark) !important;
+                    color: var(--clr-text-light) !important;
+                    border: none !important;
 
-        .e-row {
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-            border-color: #334155 !important;
-        }
+                    &::placeholder {
+                        color: rgba(250, 250, 250, 0.5) !important;
+                    }
+                }
 
-        .e-altrow {
-            background-color: #182234 !important;
-            color: #f8fafc !important;
-            border-color: #334155 !important;
+                &:hover,
+                &.e-input-focus {
+                    border-color: var(--clr-text-light) !important;
+                }
+            }
+
+            .e-clear-icon,
+            .e-input-group-icon,
+            .e-filtericon,
+            .e-search-icon {
+                color: var(--clr-text-light) !important;
+            }
         }
 
         .e-rowcell {
-            color: #f8fafc !important;
-            border-color: #334155 !important;
+            color: var(--clr-text-light) !important;
+            border-color: var(--clr-bg-dark);
+        }
+        .e-table {
+            background-color: var(--clr-bg-content-dark) !important;
+            color: var(--clr-text-light) !important;
         }
 
-        &.e-gridhover tr[role="row"]:hover .e-rowcell {
-            background-color: #334155 !important;
-            color: #ffffff !important;
-        }
-
+        border-color: var(--clr-bg-dark);
         .e-icons:not(.e-btn-icon) {
-            color: #f8fafc !important;
+            color: var(--clr-text-light) !important;
         }
-
-        /* Toolbar in dark mode */
         .e-toolbar {
-            border: 1px solid #374151 !important;
-            background-color: #111827 !important;
+            border: 1px solid var(--clr-bg-dark);
             .e-toolbar-items {
-                background-color: #111827 !important;
-                color: #f8fafc !important;
+                background-color: var(--clr-bg-dark);
+                color: var(--clr-text-light) !important;
             }
 
             .e-icons:not(.e-btn-icon) {
-                color: #f8fafc !important;
+                color: var(--clr-text-light) !important;
             }
 
             input {
-                background-color: #1e293b !important;
-                color: #f8fafc !important;
-                border-color: #475569 !important;
+                color: var(--clr-text-light) !important;
             }
 
             .e-tbar-btn {
-                background-color: #1e293b !important;
-                color: #f8fafc !important;
-                border: 1px solid #475569 !important;
-                border-radius: 6px !important;
-                margin: 2px 4px !important;
-
-                &:hover {
-                    background-color: #334155 !important;
-                    border-color: #64748b !important;
-                }
-
-                .e-icons.e-excelexport {
-                    color: #34d399 !important;
-                }
-
-                .e-icons.e-pdfexport {
-                    color: #f87171 !important;
-                }
+                background-color: var(--clr-bg-dark);
             }
 
             .e-tbar-btn.e-btn .e-icons {
-                color: #f8fafc !important;
+                color: var(--clr-text-light);
             }
 
             .e-tbar-btn-text {
-                color: #f8fafc !important;
-                font-weight: 500 !important;
+                color: var(--clr-text-light) !important;
             }
 
             .e-input-group.e-search {
-                border-bottom: 1px solid #475569 !important;
+                border-bottom: var(--clr-text-light) !important;
             }
         }
 
-        /* Pager in dark mode */
         .e-pager {
-            border-color: #374151 !important;
-            background-color: #111827 !important;
+            border-color: var(--clr-bg-dark);
+            background-color: var(--clr-bg-dark) !important;
             .e-parentmsgbar {
-                color: #94a3b8 !important;
+                color: var(--clr-text-light);
             }
 
             .e-pagercontainer {
-                background-color: #111827 !important;
-            }
-
-            .e-link {
-                color: #cbd5e1 !important;
-            }
-
-            .e-currentitem {
-                background-color: #2563eb !important;
-                color: #ffffff !important;
+                background-color: var(--clr-bg-dark) !important;
             }
         }
 
@@ -428,184 +367,117 @@
     }
 
     .e-grid {
-        border-color: #e2e8f0 !important;
-        background-color: #ffffff !important;
-
-        .e-rowdragheader {
-            background-color: #f1f5f9 !important;
-        }
-
         td.e-active {
-            background-color: #e2e8f0 !important;
+            background-color: var(--clr-bg-grid-light) !important;
+        }
+        .e-emptyrow {
+            color: var(--clr-text-dark) !important;
         }
 
-        .e-emptyrow, .e-emptyrow td {
-            background-color: #ffffff !important;
-            color: #64748b !important;
+        .e-gridheader, .e-headercell {
+            background-color: var(--clr-bg-light) !important;
+            color: var(--clr-text-dark) !important;
+            border-color: var(--clr-text-dark);
         }
 
-        /* Table header in light mode: light background and dark text */
-        .e-gridheader,
-        .e-headercontent,
-        .e-headercontent table,
-        .e-columnheader,
-        .e-headercell,
-        .e-headercell .e-headercelldiv {
-            background-color: #f1f5f9 !important;
-            color: #0f172a !important;
-            border-color: #cbd5e1 !important;
-        }
-
-        .e-headercell .e-headertext {
-            color: #0f172a !important;
-            font-weight: 600 !important;
-        }
-
-        .e-headercell .e-icons,
-        .e-headercell .e-sortfilterdiv,
-        .e-headercell .e-rhandler {
-            color: #334155 !important;
-        }
-
-        /* Table filter bar in light mode: light background and dark text */
         .e-filterbar,
         .e-filterbarcell,
-        .e-filterbarcell .e-fltrinputdiv,
-        .e-filterbarcell .e-input-group,
-        .e-filterbarcell .e-input-group.e-control-wrapper {
-            background-color: #f8fafc !important;
-            border-color: #cbd5e1 !important;
-            color: #0f172a !important;
-        }
+        .e-filterbarcelldisabled {
+            background-color: var(--clr-bg-light) !important;
+            border-color: var(--clr-bg-light) !important;
+            color: var(--clr-text-dark) !important;
 
-        .e-filterbarcell input,
-        .e-filterbarcell input.e-input,
-        .e-filterbarcell .e-input-group input,
-        .e-filterbarcell .e-input-group input.e-input {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            border-color: #cbd5e1 !important;
-
-            &::placeholder {
-                color: #64748b !important;
+            .e-fltrinputdiv,
+            .e-filterdiv {
+                background-color: var(--clr-bg-light) !important;
             }
-        }
 
-        .e-filterbarcell .e-clear-icon,
-        .e-filterbarcell .e-input-group-icon,
-        .e-filterbarcell .e-filtericon {
-            color: #475569 !important;
-        }
+            .e-input-group,
+            .e-input-group.e-control-wrapper {
+                background-color: #ffffff !important;
+                border-color: var(--clr-text-dark) !important;
+                border-bottom-color: var(--clr-text-dark) !important;
 
-        /* Table content and rows in light mode */
-        .e-gridcontent,
-        .e-content,
-        .e-content table,
-        .e-table {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-        }
+                input,
+                input.e-input,
+                input.e-filtertext {
+                    background-color: #ffffff !important;
+                    color: var(--clr-text-dark) !important;
+                    border: none !important;
 
-        .e-row {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            border-color: #f1f5f9 !important;
-        }
+                    &::placeholder {
+                        color: rgba(55, 65, 81, 0.5) !important;
+                    }
+                }
 
-        .e-altrow {
-            background-color: #f8fafc !important;
-            color: #0f172a !important;
-            border-color: #f1f5f9 !important;
+                &:hover,
+                &.e-input-focus {
+                    border-color: #2563eb !important;
+                }
+            }
+
+            .e-clear-icon,
+            .e-input-group-icon,
+            .e-filtericon,
+            .e-search-icon {
+                color: var(--clr-text-dark) !important;
+            }
         }
 
         .e-rowcell {
-            color: #0f172a !important;
-            border-color: #e2e8f0 !important;
+            color: var(--clr-text-dark) !important;
+            border-color: var(--clr-bg-light);
+        }
+        .e-table {
+            background-color: var(--clr-bg-content-light) !important;
+            color: var(--clr-text-dark) !important;
         }
 
-        &.e-gridhover tr[role="row"]:hover .e-rowcell {
-            background-color: #e2e8f0 !important;
-            color: #0f172a !important;
-        }
-
-        border-color: #e2e8f0 !important;
+        border-color: var(--clr-bg-light);
         .e-icons:not(.e-btn-icon) {
-            color: #334155 !important;
+            color: var(--clr-text-dark);
         }
-
-        /* Toolbar in light mode */
         .e-toolbar {
-            border: 1px solid #e2e8f0 !important;
-            background-color: #f8fafc !important;
+            border: 1px solid var(--clr-bg-light);
             .e-toolbar-items {
-                background-color: #f8fafc !important;
-                color: #0f172a !important;
+                background-color: var(--clr-bg-light);
+                color: var(--clr-text-dark) !important;
             }
 
             .e-icons:not(.e-btn-icon) {
-                color: #0f172a !important;
+                color: var(--clr-text-dark) !important;
             }
 
             input {
-                background-color: #ffffff !important;
-                color: #0f172a !important;
-                border-color: #cbd5e1 !important;
+                color: var(--clr-text-dark) !important;
             }
 
             .e-tbar-btn {
-                background-color: #ffffff !important;
-                color: #0f172a !important;
-                border: 1px solid #cbd5e1 !important;
-                border-radius: 6px !important;
-                margin: 2px 4px !important;
-
-                &:hover {
-                    background-color: #f1f5f9 !important;
-                    border-color: #94a3b8 !important;
-                }
-
-                .e-icons.e-excelexport {
-                    color: #059669 !important;
-                }
-
-                .e-icons.e-pdfexport {
-                    color: #dc2626 !important;
-                }
+                background-color: var(--clr-bg-light);
             }
 
             .e-tbar-btn.e-btn .e-icons {
-                color: #0f172a !important;
+                color: var(--clr-text-dark);
             }
 
             .e-tbar-btn-text {
-                color: #0f172a !important;
-                font-weight: 500 !important;
+                color: var(--clr-text-dark) !important;
             }
 
             .e-input-group.e-search {
-                border-bottom: 1px solid #cbd5e1 !important;
+                border-bottom: var(--clr-text-dark) !important;
             }
         }
 
-        /* Pager in light mode */
         .e-pager {
-            border-color: #e2e8f0 !important;
-            background-color: #f8fafc !important;
+            border-color: var(--clr-bg-light);
+            background-color: var(--clr-bg-light) !important;
             .e-parentmsgbar {
-                color: #64748b !important;
+                color: var(--clr-text-dark);
             }
 
             .e-pagercontainer {
-                background-color: #f8fafc !important;
-            }
-
-            .e-link {
-                color: #334155 !important;
-            }
-
-            .e-currentitem {
-                background-color: #2563eb !important;
-                color: #ffffff !important;
+                background-color: var(--clr-bg-light) !important;
             }
         }
 
