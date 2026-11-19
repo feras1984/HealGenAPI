@@ -16,6 +16,7 @@ import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
 import CustomButton from "@/Components/Button/CustomButton";
 import Location from "@/models/location/Location";
 import DeviceType from "@/models/device/DeviceType";
+import { useTranslation } from "react-i18next";
 
 interface DeviceAddProps {
     locations: Location[];
@@ -23,6 +24,7 @@ interface DeviceAddProps {
 }
 
 const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
+    const { t } = useTranslation();
     const deviceService = Container.get(DeviceService);
     const [loading, setLoading] = React.useState(false);
 
@@ -30,16 +32,16 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
         useSnackbarHook({ open: false, message: '', severity: "success" });
 
     const deviceSchema = z.object({
-        locationId: z.number().min(1, { message: 'Please select a location!' }),
-        deviceTypeId: z.number().min(1, { message: 'Please select a device type!' }),
-        name: z.string().min(2, { message: 'Name should be at least 2 characters!' }),
-        deviceCode: z.string().min(2, { message: 'Device code should be at least 2 characters!' })
+        locationId: z.number().min(1, { message: t('validation.selectLocation') || 'Please select a location!' }),
+        deviceTypeId: z.number().min(1, { message: t('validation.selectDeviceType') || 'Please select a device type!' }),
+        name: z.string().min(2, { message: t('validation.nameMin') || 'Name should be at least 2 characters!' }),
+        deviceCode: z.string().min(2, { message: t('validation.codeMin') || 'Device code should be at least 2 characters!' })
             .refine(
                 async (code) => {
                     const response = await deviceService.validateCode(code);
                     return response.data.status;
                 },
-                { message: 'Device code already exists!' }
+                { message: t('validation.codeExists') || 'Device code already exists!' }
             ),
         serialNumber: z.string().optional(),
         ipAddress: z.string().optional(),
@@ -72,14 +74,14 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                 methods.reset();
                 setSnackbar({
                     open: true,
-                    message: 'Device added successfully!',
+                    message: t('messages.addedSuccess') || 'Device added successfully!',
                     severity: "success"
                 });
             })
             .catch((error) => {
                 setSnackbar({
                     open: true,
-                    message: 'Error happened while storing device!',
+                    message: t('messages.errorOccurred') || 'Error happened while storing device!',
                     severity: "error"
                 });
             })
@@ -90,14 +92,14 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
 
     return (
         <AdminLayout>
-            <Head title="Add Device" />
+            <Head title={t('forms.addNewDevice') || "Add Device"} />
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/devices`}>Back to devices</Link>
-                    <Typography>Add New Device</Typography>
+                    <Link href={`/devices`}>{t('nav.devices') || 'Devices'}</Link>
+                    <Typography>{t('forms.addNewDevice') || 'Add New Device'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Add New Device</Typography>
+                    <Typography variant="h5">{t('forms.addNewDevice') || 'Add New Device'}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -115,15 +117,15 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                             id="isActive"
                             color="secondary"
                             control={methods.control}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                         />
 
                         <ValidatedSelect
                             control={methods.control}
                             controlName="locationId"
                             id="locationId"
-                            label="Location"
-                            placeholder="Select Location"
+                            label={t('forms.locationName') || "Location"}
+                            placeholder={t('forms.chooseLocation') || "Select Location"}
                             withNone={false}
                             items={locations.map(loc => ({
                                 id: loc.id,
@@ -135,8 +137,8 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                             control={methods.control}
                             controlName="deviceTypeId"
                             id="deviceTypeId"
-                            label="Device Type"
-                            placeholder="Select Device Type"
+                            label={t('forms.deviceType') || "Device Type"}
+                            placeholder={t('forms.chooseDeviceType') || "Select Device Type"}
                             withNone={false}
                             items={deviceTypes.map(dt => ({
                                 id: dt.id,
@@ -148,8 +150,8 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                             controlName="name"
                             name="name"
                             id="name"
-                            label="Device Name"
-                            placeholder="e.g. Lab D600 Reader 01"
+                            label={t('forms.deviceName') || "Device Name"}
+                            placeholder={t('placeholders.deviceName') || "e.g. Lab D600 Reader 01"}
                             control={methods.control}
                         />
 
@@ -157,8 +159,8 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                             controlName="deviceCode"
                             name="deviceCode"
                             id="deviceCode"
-                            label="Device Integration Code"
-                            placeholder="e.g. D600-DXB-001"
+                            label={t('forms.deviceCode') || "Device Integration Code"}
+                            placeholder={t('placeholders.deviceCode') || "e.g. D600-DXB-001"}
                             control={methods.control}
                         />
 
@@ -166,8 +168,8 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                             controlName="serialNumber"
                             name="serialNumber"
                             id="serialNumber"
-                            label="Serial Number"
-                            placeholder="Manufacturer Serial Number"
+                            label={t('forms.serialNumber') || "Serial Number"}
+                            placeholder={t('placeholders.serialNumber') || "Manufacturer Serial Number"}
                             control={methods.control}
                         />
 
@@ -175,8 +177,8 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                             controlName="ipAddress"
                             name="ipAddress"
                             id="ipAddress"
-                            label="IP Address"
-                            placeholder="192.168.1.100"
+                            label={t('forms.ipAddress') || "IP Address"}
+                            placeholder={t('placeholders.ipAddress') || "192.168.1.100"}
                             control={methods.control}
                         />
 
@@ -184,8 +186,8 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                             controlName="notes"
                             name="notes"
                             id="notes"
-                            label="Notes"
-                            placeholder="Additional Notes"
+                            label={t('forms.notes') || "Notes"}
+                            placeholder={t('placeholders.notes') || "Additional Notes"}
                             multiline
                             rows={2}
                             control={methods.control}
@@ -200,7 +202,7 @@ const DeviceAdd: React.FC<DeviceAddProps> = ({ locations, deviceTypes }) => {
                         >
                             <CustomButton
                                 task="add"
-                                text={'Device'}
+                                text={t('common.save') || 'Device'}
                                 disabled={loading}
                             />
                         </Stack>

@@ -16,8 +16,10 @@ import {Link} from "@inertiajs/react";
 import {useForm as formHandler} from "@inertiajs/react";
 import "reflect-metadata";
 import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
+import { useTranslation } from "react-i18next";
 
 const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPassword: boolean}) => {
+    const { t } = useTranslation();
     const {data, setData, post, processing, errors, reset} = formHandler({
         email: '',
         password: '',
@@ -50,8 +52,8 @@ const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPass
     // document.addEventListener('change', )
 
     const loginSchema = z.object({
-        email: z.string().email(),
-        password: z.string().min(8, 'Password must be at least 8 characters'),
+        email: z.string().email(t('validation.emailInvalid') || 'Please enter a valid email address'),
+        password: z.string().min(8, t('validation.passwordMin') || 'Password must be at least 8 characters'),
         // remember: z.boolean(),
     });
 
@@ -99,8 +101,8 @@ const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPass
                     type="email"
                     controlName="email"
                     methods={methods}
-                    label="Email"
-                    placeholder="example@email.com"
+                    label={t('auth.email') || "Email"}
+                    placeholder={t('placeholders.email') || "name@example.com"}
                     errors={errors.email}
                 ></ValidatedInput>
 
@@ -110,49 +112,22 @@ const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPass
                     type="password"
                     controlName="password"
                     methods={methods}
-                    label="Password"
-                    // placeholder="example@email.com"
+                    label={t('auth.password') || "Password"}
                     errors={errors.password}
                 ></ValidatedInput>
 
-
-                {/*<Controller*/}
-                {/*    name="remember"*/}
-
-                {/*    control={methods.control}*/}
-                {/*    render={({*/}
-                {/*                 field: { value, onChange, onBlur, ref },*/}
-                {/*                 fieldState: { error },*/}
-                {/*             }) => (*/}
-                {/*        <Box sx={{ display: 'flex', alignItems: 'flex-end', mt: 1 }}>*/}
-                {/*            <FormControlLabel*/}
-                {/*                required*/}
-                {/*                control={*/}
-                {/*                    <Checkbox*/}
-                {/*                        name="remember"*/}
-                {/*                        id="remember"*/}
-                {/*                        required*/}
-                {/*                        inputRef={ref}*/}
-                {/*                        value={value}*/}
-                {/*                        onChange={onChange}*/}
-                {/*                        onBlur={onBlur}*/}
-                {/*                    />}*/}
-                {/*                label="Remember me" />*/}
-                {/*        </Box>*/}
-                {/*    )}*/}
-                {/*/>*/}
-
-                {/*<div className="flex content-start items-center mt-3">*/}
-                {/*    {canResetPassword && <Link*/}
-                {/*        href={route('password.request')}*/}
-                {/*        className="underline mx-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"*/}
-                {/*    >*/}
-                {/*        Forgot your password?*/}
-                {/*    </Link>}*/}
-                {/*</div>*/}
-
-                <div className="flex justify-between items-center mt-3">
-                    <Button type="submit" variant="outlined" disabled={processing}>Login</Button>
+                <div className="flex justify-between items-center mt-4">
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        size="large"
+                        disabled={processing}
+                        sx={{ py: 1.25, fontWeight: 700, borderRadius: 2 }}
+                    >
+                        {processing ? (t('auth.submitting') || 'Signing In...') : (t('auth.signIn') || 'Sign In')}
+                    </Button>
                 </div>
             </Box>
         </FormProvider>

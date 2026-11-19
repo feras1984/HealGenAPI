@@ -1,117 +1,48 @@
-import React from "react";
-import {PatientGridProps} from "@/Services/PatientService/PatientList/Interfaces/PatientProps";
+import React, { useMemo } from "react";
+import { PatientGridProps } from "@/Services/PatientService/PatientList/Interfaces/PatientProps";
 import {
     ColumnDirective,
-    ColumnsDirective, ExcelExport, Filter,
+    ColumnsDirective,
+    ExcelExport,
+    Filter,
     FilterSettingsModel,
     GridColumnModel,
-    GridComponent, Inject, Page,
-    PageSettingsModel, PdfExport, RowDD, RowDragEventArgs, Search, Selection,
-    SelectionSettingsModel, Sort, Toolbar
+    GridComponent,
+    Inject,
+    Page,
+    PageSettingsModel,
+    PdfExport,
+    RowDD,
+    RowDragEventArgs,
+    Search,
+    Selection,
+    SelectionSettingsModel,
+    Sort,
+    Toolbar
 } from "@syncfusion/ej2-react-grids";
-import {GridColumnDirTypecast} from "@syncfusion/ej2-react-grids/src/grid/columns-directive";
-import {Container as ServiceContainer} from "typedi";
+import { GridColumnDirTypecast } from "@syncfusion/ej2-react-grids/src/grid/columns-directive";
+import { Container as ServiceContainer } from "typedi";
 import CommonService from "@/Services/CommonService/CommonService";
 import PatientService from "@/Services/PatientService/PatientService";
-import {usePatientContext} from "@/Services/PatientService/PatientList/State/PatientsCotext";
-import {GridActionEventArgs, SearchEventArgs} from "@syncfusion/ej2-grids/src/grid/base/interface";
-import {Box} from "@mui/material";
+import { usePatientContext } from "@/Services/PatientService/PatientList/State/PatientsCotext";
+import { GridActionEventArgs, SearchEventArgs } from "@syncfusion/ej2-grids/src/grid/base/interface";
+import { Box } from "@mui/material";
 import EditButton from "@/Services/PatientService/PatientList/Components/EditButton";
 import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
-
-
-interface PatientElement extends Element{
-    data: PatientGridProps,
-}
-
-const blocksGrid: (GridColumnModel | GridColumnDirTypecast) [] = [
-    { type: 'checkbox', width: '50' },
-    {   field: 'id',
-        headerText: 'Id',
-        width: '100',
-        // template: ImageTemplate,
-        // allowFiltering: true,
-        // filterTemplate: filterName,
-        textAlign: 'Center' },
-    {
-        field: 'patientId',
-        headerText: 'Code',
-        width: '250',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'donorId',
-        headerText: 'Name',
-        width: '250',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'deviceCode',
-        headerText: 'Device Code',
-        width: '200',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'deviceName',
-        headerText: 'Device Name',
-        width: '200',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'locationName',
-        headerText: 'Location',
-        width: '200',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'collectionSite',
-        headerText: 'Collection Site',
-        width: '250',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'cupLotNumber',
-        headerText: 'Cup Lot Number',
-        width: '250',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'status',
-        headerText: 'Status',
-        width: '250',
-        textAlign: 'Center',
-    },
-
-    {
-        field: 'Edit',
-        headerText: 'Edit',
-        width: '250',
-        textAlign: 'Center',
-        template: EditButton,
-    },
-
-    {
-        field: 'createdAt',
-        headerText: 'Created At',
-        width: '250',
-        textAlign: 'Center',
-    },
-
-];
+import { useTranslation } from "react-i18next";
+import { useAppSelector } from "@/Redux/Store/hook";
 
 const PatientGrid = () => {
     const patientService = ServiceContainer.get(PatientService);
-    const {patients, onSearch} = usePatientContext();
-    let grid: GridComponent | null;
-    const selectionSettings: SelectionSettingsModel = {type: 'Multiple'};
+    const { patients, onSearch } = usePatientContext();
+    const { t, i18n } = useTranslation();
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+
+    let grid: GridComponent | null = null;
+    const selectionSettings: SelectionSettingsModel = { type: 'Multiple' };
     const FilterOptions: FilterSettingsModel = {
         type: 'Excel',
     };
@@ -122,30 +53,35 @@ const PatientGrid = () => {
         pageCount: 25,
     };
 
+    const columns = useMemo<(GridColumnModel | GridColumnDirTypecast)[]>(() => [
+        { type: 'checkbox', width: '50' },
+        { field: 'id', headerText: t('tests.testId') || 'Id', width: '100', textAlign: 'Center' },
+        { field: 'patientId', headerText: t('tests.patientCode') || 'Code', width: '220', textAlign: 'Center' },
+        { field: 'donorId', headerText: t('tests.donorName') || 'Name', width: '220', textAlign: 'Center' },
+        { field: 'deviceCode', headerText: t('tests.deviceCode') || 'Device Code', width: '180', textAlign: 'Center' },
+        { field: 'deviceName', headerText: t('tests.deviceName') || 'Device Name', width: '180', textAlign: 'Center' },
+        { field: 'locationName', headerText: t('tests.location') || 'Location', width: '180', textAlign: 'Center' },
+        { field: 'collectionSite', headerText: t('tests.collectionSite') || 'Collection Site', width: '200', textAlign: 'Center' },
+        { field: 'cupLotNumber', headerText: t('tests.cupLotNumber') || 'Cup Lot Number', width: '200', textAlign: 'Center' },
+        { field: 'status', headerText: t('common.status') || 'Status', width: '200', textAlign: 'Center' },
+        { field: 'Edit', headerText: t('common.details') || 'Details', width: '180', textAlign: 'Center', template: EditButton },
+        { field: 'createdAt', headerText: t('common.createdAt') || 'Created At', width: '200', textAlign: 'Center' },
+    ], [i18n.language]);
+
     const actionComplete = (args: GridActionEventArgs) => {
-        // console.log('args:', args);
         switch (args.requestType) {
             case 'paging':
                 break;
             case 'searching':
-                const search = (args as SearchEventArgs).searchString
+                const search = (args as SearchEventArgs).searchString;
                 if (search !== undefined) {
                     // onSearch(search);
                 }
                 break;
-            // case 'rowdraganddrop':
-            //     let orderList: {id: number, order: number} [] = [];
-            //     const rows = (args as RowDragEventArgs).rows as PatientElement [];
-            //     rows?.map((row, index) => {
-            //         orderList = [...orderList, {id: row.data.id, order: index}]
-            //     })
-            //     reorder(orderList);
-            //     break;
             default:
                 break;
-
         }
-    }
+    };
 
     const rowDrop = (args: RowDragEventArgs): void => {
         if (args.rows !== undefined && args.fromIndex !== undefined && args.dropIndex !== undefined) {
@@ -156,7 +92,7 @@ const PatientGrid = () => {
             }
             if (grid) grid.reorderRows(value, args.dropIndex);
         }
-    }
+    };
 
     return (
         <Box>
@@ -170,10 +106,12 @@ const PatientGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
+                enableRtl={isRtl}
                 toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
-                editSettings={{allowDeleting: true,
-                    // allowEditing: true,
-                    showDeleteConfirmDialog:true}}
+                editSettings={{
+                    allowDeleting: true,
+                    showDeleteConfirmDialog: true
+                }}
                 filterSettings={FilterOptions}
                 pageSettings={pageOptions}
                 actionComplete={actionComplete}
@@ -182,24 +120,22 @@ const PatientGrid = () => {
                 rowDrop={rowDrop}
                 toolbarClick={(args: ClickEventArgs) =>
                     handleGridToolbarClick(grid, args, {
-                        fileName: 'Patients_Test_Results',
-                        title: 'Patients Test Results',
+                        fileName: isRtl ? 'نتائج_فحوصات_المرضى' : 'Patients_Test_Results',
+                        title: t('tests.title') || 'Patients Test Results',
                         isLandscape: true
                     })
                 }
             >
                 <ColumnsDirective>
-                    {blocksGrid.map((item, key) => (
-                        <ColumnDirective key={key} {...item}/>
+                    {columns.map((item, key) => (
+                        <ColumnDirective key={key} {...item} />
                     ))}
                 </ColumnsDirective>
 
-                <Inject services={[Page, Toolbar, ExcelExport, PdfExport, Selection,
-                    // Edit,
-                    Sort, Search, Filter, RowDD]} />
+                <Inject services={[Page, Toolbar, ExcelExport, PdfExport, Selection, Sort, Search, Filter, RowDD]} />
             </GridComponent>
         </Box>
     );
-}
+};
 
 export default PatientGrid;

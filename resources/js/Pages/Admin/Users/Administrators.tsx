@@ -5,11 +5,13 @@ import Administrator from "@/models/User/Administrator";
 import AdminContainer from "@/Services/UserService/State/AdminContainer";
 import {Box, Stack} from "@mui/material";
 import CustomButton from "@/Components/Button/CustomButton";
+import { useTranslation } from "react-i18next";
 
 const Administrators: React.FC<{users: Administrator []}> = ({users}) => {
+    const { t } = useTranslation();
     return (
         <AdminLayout>
-            <Head title="Users"></Head>
+            <Head title={t('nav.users') || 'Users'}></Head>
             <Box className="py-[16px]">
                 <Stack
                     direction="row"
@@ -18,12 +20,8 @@ const Administrators: React.FC<{users: Administrator []}> = ({users}) => {
                     spacing={2}
                 >
                     <Link href={`/users/add`}>
-                        <CustomButton task='add' text={'user'}></CustomButton>
+                        <CustomButton task='add' text={t('common.user') || 'user'}></CustomButton>
                     </Link>
-
-                    {/*<Link href={`/admin/website/block/reorder/${category}`}>*/}
-                    {/*    <CustomButton task='reorder' text={getTitle()}></CustomButton>*/}
-                    {/*</Link>*/}
                 </Stack>
             </Box>
             <AdminContainer admins={users} count={users.length}></AdminContainer>

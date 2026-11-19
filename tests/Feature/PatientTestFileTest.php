@@ -40,9 +40,15 @@ class PatientTestFileTest extends TestCase
     {
         parent::setUp();
 
-        config(['database.default' => 'sqlite']);
-        config(['database.connections.sqlite.database' => ':memory:']);
+        config([
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.database' => ':memory:',
+            'cache.default' => 'array',
+            'session.driver' => 'array',
+        ]);
         DB::purge();
+
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
         Storage::fake('public');
 
@@ -492,20 +498,20 @@ class PatientTestFileTest extends TestCase
     {
         // Admin can open any test
         $this->actingAs($this->adminUser)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(200);
 
         $this->actingAs($this->adminUser)
-            ->get(route('patient.show', $this->patient2->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient2->Id]))
             ->assertStatus(200);
 
         // Supervisor can open any test
         $this->actingAs($this->supervisorUser)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(200);
 
         $this->actingAs($this->supervisorUser)
-            ->get(route('patient.show', $this->patient2->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient2->Id]))
             ->assertStatus(200);
     }
 
@@ -514,23 +520,23 @@ class PatientTestFileTest extends TestCase
         // Inspector 1 is assigned to Location 1
         // patient1 is on Device 1 in Location 1 -> Allowed (200)
         $this->actingAs($this->inspector1)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(200);
 
         // patient2 is on Device 2 in Location 2 -> Denied (403)
         $this->actingAs($this->inspector1)
-            ->get(route('patient.show', $this->patient2->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient2->Id]))
             ->assertStatus(403);
 
         // Inspector 2 is assigned to Location 2
         // patient2 in Location 2 -> Allowed (200)
         $this->actingAs($this->inspector2)
-            ->get(route('patient.show', $this->patient2->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient2->Id]))
             ->assertStatus(200);
 
         // patient1 in Location 1 -> Denied (403)
         $this->actingAs($this->inspector2)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(403);
     }
 
@@ -540,7 +546,7 @@ class PatientTestFileTest extends TestCase
         $unassignedInspector = User::create(['email' => 'floating_insp@test.local', 'reference_id' => $unassignedInspRef->id, 'reference_type' => Admin::class]);
 
         $this->actingAs($unassignedInspector)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(403);
     }
 
@@ -549,23 +555,23 @@ class PatientTestFileTest extends TestCase
         // Employee 1 is assigned to Device 1
         // patient1 is on Device 1 -> Allowed (200)
         $this->actingAs($this->employee1)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(200);
 
         // patient2 is on Device 2 -> Denied (403)
         $this->actingAs($this->employee1)
-            ->get(route('patient.show', $this->patient2->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient2->Id]))
             ->assertStatus(403);
 
         // Employee 2 is assigned to Device 2
         // patient2 is on Device 2 -> Allowed (200)
         $this->actingAs($this->employee2)
-            ->get(route('patient.show', $this->patient2->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient2->Id]))
             ->assertStatus(200);
 
         // patient1 is on Device 1 -> Denied (403)
         $this->actingAs($this->employee2)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(403);
     }
 
@@ -575,7 +581,7 @@ class PatientTestFileTest extends TestCase
         $unassignedEmployee = User::create(['email' => 'unassigned_emp@test.local', 'reference_id' => $unassignedEmpRef->id, 'reference_type' => Admin::class]);
 
         $this->actingAs($unassignedEmployee)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(403);
     }
 
@@ -585,7 +591,7 @@ class PatientTestFileTest extends TestCase
         $guestUser = User::create(['email' => 'guest@test.local', 'reference_id' => $guestRef->id, 'reference_type' => Admin::class]);
 
         $this->actingAs($guestUser)
-            ->get(route('patient.show', $this->patient1->Id))
+            ->get(route('patient.show', ['locale' => 'en', 'patient' => $this->patient1->Id]))
             ->assertStatus(403);
     }
 }

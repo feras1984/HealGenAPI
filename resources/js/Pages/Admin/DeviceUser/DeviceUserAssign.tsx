@@ -14,6 +14,7 @@ import ValidatedSelect from "@/Components/ValidatedComponents/ValidatedSelect";
 import CustomButton from "@/Components/Button/CustomButton";
 import Device from "@/models/device/Device";
 import Administrator from "@/models/User/Administrator";
+import { useTranslation } from "react-i18next";
 
 interface DeviceUserAssignProps {
     devices: Device[];
@@ -21,6 +22,7 @@ interface DeviceUserAssignProps {
 }
 
 const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) => {
+    const { t } = useTranslation();
     const deviceUserService = Container.get(DeviceUserService);
     const [loading, setLoading] = React.useState(false);
 
@@ -28,8 +30,8 @@ const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) =
         useSnackbarHook({ open: false, message: '', severity: "success" });
 
     const assignSchema = z.object({
-        deviceId: z.number().min(1, { message: 'Please select a device!' }),
-        userId: z.number().min(1, { message: 'Please select an employee/user!' }),
+        deviceId: z.number().min(1, { message: t('validation.selectDevice') || 'Please select a device!' }),
+        userId: z.number().min(1, { message: t('validation.selectUser') || 'Please select an employee/user!' }),
     });
 
     const methods = useForm({
@@ -50,14 +52,14 @@ const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) =
             .then(() => {
                 setSnackbar({
                     open: true,
-                    message: 'Device assigned to user successfully!',
+                    message: t('messages.assignedSuccess') || 'Device assigned to user successfully!',
                     severity: "success"
                 });
             })
             .catch((error) => {
                 setSnackbar({
                     open: true,
-                    message: 'Error happened while assigning device!',
+                    message: t('messages.errorOccurred') || 'Error happened while assigning device!',
                     severity: "error"
                 });
             })
@@ -68,14 +70,14 @@ const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) =
 
     return (
         <AdminLayout>
-            <Head title="Assign Device to User" />
+            <Head title={t('forms.assignDeviceToUser') || "Assign Device to User"} />
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/device-users`}>Back to assignments</Link>
-                    <Typography>Assign Device to User</Typography>
+                    <Link href={`/device-users`}>{t('nav.deviceAssignments') || 'Device Assignments'}</Link>
+                    <Typography>{t('forms.assignDeviceToUser') || 'Assign Device to User'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Assign Device to User</Typography>
+                    <Typography variant="h5">{t('forms.assignDeviceToUser') || 'Assign Device to User'}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -92,8 +94,8 @@ const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) =
                             control={methods.control}
                             controlName="deviceId"
                             id="deviceId"
-                            label="Device"
-                            placeholder="Select Device"
+                            label={t('forms.device') || "Device"}
+                            placeholder={t('forms.chooseDevice') || "Select Device"}
                             withNone={false}
                             items={devices.map(dev => ({
                                 id: dev.id,
@@ -105,8 +107,8 @@ const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) =
                             control={methods.control}
                             controlName="userId"
                             id="userId"
-                            label="User / Employee"
-                            placeholder="Select User"
+                            label={t('forms.employee') || "User / Employee"}
+                            placeholder={t('forms.chooseUser') || "Select User"}
                             withNone={false}
                             items={users.map(u => ({
                                 id: u.id,
@@ -123,7 +125,7 @@ const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) =
                         >
                             <CustomButton
                                 task="add"
-                                text={'Assignment'}
+                                text={t('common.save') || 'Assignment'}
                                 disabled={loading}
                             />
                         </Stack>

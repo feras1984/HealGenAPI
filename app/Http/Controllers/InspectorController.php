@@ -85,7 +85,7 @@ class InspectorController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => "Test #{$patientHeader->Id} accepted successfully!",
+                'message' => "Test #{$patientHeader->Id} forwarded successfully!",
                 'data' => $result,
             ], HTTPResponse::HTTP_OK);
         } catch (\Illuminate\Auth\Access\AuthorizationException $exception) {
@@ -101,7 +101,7 @@ class InspectorController extends Controller
         } catch (\Exception $exception) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error while accepting test.',
+                'message' => 'Error while forwarding test.',
                 'details' => $exception->getMessage(),
             ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -120,7 +120,7 @@ class InspectorController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => "Test #{$patientHeader->Id} rejected.",
+                'message' => "Test #{$patientHeader->Id} sent for retest.",
                 'data' => $result,
             ], HTTPResponse::HTTP_OK);
         } catch (\Illuminate\Auth\Access\AuthorizationException $exception) {
@@ -136,7 +136,7 @@ class InspectorController extends Controller
         } catch (\Exception $exception) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error while rejecting test.',
+                'message' => 'Error while requesting retest.',
                 'details' => $exception->getMessage(),
             ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
         }

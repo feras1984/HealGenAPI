@@ -3,14 +3,18 @@ import { Grid, Box } from '@mui/material';
 import { useSupervisorContext } from '../State/SupervisorContext';
 import ActionActivityChart from '@/Components/Charts/ActionActivityChart';
 import CategoryBarChart from '@/Components/Charts/CategoryBarChart';
+import { useTranslation } from "react-i18next";
 
 export const SupervisorChartsWidget: React.FC = () => {
     const { data, loading } = useSupervisorContext();
+    const { t } = useTranslation();
 
     const chartData = data.activityChart;
     const trend = chartData?.trend || [];
     const breakdown = (chartData?.breakdown || []).map((b) => ({
-        name: b.name,
+        name: b.name === 'Rejected'
+            ? (t('status.Supervisor Rejected') || t('common.reject') || 'Rejected')
+            : (t(`status.${b.name}`) || b.name),
         count: b.count,
     }));
 
@@ -21,11 +25,12 @@ export const SupervisorChartsWidget: React.FC = () => {
                 <Grid item xs={12} md={8}>
                     <ActionActivityChart
                         data={trend}
-                        title="Supervisor Confirmation Activity Trend"
-                        subtitle="Hourly confirmed vs rejected decisions today"
+                        title={t('supervisor.activityTrend') || "Supervisor Confirmation Activity Trend"}
+                        subtitle={t('supervisor.hourlyTrendSubtitle') || "Hourly confirmed vs rejected decisions today"}
                         loading={loading}
                         height={280}
-                        primaryLabel="Confirmed"
+                        primaryLabel={t('status.Confirmed') || "Confirmed"}
+                        secondaryLabel={t('status.Supervisor Rejected') || t('common.reject') || "Rejected"}
                         primaryColor="#059669"
                         secondaryColor="#dc2626"
                     />
@@ -35,8 +40,8 @@ export const SupervisorChartsWidget: React.FC = () => {
                 <Grid item xs={12} md={4}>
                     <CategoryBarChart
                         data={breakdown}
-                        title="Review Breakdown"
-                        subtitle="Processed supervisor reviews"
+                        title={t('supervisor.reviewBreakdown') || "Review Breakdown"}
+                        subtitle={t('supervisor.breakdownSubtitle') || "Processed supervisor reviews"}
                         loading={loading}
                         height={280}
                         barColor="#059669"

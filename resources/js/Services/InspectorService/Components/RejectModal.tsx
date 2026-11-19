@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -9,23 +9,27 @@ import {
     TextField,
     Box
 } from '@mui/material';
-import CancelIcon from '@mui/icons-material/Cancel';
+import ReplayIcon from '@mui/icons-material/Replay';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useInspectorContext } from "@/Services/InspectorService/State/InspectorContext";
+import { useTranslation } from "react-i18next";
 
-const rejectSchema = z.object({
+const createRejectSchema = (t: (key: string) => string) => z.object({
     reason: z
         .string()
         .trim()
-        .min(3, "Rejection reason is required (minimum 3 characters).")
-        .max(1000, "Rejection reason cannot exceed 1000 characters."),
+        .min(3, t('validation.retestReasonMin') || t('validation.rejectionReasonMin') || "Retest reason is required (minimum 3 characters).")
+        .max(1000, t('validation.retestReasonMax') || t('validation.rejectionReasonMax') || "Retest reason cannot exceed 1000 characters."),
 });
 
-type RejectFormValues = z.infer<typeof rejectSchema>;
+type RejectFormValues = {
+    reason: string;
+};
 
 const RejectModal: React.FC = () => {
+    const { t } = useTranslation();
     const {
         selectedTest,
         isRejectModalOpen,
@@ -33,6 +37,8 @@ const RejectModal: React.FC = () => {
         handleRejectSubmit,
         actionLoading
     } = useInspectorContext();
+
+    const rejectSchema = useMemo(() => createRejectSchema(t), [t]);
 
     const methods = useForm<RejectFormValues>({
         resolver: zodResolver(rejectSchema),
@@ -53,15 +59,16 @@ const RejectModal: React.FC = () => {
     return (
         <Dialog open={isRejectModalOpen} onClose={closeRejectModal} maxWidth="sm" fullWidth>
             <DialogTitle className="font-semibold flex items-center space-x-2">
-                <CancelIcon color="error" />
-                <span>Reject Test #{selectedTest.id}</span>
+                <ReplayIcon color="warning" />
+                <span>{t('dialogs.retestTestTitle', { id: selectedTest.id }) || `Request Retest for Test #${selectedTest.id}`}</span>
             </DialogTitle>
             <FormProvider {...methods}>
                 <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} noValidate>
                     <DialogContent>
                         <DialogContentText className="mb-4">
-                            Please provide a detailed rejection reason for test <strong>#{selectedTest.id}</strong>.
-                            This reason will be recorded in the audit trail.
+                            {t('dialogs.retestTestDesc', { id: selectedTest.id }) || (
+                                <>Please provide a reason for requesting a retest of test <strong>#{selectedTest.id}</strong>. This reason will be recorded in the audit trail.</>
+                            )}
                         </DialogContentText>
                         <Controller
                             name="reason"
@@ -73,8 +80,8 @@ const RejectModal: React.FC = () => {
                                     multiline
                                     rows={4}
                                     fullWidth
-                                    label="Rejection Reason *"
-                                    placeholder="Provide explicit reason for rejecting this test..."
+                                    label={`${t('forms.retestReason') || t('forms.rejectionReason') || 'Retest Reason'} *`}
+                                    placeholder={t('placeholders.retestReason') || t('placeholders.rejectionReason') || "Provide explicit reason for requesting a retest..."}
                                     error={!!error}
                                     helperText={error?.message}
                                 />
@@ -83,15 +90,16 @@ const RejectModal: React.FC = () => {
                     </DialogContent>
                     <DialogActions className="p-4 pt-0">
                         <Button onClick={closeRejectModal} disabled={actionLoading} color="inherit">
-                            Cancel
+                            {t('common.cancel') || 'Cancel'}
                         </Button>
                         <Button
                             type="submit"
                             disabled={actionLoading}
                             variant="contained"
-                            color="error"
+                            color="warning"
+                            startIcon={<ReplayIcon />}
                         >
-                            {actionLoading ? 'Rejecting...' : 'Confirm Rejection'}
+                            {actionLoading ? (t('dialogs.retesting') || 'Requesting Retest...') : (t('dialogs.confirmRetestAction') || 'Confirm Retest')}
                         </Button>
                     </DialogActions>
                 </Box>

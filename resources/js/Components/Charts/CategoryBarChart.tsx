@@ -17,6 +17,7 @@ export interface CategoryItem {
     name: string;
     count: number;
     subtext?: string;
+    color?: string;
 }
 
 interface CategoryBarChartProps {
@@ -76,8 +77,8 @@ export const CategoryBarChart: React.FC<CategoryBarChartProps> = ({
                             ]}
                         />
                         <Bar dataKey="count" fill={barColor} radius={[4, 4, 0, 0]} maxBarSize={45}>
-                            {data.map((_, index) => (
-                                <Cell key={`bar-cell-${index}`} fill={barColor} />
+                            {data.map((entry, index) => (
+                                <Cell key={`bar-cell-${index}`} fill={entry.color || barColor} />
                             ))}
                         </Bar>
                     </BarChart>

@@ -18,9 +18,11 @@ import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useInspectorContext } from "@/Services/InspectorService/State/InspectorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const ActionTemplate = (props: any) => {
     const { openTestDetails } = useInspectorContext();
+    const { t } = useTranslation();
     const rowData = props;
     return (
         <Button
@@ -31,15 +33,17 @@ const ActionTemplate = (props: any) => {
             onClick={() => openTestDetails(rowData.rawPatient)}
             sx={{ textTransform: 'none', borderRadius: 1.5 }}
         >
-            Inspect
+            {t('inspector.inspect') || 'Inspect'}
         </Button>
     );
 };
 
 const StatusTemplate = (props: any) => {
+    const { t } = useTranslation();
+    const status = props.status || 'Imported';
     return (
         <Chip
-            label={props.status || 'Imported'}
+            label={t(`status.${status}`) || status}
             color="warning"
             size="small"
             variant="outlined"
@@ -50,8 +54,12 @@ const StatusTemplate = (props: any) => {
 
 const PendingQueueGrid: React.FC = () => {
     const { data } = useInspectorContext();
+    const { t, i18n } = useTranslation();
     const queue = data.pendingQueue || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
     const gridRef = useRef<GridComponent | null>(null);
 
     const mappedGridData = queue.map(pt => ({
@@ -80,13 +88,13 @@ const PendingQueueGrid: React.FC = () => {
             <CardContent>
                 <Box className="flex justify-between items-center mb-3">
                     <Typography variant="h6" color="text.primary" className="font-semibold">
-                        Pending Inspection Queue ({mappedGridData.length})
+                        {t('inspector.pendingQueue') || 'Pending Inspection Queue'} ({mappedGridData.length})
                     </Typography>
                 </Box>
                 {mappedGridData.length === 0 ? (
                     <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
-                            No tests are currently waiting for inspection.
+                            {t('inspector.noTestsWaiting') || 'No tests are currently waiting for inspection.'}
                         </Typography>
                     </Box>
                 ) : (
@@ -99,11 +107,12 @@ const PendingQueueGrid: React.FC = () => {
                             allowFiltering={true}
                             allowExcelExport={true}
                             allowPdfExport={true}
+                            enableRtl={isRtl}
                             toolbar={['ExcelExport', 'PdfExport', 'Search']}
                             toolbarClick={(args: ClickEventArgs) =>
                                 handleGridToolbarClick(gridRef.current, args, {
-                                    fileName: 'Pending_Inspection_Queue',
-                                    title: 'Pending Inspection Queue',
+                                    fileName: isRtl ? 'قائمة_انتظار_تدقيق_الفاحص' : 'Pending_Inspection_Queue',
+                                    title: t('inspector.pendingQueue') || 'Pending Inspection Queue',
                                     isLandscape: true
                                 })
                             }
@@ -111,15 +120,15 @@ const PendingQueueGrid: React.FC = () => {
                             rowHeight={50}
                         >
                             <ColumnsDirective>
-                                <ColumnDirective field="id" headerText="Id" width="80" textAlign="Center" />
-                                <ColumnDirective field="patientId" headerText="Patient Code" width="180" textAlign="Center" />
-                                <ColumnDirective field="donorId" headerText="Donor Name" width="200" textAlign="Center" />
-                                <ColumnDirective field="deviceCode" headerText="Device Code" width="160" textAlign="Center" />
-                                <ColumnDirective field="deviceName" headerText="Device Name" width="180" textAlign="Center" />
-                                <ColumnDirective field="locationName" headerText="Location" width="160" textAlign="Center" />
-                                <ColumnDirective field="status" headerText="Status" width="160" textAlign="Center" template={StatusTemplate} />
-                                <ColumnDirective field="createdAt" headerText="Received Time" width="160" textAlign="Center" />
-                                <ColumnDirective headerText="Inspect" width="140" textAlign="Center" template={ActionTemplate} />
+                                <ColumnDirective field="id" headerText={t('tests.testId') || 'Id'} width="80" textAlign="Center" />
+                                <ColumnDirective field="patientId" headerText={t('tests.patientCode') || 'Patient Code'} width="180" textAlign="Center" />
+                                <ColumnDirective field="donorId" headerText={t('tests.donorName') || 'Donor Name'} width="200" textAlign="Center" />
+                                <ColumnDirective field="deviceCode" headerText={t('tests.deviceCode') || 'Device Code'} width="160" textAlign="Center" />
+                                <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="180" textAlign="Center" />
+                                <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="160" textAlign="Center" />
+                                <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="160" textAlign="Center" template={StatusTemplate} />
+                                <ColumnDirective field="createdAt" headerText={t('tests.receivedTime') || 'Received Time'} width="160" textAlign="Center" />
+                                <ColumnDirective headerText={t('inspector.inspect') || 'Inspect'} width="140" textAlign="Center" template={ActionTemplate} />
                             </ColumnsDirective>
                             <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>

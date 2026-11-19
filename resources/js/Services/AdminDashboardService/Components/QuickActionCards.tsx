@@ -8,57 +8,66 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const QuickActionCards: React.FC = () => {
     const dark = useAppSelector(state => state.theme.dark);
+    const { t, i18n } = useTranslation();
+    const activeLang = i18n.language === 'ar' ? 'ar' : 'en';
+    const isRtl = activeLang === 'ar';
+
+    const getLocalizedLink = (link: string): string => {
+        const clean = link.replace(/^\/(en|ar)(\/|$)/, '/');
+        return `/${activeLang}${clean.startsWith('/') ? clean : '/' + clean}`;
+    };
 
     const actions = [
         {
-            title: 'Operational Monitor',
-            desc: 'View real-time test & device operations',
+            title: t('nav.monitor') || 'Operational Monitor',
+            desc: isRtl ? 'متابعة العمليات والأجهزة في الوقت الفعلي' : 'View real-time test & device operations',
             icon: <DashboardIcon color="primary" fontSize="large" />,
             link: '/monitor',
-            btnText: 'Open Monitor',
+            btnText: isRtl ? 'فتح شاشة المراقبة' : 'Open Monitor',
             color: 'primary' as const,
         },
         {
-            title: 'Inspector Queue',
-            desc: 'Inspect pending HealGen test results',
+            title: t('nav.inspectorQueue') || 'Inspector Queue',
+            desc: isRtl ? 'فحص نتائج عينات هيل جين المعلقة' : 'Inspect pending HealGen test results',
             icon: <AssignmentIcon color="warning" fontSize="large" />,
             link: '/inspector/dashboard',
-            btnText: 'Open Inspector Queue',
+            btnText: isRtl ? 'قائمة الفاحص' : 'Open Inspector Queue',
             color: 'warning' as const,
         },
         {
-            title: 'Supervisor Queue',
-            desc: 'Review, confirm & dispatch to HIS',
+            title: t('nav.supervisorQueue') || 'Supervisor Queue',
+            desc: isRtl ? 'المراجعة والاعتماد النهائي والإرسال للنظام الصحي' : 'Review, confirm & dispatch to HIS',
             icon: <VerifiedIcon color="secondary" fontSize="large" />,
             link: '/supervisor/dashboard',
-            btnText: 'Open Supervisor Queue',
+            btnText: isRtl ? 'قائمة المشرف' : 'Open Supervisor Queue',
             color: 'secondary' as const,
         },
         {
-            title: 'Manage Locations',
-            desc: 'Configure testing sites & locations',
+            title: t('nav.locations') || 'Manage Locations',
+            desc: isRtl ? 'إدارة وتكوين مراكز الفحص والمواقع' : 'Configure testing sites & locations',
             icon: <LocationOnIcon color="info" fontSize="large" />,
             link: '/locations',
-            btnText: 'Manage Locations',
+            btnText: isRtl ? 'إدارة المواقع' : 'Manage Locations',
             color: 'info' as const,
         },
         {
-            title: 'Manage Devices',
-            desc: 'Register devices & assignments',
+            title: t('nav.devices') || 'Manage Devices',
+            desc: isRtl ? 'تسجيل الأجهزة والتعيينات الطبية' : 'Register devices & assignments',
             icon: <DevicesIcon color="success" fontSize="large" />,
             link: '/devices',
-            btnText: 'Manage Devices',
+            btnText: isRtl ? 'إدارة الأجهزة' : 'Manage Devices',
             color: 'success' as const,
         },
         {
-            title: 'Manage Users',
-            desc: 'User account roles & permissions',
+            title: t('nav.users') || 'Manage Users',
+            desc: isRtl ? 'إدارة الحسابات والأدوار والصلاحيات' : 'User account roles & permissions',
             icon: <PeopleIcon color="error" fontSize="large" />,
             link: '/users',
-            btnText: 'Manage Users',
+            btnText: isRtl ? 'إدارة المستخدمين' : 'Manage Users',
             color: 'error' as const,
         },
     ];
@@ -66,42 +75,45 @@ const QuickActionCards: React.FC = () => {
     return (
         <Box className="mb-6">
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
-                Administrative Quick Navigation
+                {isRtl ? 'روابط التنقل الإداري السريع' : 'Administrative Quick Navigation'}
             </Typography>
-            <Grid container spacing={2} justifyContent="center">
+            <Grid container spacing={2}>
                 {actions.map((act, idx) => (
                     <Grid item xs={12} sm={6} md={4} key={idx}>
                         <Card
                             sx={{
-                                borderRadius: 2,
-                                backgroundColor: dark ? 'var(--clr-bg-content-dark, #334155)' : '#ffffff',
-                                border: '1px solid',
-                                borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-                                boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 4px rgba(0,0,0,0.05)',
                                 height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',
+                                backgroundColor: dark ? '#1e293b' : '#ffffff',
+                                border: '1px solid',
+                                borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                                borderRadius: 2,
+                                boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 4px rgba(0,0,0,0.05)',
+                                '&:hover': {
+                                    boxShadow: dark ? '0 4px 12px rgba(0,0,0,0.6)' : '0 4px 8px rgba(0,0,0,0.1)',
+                                }
                             }}
                         >
-                            <CardContent sx={{ p: 2.5 }}>
-                                <Box className="flex items-center space-x-3 mb-2">
+                            <CardContent>
+                                <Box className="flex items-center gap-3 mb-2">
                                     {act.icon}
                                     <Typography variant="h6" color="text.primary" className="font-semibold">
                                         {act.title}
                                     </Typography>
                                 </Box>
-                                <Typography variant="body2" color="text.secondary" className="mb-4">
+                                <Typography variant="body2" color="text.secondary" className="mb-3">
                                     {act.desc}
                                 </Typography>
                                 <Button
                                     component={Link}
-                                    href={act.link}
+                                    href={getLocalizedLink(act.link)}
                                     variant="outlined"
                                     color={act.color}
                                     size="small"
                                     fullWidth
-                                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
+                                    sx={{ textTransform: 'none', borderRadius: 1.5, fontWeight: 600 }}
                                 >
                                     {act.btnText}
                                 </Button>

@@ -40,6 +40,7 @@ import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const InspectorContainer: React.FC<InspectorContainerProps> = ({
     initialData,
@@ -61,6 +62,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
 
     const inspectorService = ServiceContainer.get(InspectorService);
     const dark = useAppSelector(state => state.theme.dark);
+    const { t } = useTranslation();
     const { snackbar, setSnackbar, handleClose } = useSnackbarHook({ open: false, message: '', severity: 'info' });
 
     const pageProps = usePage().props as any;
@@ -133,7 +135,9 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
 
     const closeTestDetails = () => {
         setIsDrawerOpen(false);
-        setSelectedTest(null);
+        setTimeout(() => {
+            setSelectedTest(null);
+        }, 350);
     };
 
     const openAcceptDialog = () => {
@@ -161,7 +165,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
             if (res.data.status) {
                 setSnackbar({
                     open: true,
-                    message: res.data.message || `Test #${selectedTest.id} accepted!`,
+                    message: res.data.message || `Test #${selectedTest.id} forwarded!`,
                     severity: "success"
                 });
                 setIsAcceptDialogOpen(false);
@@ -169,7 +173,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                 fetchLatest(filters, false);
             }
         } catch (err: any) {
-            const errMsg = err.response?.data?.message || "Failed to accept test. Please try again.";
+            const errMsg = err.response?.data?.message || "Failed to forward test. Please try again.";
             setSnackbar({
                 open: true,
                 message: errMsg,
@@ -189,7 +193,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
             if (res.data.status) {
                 setSnackbar({
                     open: true,
-                    message: res.data.message || `Test #${selectedTest.id} rejected!`,
+                    message: res.data.message || `Test #${selectedTest.id} sent for retest!`,
                     severity: "warning"
                 });
                 setIsRejectModalOpen(false);
@@ -197,7 +201,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                 fetchLatest(filters, false);
             }
         } catch (err: any) {
-            const errMsg = err.response?.data?.message || "Failed to reject test. Please try again.";
+            const errMsg = err.response?.data?.message || "Failed to request retest. Please try again.";
             setSnackbar({
                 open: true,
                 message: errMsg,
@@ -241,13 +245,13 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
             <Box className="p-6">
                 <Box className="flex flex-wrap justify-between items-center mb-6 gap-4">
                     <Typography variant="h4" color="text.primary" className="font-bold">
-                        Inspector Dashboard
+                        {t('inspector.dashboard') || 'Inspector Dashboard'}
                     </Typography>
 
                     {data.assignedLocation ? (
                         <Chip
                             icon={<LocationOnIcon />}
-                            label={`Assigned Location: ${data.assignedLocation.name} (${data.assignedLocation.code})`}
+                            label={`${t('inspector.assignedLocation') || 'Assigned Location'}: ${data.assignedLocation.name} (${data.assignedLocation.code})`}
                             color="primary"
                             variant="outlined"
                             sx={{
@@ -262,7 +266,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                     ) : isAdmin ? (
                         <Chip
                             icon={<LocationOnIcon />}
-                            label="All Locations (Administrator)"
+                            label={t('inspector.allLocationsAdmin') || 'All Locations (Administrator)'}
                             color="info"
                             variant="outlined"
                             sx={{
@@ -275,7 +279,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                     ) : (
                         <Chip
                             icon={<WarningAmberIcon />}
-                            label="No Assigned Location"
+                            label={t('inspector.noAssignedLocation') || 'No Assigned Location'}
                             color="warning"
                             variant="outlined"
                             sx={{
@@ -299,7 +303,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                             borderColor: 'warning.main',
                         }}
                     >
-                        <strong>Notice:</strong> You are not currently assigned to an active location. You will not see pending tests or be able to review tests until an administrator assigns you to a location.
+                        <strong>{t('common.details') || 'Notice'}:</strong> {t('inspector.noticeNotAssigned') || 'You are not currently assigned to an active location. You will not see pending tests or be able to review tests until an administrator assigns you to a location.'}
                     </Alert>
                 )}
 
@@ -317,7 +321,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                     <CardContent>
                         <Box className="flex flex-wrap items-center justify-between mb-4">
                             <Typography variant="h6" color="text.primary" className="font-semibold">
-                                Queue Filters
+                                {t('filters.queueFilters') || 'Queue Filters'}
                             </Typography>
                             <Box className="flex items-center space-x-3">
                                 <FormControlLabel
@@ -331,11 +335,11 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                     }
                                     label={
                                         <Typography variant="body2" color="text.secondary">
-                                            Auto-refresh (10s)
+                                            {t('filters.autoRefresh') || 'Auto-refresh (10s)'}
                                         </Typography>
                                     }
                                 />
-                                <Tooltip title="Refresh Now">
+                                <Tooltip title={t('filters.refreshNow') || "Refresh Now"}>
                                     <span>
                                         <IconButton
                                             onClick={refreshData}
@@ -348,7 +352,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                     </span>
                                 </Tooltip>
                                 <Typography variant="caption" color="text.secondary">
-                                    Updated: {lastUpdated.toLocaleTimeString()}
+                                    {t('filters.lastUpdated') || 'Updated: '}{lastUpdated.toLocaleTimeString()}
                                 </Typography>
                             </Box>
                         </Box>
@@ -356,21 +360,21 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                         <Grid container spacing={2} alignItems="center" justifyContent="flex-start">
                             <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel>Location</InputLabel>
+                                    <InputLabel>{t('filters.location') || 'Location'}</InputLabel>
                                     <Select
                                         value={filters.locationId || (locations.length === 1 ? locations[0].id : '')}
-                                        label="Location"
+                                        label={t('filters.location') || 'Location'}
                                         disabled={locations.length <= 1}
                                         onChange={(e) => updateFilter('locationId', e.target.value)}
                                     >
-                                        {locations.length > 1 && <MenuItem value="">All Locations</MenuItem>}
+                                        {locations.length > 1 && <MenuItem value="">{t('filters.allLocations') || 'All Locations'}</MenuItem>}
                                         {locations.map((loc) => (
                                             <MenuItem key={loc.id} value={loc.id}>
                                                 {loc.name} ({loc.code})
                                             </MenuItem>
                                         ))}
                                         {locations.length === 0 && (
-                                            <MenuItem value="" disabled>No Assigned Location</MenuItem>
+                                            <MenuItem value="" disabled>{t('filters.noAssignedLocation') || 'No Assigned Location'}</MenuItem>
                                         )}
                                     </Select>
                                 </FormControl>
@@ -378,21 +382,21 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
 
                             <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel>Device</InputLabel>
+                                    <InputLabel>{t('filters.device') || 'Device'}</InputLabel>
                                     <Select
                                         value={filters.deviceId || ''}
-                                        label="Device"
+                                        label={t('filters.device') || 'Device'}
                                         disabled={devices.length === 0}
                                         onChange={(e) => updateFilter('deviceId', e.target.value)}
                                     >
-                                        <MenuItem value="">All Devices</MenuItem>
+                                        <MenuItem value="">{t('filters.allDevices') || 'All Devices'}</MenuItem>
                                         {devices.map((dev) => (
                                             <MenuItem key={dev.id} value={dev.id}>
                                                 {dev.name} ({dev.deviceCode})
                                             </MenuItem>
                                         ))}
                                         {devices.length === 0 && (
-                                            <MenuItem value="" disabled>No Devices Available</MenuItem>
+                                            <MenuItem value="" disabled>{t('filters.noDevicesAvailable') || 'No Devices Available'}</MenuItem>
                                         )}
                                     </Select>
                                 </FormControl>
@@ -403,7 +407,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                     fullWidth
                                     size="small"
                                     type="date"
-                                    label="Date"
+                                    label={t('filters.date') || 'Date'}
                                     InputLabelProps={{ shrink: true }}
                                     value={filters.date || ''}
                                     onChange={(e) => updateFilter('date', e.target.value)}
@@ -414,8 +418,8 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                 <TextField
                                     fullWidth
                                     size="small"
-                                    label="Search"
-                                    placeholder="Patient ID, Donor, Site..."
+                                    label={t('filters.search') || 'Search'}
+                                    placeholder={t('placeholders.search') || 'Patient ID, Donor, Site...'}
                                     value={filters.search || ''}
                                     onChange={(e) => updateFilter('search', e.target.value)}
                                 />
@@ -430,7 +434,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                     size="small"
                                     fullWidth
                                 >
-                                    Reset
+                                    {t('filters.reset') || 'Reset'}
                                 </Button>
                             </Grid>
                         </Grid>

@@ -2,10 +2,30 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "@/Redux/Store/store";
 import Language from "@/models/language/Language";
 
+const getInitialLocale = (): { language: string; direction: 'rtl' | 'ltr' } => {
+    if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path.startsWith('/ar/') || path === '/ar') {
+            return { language: 'ar', direction: 'rtl' };
+        }
+        const cookieMatch = document.cookie.match(/(^|;)\s*locale\s*=\s*([^;]+)/);
+        if (cookieMatch && cookieMatch[2] === 'ar') {
+            return { language: 'ar', direction: 'rtl' };
+        }
+        const stored = localStorage.getItem('i18nextLng');
+        if (stored === 'ar') {
+            return { language: 'ar', direction: 'rtl' };
+        }
+    }
+    return { language: 'en', direction: 'ltr' };
+};
+
+const initialLocale = getInitialLocale();
+
 const dummyLanguages: {languages: Language[], language: string, direction: 'rtl' | 'ltr'} = {
     languages: [],
-    language: 'en',
-    direction: 'ltr',
+    language: initialLocale.language,
+    direction: initialLocale.direction,
 }
 
 const initialState = dummyLanguages;

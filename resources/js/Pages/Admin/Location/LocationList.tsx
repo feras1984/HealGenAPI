@@ -6,11 +6,13 @@ import LocationContainer from "@/Services/LocationService/State/LocationContaine
 import { Box, Button, Stack } from "@mui/material";
 import CustomButton from "@/Components/Button/CustomButton";
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import { useTranslation } from "react-i18next";
 
 const LocationList: React.FC<{ locations: Location[] }> = ({ locations }) => {
+    const { t } = useTranslation();
     return (
         <AdminLayout>
-            <Head title="Locations"></Head>
+            <Head title={t('nav.locations') || 'Locations'}></Head>
             <Box className="py-[16px]">
                 <Stack
                     direction="row"
@@ -19,7 +21,7 @@ const LocationList: React.FC<{ locations: Location[] }> = ({ locations }) => {
                     spacing={2}
                 >
                     <Link href={`/locations/add`}>
-                        <CustomButton task='add' text={'Location'}></CustomButton>
+                        <CustomButton task='add' text={t('common.location') || 'Location'}></CustomButton>
                     </Link>
                     <Link href={`/location-inspectors`}>
                         <Button
@@ -28,7 +30,7 @@ const LocationList: React.FC<{ locations: Location[] }> = ({ locations }) => {
                             startIcon={<AssignmentIndIcon />}
                             sx={{ textTransform: 'none', height: 40, borderRadius: 2 }}
                         >
-                            Inspector Assignments
+                            {t('nav.inspectorAssignments') || 'Inspector Assignments'}
                         </Button>
                     </Link>
                 </Stack>

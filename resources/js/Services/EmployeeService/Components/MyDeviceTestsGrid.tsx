@@ -21,6 +21,7 @@ import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useEmployeeContext } from "@/Services/EmployeeService/State/EmployeeContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const statusColorMap: Record<string, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
     'Imported': 'info',
@@ -37,11 +38,14 @@ const statusColorMap: Record<string, "default" | "primary" | "secondary" | "erro
 };
 
 const StatusTemplate = (props: any) => {
+    const { t } = useTranslation();
     const status = props.status || 'Imported';
     const color = statusColorMap[status] || 'default';
+    const translatedStatus = t(`status.${status}`) || status;
+
     return (
         <Chip
-            label={status}
+            label={translatedStatus}
             color={color}
             size="small"
             variant="outlined"
@@ -51,6 +55,8 @@ const StatusTemplate = (props: any) => {
 };
 
 const AttachmentTemplate = (props: any) => {
+    const { t, i18n } = useTranslation();
+    const activeLang = i18n.language?.startsWith('ar') ? 'ar' : 'en';
     if (props.attachment) {
         return (
             <Button
@@ -70,38 +76,44 @@ const AttachmentTemplate = (props: any) => {
     return (
         <Button
             component={Link}
-            href={`/tests/${props.id}`}
-            variant="text"
-            color="primary"
+            href={`/${activeLang}/tests/${props.id}`}
+            variant="outlined"
+            color="secondary"
             size="small"
             startIcon={<CloudUploadIcon sx={{ fontSize: 16 }} />}
-            sx={{ textTransform: 'none', py: 0.25, fontSize: '0.75rem' }}
+            sx={{ textTransform: 'none', borderRadius: 1.5, py: 0.25, fontSize: '0.75rem' }}
         >
-            Upload
+            {t('common.upload') || 'Upload'}
         </Button>
     );
 };
 
 const ActionTemplate = (props: any) => {
+    const { t, i18n } = useTranslation();
+    const activeLang = i18n.language?.startsWith('ar') ? 'ar' : 'en';
     return (
         <Button
             component={Link}
-            href={`/tests/${props.id}`}
+            href={`/${activeLang}/tests/${props.id}`}
             variant="contained"
             color="primary"
             size="small"
             startIcon={<VisibilityIcon sx={{ fontSize: 16 }} />}
             sx={{ textTransform: 'none', borderRadius: 1.5, py: 0.25, fontSize: '0.75rem' }}
         >
-            Details
+            {t('common.details') || 'Details'}
         </Button>
     );
 };
 
 const MyDeviceTestsGrid: React.FC = () => {
     const { data } = useEmployeeContext();
+    const { t, i18n } = useTranslation();
     const tests = data.recentTests || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
     const gridRef = useRef<GridComponent | null>(null);
 
     const mappedGridData = tests.map(pt => ({
@@ -130,13 +142,13 @@ const MyDeviceTestsGrid: React.FC = () => {
             <CardContent>
                 <Box className="flex justify-between items-center mb-3">
                     <Typography variant="h6" color="text.primary" className="font-semibold">
-                        Tests Ingested from My Assigned Devices ({mappedGridData.length})
+                        {t('employee.testsFromMyDevices') || 'Tests Ingested from My Assigned Devices'} ({mappedGridData.length})
                     </Typography>
                 </Box>
                 {mappedGridData.length === 0 ? (
                     <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
-                            No test results recorded for your assigned devices yet.
+                            {t('employee.noTestsRecorded') || 'No test results recorded for your assigned devices yet.'}
                         </Typography>
                     </Box>
                 ) : (
@@ -149,11 +161,12 @@ const MyDeviceTestsGrid: React.FC = () => {
                             allowFiltering={true}
                             allowExcelExport={true}
                             allowPdfExport={true}
+                            enableRtl={isRtl}
                             toolbar={['ExcelExport', 'PdfExport', 'Search']}
                             toolbarClick={(args: ClickEventArgs) =>
                                 handleGridToolbarClick(gridRef.current, args, {
-                                    fileName: 'My_Assigned_Device_Tests',
-                                    title: 'Tests Ingested from My Assigned Devices',
+                                    fileName: isRtl ? 'فحوصات_أجهزتي_المعينة' : 'My_Assigned_Device_Tests',
+                                    title: t('employee.testsFromMyDevices') || 'Tests Ingested from My Assigned Devices',
                                     isLandscape: true
                                 })
                             }
@@ -161,16 +174,16 @@ const MyDeviceTestsGrid: React.FC = () => {
                             rowHeight={45}
                         >
                             <ColumnsDirective>
-                                <ColumnDirective field="id" headerText="Id" width="70" textAlign="Center" />
-                                <ColumnDirective field="patientId" headerText="Patient Code" width="160" textAlign="Center" />
-                                <ColumnDirective field="donorId" headerText="Donor Name" width="180" textAlign="Center" />
-                                <ColumnDirective field="deviceCode" headerText="Device Code" width="140" textAlign="Center" />
-                                <ColumnDirective field="deviceName" headerText="Device Name" width="160" textAlign="Center" />
-                                <ColumnDirective field="locationName" headerText="Location" width="150" textAlign="Center" />
-                                <ColumnDirective field="status" headerText="Status" width="170" textAlign="Center" template={StatusTemplate} />
-                                <ColumnDirective field="attachment" headerText="File" width="130" textAlign="Center" template={AttachmentTemplate} />
-                                <ColumnDirective field="actions" headerText="View" width="110" textAlign="Center" template={ActionTemplate} />
-                                <ColumnDirective field="createdAt" headerText="Received" width="140" textAlign="Center" />
+                                <ColumnDirective field="id" headerText={t('tests.testId') || 'Id'} width="70" textAlign="Center" />
+                                <ColumnDirective field="patientId" headerText={t('tests.patientCode') || 'Patient Code'} width="160" textAlign="Center" />
+                                <ColumnDirective field="donorId" headerText={t('tests.donorName') || 'Donor Name'} width="180" textAlign="Center" />
+                                <ColumnDirective field="deviceCode" headerText={t('tests.deviceCode') || 'Device Code'} width="140" textAlign="Center" />
+                                <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="160" textAlign="Center" />
+                                <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="150" textAlign="Center" />
+                                <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="170" textAlign="Center" template={StatusTemplate} />
+                                <ColumnDirective field="attachment" headerText={t('tests.uploadDocument') || 'File'} width="130" textAlign="Center" template={AttachmentTemplate} />
+                                <ColumnDirective field="actions" headerText={t('common.details') || 'View'} width="130" textAlign="Center" template={ActionTemplate} />
+                                <ColumnDirective field="createdAt" headerText={t('tests.receivedTime') || 'Received'} width="140" textAlign="Center" />
                             </ColumnsDirective>
                             <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>

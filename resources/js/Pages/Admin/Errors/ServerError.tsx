@@ -14,6 +14,8 @@ import {
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import { useTranslation } from "react-i18next";
+import { useAppSelector } from "@/Redux/Store/hook";
 
 interface ServerErrorProps {
     status?: number;
@@ -28,15 +30,23 @@ const ServerError: React.FC<ServerErrorProps> = ({
     message = "Something went wrong on our end. We are actively working to fix the issue.",
     support = "Please try refreshing the page or return to your dashboard in a few moments.",
 }) => {
+    const { t, i18n } = useTranslation();
     const pageProps = usePage().props as any;
     const user = pageProps?.auth?.user || pageProps?.user;
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+    const activeLang = isRtl ? 'ar' : 'en';
 
-    // The root route ('/') automatically resolves to the role-appropriate dashboard
-    const dashboardUrl = "/";
+    const dashboardUrl = `/${activeLang}`;
 
     const handleReload = () => {
         window.location.reload();
     };
+
+    const displayTitle = (title && title !== "Internal Server Error") ? title : t('errors.serverErrorTitle');
+    const displayMessage = (message && message !== "Something went wrong on our end. We are actively working to fix the issue.") ? message : t('errors.serverErrorMessage');
+    const displaySupport = (support && support !== "Please try refreshing the page or return to your dashboard in a few moments.") ? support : t('errors.serverErrorSupport');
 
     const errorCard = (
         <Box
@@ -47,6 +57,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                 justifyContent: "center",
                 py: { xs: 4, sm: 8 },
                 px: 2,
+                direction: isRtl ? 'rtl' : 'ltr',
             }}
         >
             <Card
@@ -76,7 +87,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                         "&:last-child": { pb: 0 },
                     }}
                 >
-                    {/* Error / Problem Icon */}
+                    {/* Error / Alert Triangle Icon */}
                     <Box
                         sx={{
                             width: 88,
@@ -88,7 +99,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                             mb: 2.5,
                             backgroundColor: (theme) =>
                                 theme.palette.mode === "dark"
-                                    ? "rgba(239, 68, 68, 0.18)"
+                                    ? "rgba(220, 38, 38, 0.18)"
                                     : "rgba(220, 38, 38, 0.1)",
                             color: "error.main",
                         }}
@@ -98,7 +109,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
 
                     {/* HTTP Status Code Badge */}
                     <Chip
-                        label={`HTTP ${status}`}
+                        label={`${t('errors.httpStatus') || 'HTTP'} ${status}`}
                         color="error"
                         size="small"
                         variant="outlined"
@@ -122,7 +133,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                             fontSize: { xs: "1.5rem", sm: "1.875rem" },
                         }}
                     >
-                        {title}
+                        {displayTitle}
                     </Typography>
 
                     {/* Primary Message */}
@@ -136,7 +147,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                             fontSize: { xs: "0.95rem", sm: "1.05rem" },
                         }}
                     >
-                        {message}
+                        {displayMessage}
                     </Typography>
 
                     {/* Supporting Text */}
@@ -150,21 +161,21 @@ const ServerError: React.FC<ServerErrorProps> = ({
                             lineHeight: 1.5,
                         }}
                     >
-                        {support}
+                        {displaySupport}
                     </Typography>
 
-                    {/* Action Buttons */}
+                    {/* Primary Action Buttons */}
                     <Stack
                         direction={{ xs: "column", sm: "row" }}
                         spacing={2}
                         sx={{ width: "100%", justifyContent: "center" }}
                     >
                         <Button
-                            onClick={handleReload}
                             variant="outlined"
                             color="primary"
                             size="large"
                             startIcon={<RefreshIcon />}
+                            onClick={handleReload}
                             sx={{
                                 px: 3,
                                 py: 1.25,
@@ -175,7 +186,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                                 minWidth: 160,
                             }}
                         >
-                            Try Again
+                            {t('errors.refreshPage') || "Refresh Page"}
                         </Button>
                         <Button
                             component={Link}
@@ -194,7 +205,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                                 minWidth: 180,
                             }}
                         >
-                            Back to Dashboard
+                            {t('errors.backToDashboard') || "Back to Dashboard"}
                         </Button>
                     </Stack>
                 </CardContent>
@@ -205,7 +216,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
     if (!user) {
         return (
             <AppRoot>
-                <Head title={`${status} - ${title}`} />
+                <Head title={`${status} - ${displayTitle}`} />
                 <Box
                     sx={{
                         minHeight: "100vh",
@@ -214,6 +225,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
                         justifyContent: "center",
                         bgcolor: "background.default",
                         p: 2,
+                        direction: isRtl ? 'rtl' : 'ltr',
                     }}
                 >
                     {errorCard}
@@ -224,7 +236,7 @@ const ServerError: React.FC<ServerErrorProps> = ({
 
     return (
         <AdminLayout>
-            <Head title={`${status} - ${title}`} />
+            <Head title={`${status} - ${displayTitle}`} />
             {errorCard}
         </AdminLayout>
     );

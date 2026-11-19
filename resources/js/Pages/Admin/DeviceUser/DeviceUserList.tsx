@@ -5,11 +5,13 @@ import DeviceUser from "@/models/device/DeviceUser";
 import DeviceUserContainer from "@/Services/DeviceUserService/State/DeviceUserContainer";
 import { Box, Stack } from "@mui/material";
 import CustomButton from "@/Components/Button/CustomButton";
+import { useTranslation } from "react-i18next";
 
 const DeviceUserList: React.FC<{ assignments: DeviceUser[] }> = ({ assignments }) => {
+    const { t } = useTranslation();
     return (
         <AdminLayout>
-            <Head title="Device Assignments"></Head>
+            <Head title={t('nav.deviceAssignments') || 'Device Assignments'}></Head>
             <Box className="py-[16px]">
                 <Stack
                     direction="row"
@@ -18,7 +20,7 @@ const DeviceUserList: React.FC<{ assignments: DeviceUser[] }> = ({ assignments }
                     spacing={2}
                 >
                     <Link href={`/device-users/assign`}>
-                        <CustomButton task='add' text={'Device Assignment'}></CustomButton>
+                        <CustomButton task='add' text={t('common.assignment') || 'Device Assignment'}></CustomButton>
                     </Link>
                 </Stack>
             </Box>

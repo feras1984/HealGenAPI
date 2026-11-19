@@ -1,24 +1,50 @@
-import {PropsWithChildren, useEffect, useMemo} from "react";
-import {useAppSelector} from "@/Redux/Store/hook";
-import {createTheme, useTheme, ThemeProvider} from "@mui/material";
-import {indigo, pink, purple, lime, green, lightGreen, red, teal} from "@mui/material/colors";
-import {usePage} from "@inertiajs/react";
+import { PropsWithChildren, useEffect, useMemo } from "react";
+import { useAppSelector } from "@/Redux/Store/hook";
+import { createTheme, ThemeProvider } from "@mui/material";
+import { green, lightGreen, pink, red } from "@mui/material/colors";
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import rtlPlugin from 'stylis-plugin-rtl';
+import { prefixer } from 'stylis';
 import LatoBold from "../fonts/Lato-Bold.ttf";
 import LatoRegular from "../fonts/Lato-Regular.ttf";
 
-const AppRoot = ({children} : PropsWithChildren) => {
+const cacheRtl = createCache({
+    key: 'muirtl',
+    stylisPlugins: [prefixer, rtlPlugin],
+});
+
+const cacheLtr = createCache({
+    key: 'muiltr',
+});
+
+const AppRoot = ({ children }: PropsWithChildren) => {
     const themeMode = useAppSelector(state => state.theme.mode);
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl =
+        direction === 'rtl' ||
+        currentLang === 'ar' ||
+        (typeof window !== 'undefined' && (
+            window.location.pathname.startsWith('/ar/') ||
+            window.location.pathname === '/ar' ||
+            document.documentElement.dir === 'rtl' ||
+            document.documentElement.lang === 'ar'
+        ));
 
-    // const lang = usePage().props.lang;
-    // const languages = usePage().props.settings.languages;
-    // console.log('lang: ', lang);
-    // console.log('languages: ', languages);
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+            document.documentElement.lang = isRtl ? 'ar' : 'en';
+        }
+    }, [isRtl]);
 
-    const theme = useMemo( () => createTheme({
+    const theme = useMemo(() => createTheme({
+        direction: isRtl ? 'rtl' : 'ltr',
         palette: {
             mode: themeMode,
-            ...(dark) ? {
+            ...(dark ? {
                 primary: {
                     main: '#3d5afe',
                 },
@@ -41,11 +67,9 @@ const AppRoot = ({children} : PropsWithChildren) => {
                 activate: {
                     main: lightGreen["A400"],
                 },
-
                 deactivate: {
                     main: pink["A400"],
                 },
-
             } : {
                 primary: {
                     main: '#2a3eb1',
@@ -72,15 +96,13 @@ const AppRoot = ({children} : PropsWithChildren) => {
                 deactivate: {
                     main: red[900],
                 },
-            }
+            })
         },
         typography: {
-            fontFamily: [
-                'lato',
-                'sans-serif',
-            ].join(','),
+            fontFamily: isRtl
+                ? "'Segoe UI', 'Cairo', 'Tahoma', 'Arial', sans-serif"
+                : "'Lato', sans-serif",
         },
-
         components: {
             MuiCssBaseline: {
                 styleOverrides: `
@@ -89,7 +111,6 @@ const AppRoot = ({children} : PropsWithChildren) => {
           font-style: normal;
           font-display: swap;
           font-weight: 400;
-
           src: url(${LatoRegular}) format('ttf');
           unicodeRange: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF;
         }
@@ -99,19 +120,54 @@ const AppRoot = ({children} : PropsWithChildren) => {
           font-style: normal;
           font-display: swap;
           font-weight: 700;
-
           src: url(${LatoBold}) format('ttf');
           unicodeRange: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF;
         }
       `,
             },
+            MuiButton: {
+                styleOverrides: {
+                    root: {
+                        direction: isRtl ? 'rtl' : 'ltr',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxSizing: 'border-box',
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                    },
+                    startIcon: {
+                        margin: 0,
+                        marginLeft: 0,
+                        marginRight: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                    },
+                    endIcon: {
+                        margin: 0,
+                        marginLeft: 0,
+                        marginRight: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                    },
+                },
+            },
         },
-    }), [themeMode]);
+    }), [themeMode, dark, isRtl]);
 
     return (
-        <ThemeProvider theme={theme}>
-            {children}
-        </ThemeProvider>
+        <CacheProvider value={isRtl ? cacheRtl : cacheLtr}>
+            <ThemeProvider theme={theme}>
+                {children}
+            </ThemeProvider>
+        </CacheProvider>
     );
-}
+};
+
 export default AppRoot;

@@ -5,6 +5,7 @@ import EmployeeContainer from "@/Services/EmployeeService/State/EmployeeContaine
 import Location from "@/models/location/Location";
 import Device from "@/models/device/Device";
 import { EmployeeDashboardData, EmployeeFilterParams } from "@/models/employee/EmployeeData";
+import { useTranslation } from "react-i18next";
 
 interface EmployeeDashboardProps {
     dashboardData: EmployeeDashboardData;
@@ -19,9 +20,11 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
     devices,
     initialFilters = {}
 }) => {
+    const { t } = useTranslation();
+
     return (
         <AdminLayout>
-            <Head title="Employee Dashboard" />
+            <Head title={t('employee.dashboardTitle') || "Employee Dashboard"} />
             <EmployeeContainer
                 initialData={dashboardData}
                 locations={locations}

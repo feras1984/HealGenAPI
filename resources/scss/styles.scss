@@ -374,3 +374,286 @@ All colors MUST be HSL.
     background: var(--border-color);
 }
 
+
+
+/* ==========================================================================
+   Universal Button Icon-Text Alignment, Gap & Boundary Confinement
+   Applies across all roles, pages, dialogs, and locales (LTR & RTL).
+   ========================================================================== */
+
+/* 1. Global Button Layout & Boundary Confinement */
+.MuiButton-root,
+button.btn,
+.btn-action,
+.btn {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    vertical-align: middle !important;
+}
+
+/* Ensure Typography and text inside buttons never wrap or overflow button bounds */
+.MuiButton-root .MuiTypography-root,
+.MuiButton-root > span:not(.MuiButton-startIcon):not(.MuiButton-endIcon) {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* 2. Reset negative margins on MUI Button icons */
+.MuiButton-root .MuiButton-startIcon,
+.MuiButton-root .MuiButton-endIcon {
+    margin: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+}
+
+/* 3. Ensure SVG icons never collapse or breach boundaries */
+.MuiButton-root .MuiButton-startIcon > svg,
+.MuiButton-root .MuiButton-endIcon > svg,
+button svg {
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+/* 4. Reading Direction Alignment (Icon Strictly Before Text):
+   - In LTR (English): Reading is Left-to-Right. startIcon (DOM child 1) is on the LEFT (before text).
+   - In RTL (Arabic): Reading is Right-to-Left. startIcon (DOM child 1) is on the RIGHT (before text).
+*/
+html[dir="rtl"] {
+    .MuiButton-root,
+    button.btn,
+    .btn-action,
+    .btn {
+        direction: rtl !important;
+        flex-direction: row !important;
+    }
+
+    /* Flip back arrow icons in RTL to match reading direction */
+    .MuiButton-root .MuiButton-startIcon > svg[data-testid="ArrowBackIcon"],
+    .MuiButton-root .MuiButton-startIcon > svg[data-testid="ArrowBackIosIcon"] {
+        transform: scaleX(-1);
+    }
+}
+
+html[dir="ltr"] {
+    .MuiButton-root,
+    button.btn,
+    .btn-action,
+    .btn {
+        direction: ltr !important;
+        flex-direction: row !important;
+    }
+}
+
+/* 5. Syncfusion Grid Toolbar & Action Buttons */
+.e-grid .e-toolbar .e-tbar-btn,
+.e-grid .e-btn {
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+}
+
+.e-grid.e-rtl .e-toolbar .e-tbar-btn,
+.e-grid.e-rtl .e-btn,
+html[dir="rtl"] .e-grid .e-btn,
+html[dir="rtl"] .e-grid .e-toolbar .e-tbar-btn {
+    direction: rtl !important;
+    flex-direction: row !important;
+}
+
+.e-grid:not(.e-rtl) .e-toolbar .e-tbar-btn,
+.e-grid:not(.e-rtl) .e-btn,
+html[dir="ltr"] .e-grid .e-btn,
+html[dir="ltr"] .e-grid .e-toolbar .e-tbar-btn {
+    direction: ltr !important;
+    flex-direction: row !important;
+}
+
+.e-grid .e-btn .e-btn-icon,
+.e-grid .e-toolbar .e-tbar-btn.e-btn .e-icons {
+    margin: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+
+/* ==========================================================================
+   Sidebar Navigation Tabs Directional Alignment (RTL Right, LTR Left)
+   ========================================================================== */
+html[dir="rtl"] {
+    aside[aria-label="Application Sidebar"],
+    aside,
+    nav.MuiList-root {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    aside .MuiListItemButton-root {
+        direction: rtl !important;
+        text-align: right !important;
+        justify-content: flex-start !important;
+        flex-direction: row !important;
+    }
+
+    aside .MuiListItemText-root {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    aside .MuiListItemText-root * {
+        text-align: right !important;
+    }
+
+    aside .MuiListItemIcon-root {
+        margin-left: 12px !important;
+        margin-right: 0 !important;
+        min-width: 36px !important;
+        justify-content: center !important;
+    }
+}
+
+html[dir="ltr"] {
+    aside[aria-label="Application Sidebar"],
+    aside,
+    nav.MuiList-root {
+        direction: ltr !important;
+        text-align: left !important;
+    }
+
+    aside .MuiListItemButton-root {
+        direction: ltr !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        flex-direction: row !important;
+    }
+
+    aside .MuiListItemText-root {
+        direction: ltr !important;
+        text-align: left !important;
+    }
+
+    aside .MuiListItemText-root * {
+        text-align: left !important;
+    }
+
+    aside .MuiListItemIcon-root {
+        margin-right: 12px !important;
+        margin-left: 0 !important;
+        min-width: 36px !important;
+        justify-content: center !important;
+    }
+}
+
+
+/* ==========================================================================
+   Inspector / Supervisor Verification Drawer Smooth Backdrop Transition
+   ========================================================================== */
+.MuiDrawer-root .MuiBackdrop-root {
+    transition: opacity 0.3s ease-in-out !important;
+}
+
+/* ==========================================================================
+   Inspector & Supervisor Verification Drawer & Details Page Directional Alignment
+   Guarantees full right-to-left layout and right-aligned content in Arabic.
+   ========================================================================== */
+html[dir="rtl"] {
+    .patient-details-page,
+    .test-detail-drawer,
+    .MuiDrawer-root .MuiDrawer-paper {
+        direction: rtl !important;
+        text-align: right !important;
+
+        .MuiCard-root,
+        .MuiCardContent-root,
+        .MuiPaper-root {
+            direction: rtl !important;
+            text-align: right !important;
+        }
+
+        .MuiTypography-root {
+            text-align: right !important;
+        }
+
+        .MuiGrid-container {
+            direction: rtl !important;
+        }
+
+        .MuiGrid-item {
+            text-align: right !important;
+        }
+
+        .MuiTableContainer-root,
+        .MuiTable-root {
+            direction: rtl !important;
+        }
+
+        /* Substance column header and cell strictly right-aligned */
+        .MuiTableHead-root .MuiTableCell-root:first-of-type,
+        .MuiTableBody-root .MuiTableCell-root:first-of-type {
+            text-align: right !important;
+        }
+
+        /* Result columns aligned to the left */
+        .MuiTableHead-root .MuiTableCell-root:not(:first-of-type),
+        .MuiTableBody-root .MuiTableCell-root:not(:first-of-type) {
+            text-align: left !important;
+        }
+    }
+}
+
+html[dir="ltr"] {
+    .patient-details-page,
+    .test-detail-drawer,
+    .MuiDrawer-root .MuiDrawer-paper {
+        direction: ltr !important;
+        text-align: left !important;
+
+        .MuiCard-root,
+        .MuiCardContent-root,
+        .MuiPaper-root {
+            direction: ltr !important;
+            text-align: left !important;
+        }
+
+        .MuiTypography-root {
+            text-align: left !important;
+        }
+
+        .MuiGrid-container {
+            direction: ltr !important;
+        }
+
+        .MuiGrid-item {
+            text-align: left !important;
+        }
+
+        .MuiTableContainer-root,
+        .MuiTable-root {
+            direction: ltr !important;
+        }
+
+        .MuiTableHead-root .MuiTableCell-root:first-of-type,
+        .MuiTableBody-root .MuiTableCell-root:first-of-type {
+            text-align: left !important;
+        }
+
+        .MuiTableHead-root .MuiTableCell-root:not(:first-of-type),
+        .MuiTableBody-root .MuiTableCell-root:not(:first-of-type) {
+            text-align: right !important;
+        }
+    }
+}

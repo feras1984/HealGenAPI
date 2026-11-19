@@ -428,7 +428,7 @@ class InspectorService
         return [
             'breakdown' => [
                 ['name' => 'Accepted', 'count' => $acceptCount, 'color' => '#10b981'],
-                ['name' => 'Rejected', 'count' => $rejectCount, 'color' => '#ef4444'],
+                ['name' => 'Rejected', 'count' => $rejectCount, 'color' => '#f97316'],
             ],
             'trend' => $trend,
         ];
@@ -459,7 +459,7 @@ class InspectorService
                     'activityChart' => [
                         'breakdown' => [
                             ['name' => 'Accepted', 'count' => 0, 'color' => '#10b981'],
-                            ['name' => 'Rejected', 'count' => 0, 'color' => '#ef4444'],
+                            ['name' => 'Rejected', 'count' => 0, 'color' => '#f97316'],
                         ],
                         'trend' => array_map(function ($h) {
                             return ['period' => sprintf('%02d:00', $h), 'accepted' => 0, 'rejected' => 0];

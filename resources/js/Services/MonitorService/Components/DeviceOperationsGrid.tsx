@@ -17,12 +17,14 @@ import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useMonitorContext } from "@/Services/MonitorService/State/MonitorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const ActiveTemplate = (props: any) => {
+    const { t } = useTranslation();
     const isActive = props.isActive;
     return (
         <Chip
-            label={isActive ? "Active" : "Inactive"}
+            label={isActive ? (t('common.active') || "Active") : (t('common.inactive') || "Inactive")}
             color={isActive ? "success" : "default"}
             size="small"
             variant="filled"

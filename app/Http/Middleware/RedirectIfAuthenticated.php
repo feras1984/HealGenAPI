@@ -22,10 +22,18 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                if (Auth::guard($guard)->user()->reference()->first() instanceof Admin) {
-                    return redirect(RouteServiceProvider::HOME);
+                $locale = $request->route('locale')
+                    ?? $request->cookie('locale')
+                    ?? ($request->hasSession() ? $request->session()->get('locale') : null)
+                    ?? $request->getPreferredLanguage(['en', 'ar'])
+                    ?? app()->getLocale()
+                    ?? config('app.locale', 'en');
+
+                if (!in_array($locale, ['en', 'ar'], true)) {
+                    $locale = 'en';
                 }
-                return redirect(RouteServiceProvider::HOME);
+
+                return redirect("/{$locale}");
             }
         }
 

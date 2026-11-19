@@ -40,6 +40,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import { useAppSelector } from "@/Redux/Store/hook";
 import { exportTestDetailsToExcel, exportTestDetailsToPdf } from "@/Utils/TestDetailsExportHelper";
+import { useTranslation } from "react-i18next";
 
 const statusColorMap: Record<string, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
     'Imported': 'info',
@@ -56,10 +57,25 @@ const statusColorMap: Record<string, "default" | "primary" | "secondary" | "erro
 };
 
 const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
+    const { t, i18n } = useTranslation();
+    const pageProps = usePage().props as any;
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentReduxLang = useAppSelector(state => state.languages.language);
+    const isRtl =
+        pageProps?.lang === 'ar' ||
+        direction === 'rtl' ||
+        currentReduxLang === 'ar' ||
+        (i18n.language && i18n.language.startsWith('ar')) ||
+        (typeof window !== 'undefined' && (
+            window.location.pathname.startsWith('/ar/') ||
+            window.location.pathname === '/ar' ||
+            document.documentElement.dir === 'rtl' ||
+            document.documentElement.lang === 'ar'
+        ));
+    const activeLang = isRtl ? 'ar' : 'en';
     const statusColor = statusColorMap[patient.status] || 'default';
 
-    const pageProps = usePage().props as any;
     const currentUser = pageProps?.auth?.user || pageProps?.user;
     const userRole = String(currentUser?.role || '').toLowerCase();
     const isEmployee = userRole === 'employee';
@@ -80,11 +96,11 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
 
         const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
         if (!validTypes.includes(file.type)) {
-            setSnackbar({ open: true, message: 'Please upload a PDF or Image file (.pdf, .jpg, .png, .webp).', severity: 'error' });
+            setSnackbar({ open: true, message: t('tests.uploadFileTypes') || 'Please upload a PDF or Image file (.pdf, .jpg, .png, .webp).', severity: 'error' });
             return;
         }
         if (file.size > 20 * 1024 * 1024) {
-            setSnackbar({ open: true, message: 'File size must not exceed 20MB.', severity: 'error' });
+            setSnackbar({ open: true, message: t('tests.uploadFileSizeExceeded') || 'File size must not exceed 20MB.', severity: 'error' });
             return;
         }
 
@@ -98,7 +114,7 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
             });
             if (res.data.status) {
                 setAttachment(res.data.attachment);
-                setSnackbar({ open: true, message: 'Test file uploaded successfully!', severity: 'success' });
+                setSnackbar({ open: true, message: t('tests.uploadSuccess') || 'Test file uploaded successfully!', severity: 'success' });
             }
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || 'Failed to upload test file.';
@@ -110,12 +126,12 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
     };
 
     const handleDeleteFile = async () => {
-        if (!window.confirm('Are you sure you want to remove this attached file?')) return;
+        if (!window.confirm(t('tests.deleteConfirm') || 'Are you sure you want to remove this attached file?')) return;
         try {
             const res = await axios.delete(`/tests/${patient.id}/file`);
             if (res.data.status) {
                 setAttachment(null);
-                setSnackbar({ open: true, message: 'Attachment removed successfully.', severity: 'success' });
+                setSnackbar({ open: true, message: t('tests.deleteSuccess') || 'Attachment removed successfully.', severity: 'success' });
             }
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || 'Failed to remove attachment.';
@@ -126,40 +142,87 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
     return (
         <AdminLayout>
             <Head title={`Test Details #${patient.id}`} />
-            <Box className="p-6 max-w-5xl mx-auto">
+            <Box
+                dir={isRtl ? 'rtl' : 'ltr'}
+                className="patient-details-page p-6 max-w-5xl mx-auto"
+                sx={{
+                    direction: isRtl ? 'rtl' : 'ltr',
+                    textAlign: isRtl ? 'right' : 'left',
+                }}
+            >
                 {/* Navigation & Header */}
-                <Box className="flex flex-wrap items-center justify-between mb-6 gap-3">
-                    <Box className="flex items-center space-x-3">
+                <Box
+                    className="flex flex-wrap items-center justify-between mb-6 gap-3"
+                    sx={{ direction: isRtl ? 'rtl' : 'ltr' }}
+                >
+                    <Box
+                        className="flex items-center gap-3"
+                        sx={{ direction: isRtl ? 'rtl' : 'ltr' }}
+                    >
                         <Button
                             component={Link}
-                            href="/tests"
+                            href={`/${activeLang}/tests`}
                             variant="outlined"
                             size="small"
-                            startIcon={<ArrowBackIcon />}
-                            sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                            startIcon={
+                                <ArrowBackIcon
+                                    sx={{
+                                        transform: isRtl ? 'rotate(180deg)' : 'none',
+                                        mr: isRtl ? 0 : 0.5,
+                                        ml: isRtl ? 0.5 : 0,
+                                    }}
+                                />
+                            }
+                            sx={{
+                                textTransform: 'none',
+                                borderRadius: 1.5,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                whiteSpace: 'nowrap',
+                            }}
                         >
-                            Back to Tests
+                            {t('common.back') || 'Back to Tests'}
                         </Button>
-                        <Box>
+                        <Box sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                             <Typography variant="h4" color="text.primary" className="font-bold">
-                                Test Details
+                                {t('common.details') || 'Test Details'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                                Test ID #{patient.id}
+                                {t('tests.testId') || 'Test ID'} #{patient.id}
                             </Typography>
                         </Box>
                     </Box>
 
-                    <Stack direction="row" spacing={1.5}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 1.5,
+                            alignItems: 'center',
+                            direction: isRtl ? 'rtl' : 'ltr',
+                        }}
+                    >
                         <Button
                             variant="outlined"
                             size="small"
-                            startIcon={<TableChartIcon sx={{ color: '#10b981' }} />}
+                            startIcon={
+                                <TableChartIcon
+                                    sx={{
+                                        color: '#10b981',
+                                        mr: isRtl ? 0 : 0.5,
+                                        ml: isRtl ? 0.5 : 0,
+                                    }}
+                                />
+                            }
                             onClick={() => exportTestDetailsToExcel(patient)}
                             sx={{
                                 textTransform: 'none',
                                 borderRadius: 1.5,
                                 fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                whiteSpace: 'nowrap',
                                 borderColor: dark ? '#475569' : '#cbd5e1',
                                 color: dark ? '#f8fafc' : '#0f172a',
                                 backgroundColor: dark ? '#1e293b' : '#ffffff',
@@ -169,17 +232,29 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                 }
                             }}
                         >
-                            Export Excel
+                            {t('common.exportExcel') || 'Export Excel'}
                         </Button>
                         <Button
                             variant="outlined"
                             size="small"
-                            startIcon={<PictureAsPdfIcon sx={{ color: '#ef4444' }} />}
+                            startIcon={
+                                <PictureAsPdfIcon
+                                    sx={{
+                                        color: '#ef4444',
+                                        mr: isRtl ? 0 : 0.5,
+                                        ml: isRtl ? 0.5 : 0,
+                                    }}
+                                />
+                            }
                             onClick={() => exportTestDetailsToPdf(patient)}
                             sx={{
                                 textTransform: 'none',
                                 borderRadius: 1.5,
                                 fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                whiteSpace: 'nowrap',
                                 borderColor: dark ? '#475569' : '#cbd5e1',
                                 color: dark ? '#f8fafc' : '#0f172a',
                                 backgroundColor: dark ? '#1e293b' : '#ffffff',
@@ -189,9 +264,9 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                 }
                             }}
                         >
-                            Export PDF
+                            {t('common.exportPdf') || 'Export PDF'}
                         </Button>
-                    </Stack>
+                    </Box>
                 </Box>
 
                 <Card
@@ -201,9 +276,11 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         border: '1px solid',
                         borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                         boxShadow: dark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.05)',
+                        direction: isRtl ? 'rtl' : 'ltr',
+                        textAlign: isRtl ? 'right' : 'left',
                     }}
                 >
-                    <CardContent className="p-6">
+                    <CardContent className="p-6" sx={{ direction: isRtl ? 'rtl' : 'ltr', textAlign: isRtl ? 'right' : 'left' }}>
                         {/* Status Banner */}
                         <Paper
                             className="p-4 mb-6 flex items-center justify-between"
@@ -212,75 +289,76 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                 backgroundColor: dark ? 'rgba(15, 23, 42, 0.6)' : '#f1f5f9',
                                 border: '1px solid',
                                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-                                borderRadius: 2
+                                borderRadius: 2,
+                                direction: isRtl ? 'rtl' : 'ltr',
                             }}
                         >
-                            <Box>
-                                <Typography variant="caption" color="text.secondary" className="block mb-1">
-                                    Current Status
+                            <Box sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
+                                    {t('common.status') || 'Current Status'}
                                 </Typography>
                                 <Chip
-                                    label={patient.status || 'Imported'}
+                                    label={t(`status.${patient.status}`) || patient.status || 'Imported'}
                                     color={statusColor}
                                     size="small"
                                     sx={{ fontWeight: 600 }}
                                 />
                             </Box>
-                            <Box>
-                                <Typography variant="caption" color="text.secondary" className="block text-right">
-                                    Created Date
+                            <Box sx={{ textAlign: isRtl ? 'left' : 'right' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, textAlign: isRtl ? 'left' : 'right' }}>
+                                    {t('tests.createdDate') || 'Created Date'}
                                 </Typography>
-                                <Typography variant="body2" color="text.primary" className="font-semibold">
+                                <Typography variant="body2" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'left' : 'right' }}>
                                     {patient.createdAt || '-'}
                                 </Typography>
                             </Box>
                         </Paper>
 
                         {/* Patient & Sample Details */}
-                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3">
-                            Patient & Sample Information
+                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                            {t('tests.patientAndSampleInfo') || 'Patient & Sample Information'}
                         </Typography>
-                        <Grid container spacing={3} className="mb-6">
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Donor Name</Typography>
-                                <Typography variant="body1" color="text.primary" className="font-semibold">{patient.donorId || '-'}</Typography>
+                        <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.donorName') || 'Donor Name'}</Typography>
+                                <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.donorId || '-'}</Typography>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Patient Code</Typography>
-                                <Typography variant="body1" color="text.primary" className="font-semibold">{patient.patientId || '-'}</Typography>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.patientCode') || 'Patient Code'}</Typography>
+                                <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.patientId || '-'}</Typography>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Collection Site</Typography>
-                                <Typography variant="body1" color="text.primary">{patient.collectionSite || '-'}</Typography>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.collectionSite') || 'Collection Site'}</Typography>
+                                <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.collectionSite || '-'}</Typography>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Cup Lot Number</Typography>
-                                <Typography variant="body1" color="text.primary">{patient.cupLotNumber || '-'}</Typography>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.cupLotNumber') || 'Cup Lot Number'}</Typography>
+                                <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.cupLotNumber || '-'}</Typography>
                             </Grid>
                         </Grid>
 
                         <Divider className="mb-6" />
 
                         {/* Device & Location Info */}
-                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3">
-                            Device & Location Details
+                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                            {t('tests.deviceAndLocationDetails') || 'Device & Location Details'}
                         </Typography>
-                        <Grid container spacing={3} className="mb-6">
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Device Name</Typography>
-                                <Typography variant="body1" color="text.primary">{patient.device?.name || (patient as any).deviceName || '-'}</Typography>
+                        <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.deviceName') || 'Device Name'}</Typography>
+                                <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.device?.name || (patient as any).deviceName || '-'}</Typography>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Device Code</Typography>
-                                <Typography variant="body1" color="text.primary">{patient.device?.deviceCode || (patient as any).deviceCode || '-'}</Typography>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.deviceCode') || 'Device Code'}</Typography>
+                                <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.device?.deviceCode || (patient as any).deviceCode || '-'}</Typography>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Device Type</Typography>
-                                <Typography variant="body1" color="text.primary">{patient.device?.deviceTypeName || (patient as any).deviceTypeName || '-'}</Typography>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.deviceType') || 'Device Type'}</Typography>
+                                <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.device?.deviceTypeName || (patient as any).deviceTypeName || '-'}</Typography>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Typography variant="caption" color="text.secondary">Location</Typography>
-                                <Typography variant="body1" color="text.primary">{patient.device?.locationName || (patient as any).locationName || '-'}</Typography>
+                            <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.location') || 'Location'}</Typography>
+                                <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>{patient.device?.locationName || (patient as any).locationName || '-'}</Typography>
                             </Grid>
                         </Grid>
 
@@ -288,21 +366,21 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         {patient.reviewedBy && (
                             <>
                                 <Divider className="mb-6" />
-                                <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3">
-                                    Inspector Review Attribution
+                                <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                    {t('tests.inspectorAttribution') || 'Inspector Review Attribution'}
                                 </Typography>
-                                <Grid container spacing={3} className="mb-6">
-                                    <Grid item xs={12} sm={6} md={4}>
-                                        <Typography variant="caption" color="text.secondary">Inspector</Typography>
-                                        <Typography variant="body1" color="text.primary" className="font-semibold">
+                                <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                                    <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.inspector') || 'Inspector'}</Typography>
+                                        <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                             {patient.reviewedBy.name || patient.reviewedBy.email || '-'}
                                         </Typography>
                                     </Grid>
-                                    <Grid item xs={12} sm={6} md={4}>
-                                        <Typography variant="caption" color="text.secondary">Action</Typography>
-                                        <Box sx={{ mt: 0.5 }}>
+                                    <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.action') || 'Action'}</Typography>
+                                        <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
                                             <Chip
-                                                label={patient.reviewedBy.action}
+                                                label={t(`status.${patient.reviewedBy.action}`) || patient.reviewedBy.action}
                                                 color={patient.reviewedBy.action === 'INSPECTOR_ACCEPT' ? 'success' : 'error'}
                                                 size="small"
                                                 variant="outlined"
@@ -310,16 +388,16 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             />
                                         </Box>
                                     </Grid>
-                                    <Grid item xs={12} sm={6} md={4}>
-                                        <Typography variant="caption" color="text.secondary">Review Timestamp</Typography>
-                                        <Typography variant="body1" color="text.primary">
+                                    <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reviewTimestamp') || 'Review Timestamp'}</Typography>
+                                        <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                             {patient.reviewedBy.reviewedAt || '-'}
                                         </Typography>
                                     </Grid>
                                     {patient.reviewedBy.reason && (
-                                        <Grid item xs={12}>
-                                            <Typography variant="caption" color="text.secondary">Inspector Reason / Notes</Typography>
-                                            <Typography variant="body2" color="text.primary">
+                                        <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Inspector Reason / Notes'}</Typography>
+                                            <Typography variant="body2" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                                 {patient.reviewedBy.reason}
                                             </Typography>
                                         </Grid>
@@ -331,8 +409,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         <Divider className="mb-6" />
 
                         {/* Test Document Attachment Section (PDF / Image) */}
-                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3">
-                            Test Document Attachment (PDF / Image)
+                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                            {t('tests.testDocumentAttachment') || 'Test Document Attachment (PDF / Image)'}
                         </Typography>
 
                         <Paper
@@ -343,11 +421,13 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                 borderRadius: 2.5,
                                 backgroundColor: dark ? 'rgba(15, 23, 42, 0.4)' : '#f8fafc',
                                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                                direction: isRtl ? 'rtl' : 'ltr',
+                                textAlign: isRtl ? 'right' : 'left',
                             }}
                         >
                             {attachment ? (
-                                <Box className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                    <Stack direction="row" spacing={2} alignItems="center">
+                                <Box className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', direction: isRtl ? 'rtl' : 'ltr' }}>
                                         <Box
                                             sx={{
                                                 width: 52,
@@ -358,6 +438,7 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                                 justifyContent: 'center',
                                                 backgroundColor: attachment.isImage ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                                                 color: attachment.isImage ? 'primary.main' : 'error.main',
+                                                flexShrink: 0,
                                             }}
                                         >
                                             {attachment.isImage ? (
@@ -367,26 +448,26 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             )}
                                         </Box>
 
-                                        <Box>
+                                        <Box sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                             <Typography variant="body1" fontWeight={700} color="text.primary">
                                                 {attachment.name}
                                             </Typography>
-                                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5, direction: isRtl ? 'rtl' : 'ltr' }}>
                                                 <Chip
-                                                    label={attachment.isImage ? 'Image Document' : 'PDF Document'}
+                                                    label={attachment.isImage ? (t('tests.imageDocument') || 'Image Document') : (t('tests.pdfDocument') || 'PDF Document')}
                                                     size="small"
                                                     color={attachment.isImage ? 'primary' : 'error'}
                                                     variant="outlined"
                                                     sx={{ fontSize: '0.75rem', height: 20 }}
                                                 />
                                                 <Typography variant="caption" color="text.secondary">
-                                                    Uploaded: {attachment.createdAt}
+                                                    {t('tests.uploaded') || 'Uploaded'}: {attachment.createdAt}
                                                 </Typography>
-                                            </Stack>
+                                            </Box>
                                         </Box>
-                                    </Stack>
+                                    </Box>
 
-                                    <Stack direction="row" spacing={1.5} alignItems="center">
+                                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', direction: isRtl ? 'rtl' : 'ltr' }}>
                                         {/* Download button available for all roles */}
                                         <Button
                                             component="a"
@@ -394,10 +475,17 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             variant="contained"
                                             color="primary"
                                             size="small"
-                                            startIcon={<DownloadIcon />}
-                                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                                            startIcon={<DownloadIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
+                                            sx={{
+                                                textTransform: 'none',
+                                                borderRadius: 2,
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: 0.5,
+                                                whiteSpace: 'nowrap',
+                                            }}
                                         >
-                                            Download
+                                            {t('common.download') || 'Download'}
                                         </Button>
 
                                         {/* Image preview modal trigger */}
@@ -405,11 +493,18 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             <Button
                                                 variant="outlined"
                                                 size="small"
-                                                startIcon={<VisibilityIcon />}
+                                                startIcon={<VisibilityIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
                                                 onClick={() => setPreviewOpen(true)}
-                                                sx={{ textTransform: 'none', borderRadius: 2 }}
+                                                sx={{
+                                                    textTransform: 'none',
+                                                    borderRadius: 2,
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: 0.5,
+                                                    whiteSpace: 'nowrap',
+                                                }}
                                             >
-                                                Preview
+                                                {t('common.preview') || 'Preview'}
                                             </Button>
                                         )}
 
@@ -426,15 +521,22 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                                 <Button
                                                     variant="outlined"
                                                     size="small"
-                                                    startIcon={uploading ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+                                                    startIcon={uploading ? <CircularProgress size={16} /> : <CloudUploadIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
                                                     disabled={uploading}
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    sx={{ textTransform: 'none', borderRadius: 2 }}
+                                                    sx={{
+                                                        textTransform: 'none',
+                                                        borderRadius: 2,
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: 0.5,
+                                                        whiteSpace: 'nowrap',
+                                                    }}
                                                 >
-                                                    {uploading ? 'Uploading...' : 'Replace'}
+                                                    {uploading ? (t('common.loading') || 'Uploading...') : (t('common.replace') || 'Replace')}
                                                 </Button>
 
-                                                <Tooltip title="Remove attachment">
+                                                <Tooltip title={t('tests.removeDocument') || "Remove attachment"}>
                                                     <IconButton
                                                         color="error"
                                                         size="small"
@@ -446,14 +548,14 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                                 </Tooltip>
                                             </>
                                         )}
-                                    </Stack>
+                                    </Box>
                                 </Box>
                             ) : (
                                 <Box className="text-center py-4">
                                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                         {isEmployee
-                                            ? 'No document attached to this test. You can upload a medical result PDF or Image.'
-                                            : 'No document has been attached to this test by the employee.'}
+                                            ? (t('tests.noDocumentAttachedEmployee') || 'No document attached to this test. You can upload a medical result PDF or Image.')
+                                            : (t('tests.noDocumentAttachedOther') || 'No document has been attached to this test by the employee.')}
                                     </Typography>
 
                                     {/* Upload button strictly for Employee role */}
@@ -469,12 +571,20 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             <Button
                                                 variant="contained"
                                                 color="primary"
-                                                startIcon={uploading ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon />}
+                                                startIcon={uploading ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
                                                 disabled={uploading}
                                                 onClick={() => fileInputRef.current?.click()}
-                                                sx={{ textTransform: 'none', borderRadius: 2, px: 3 }}
+                                                sx={{
+                                                    textTransform: 'none',
+                                                    borderRadius: 2,
+                                                    px: 3,
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: 0.5,
+                                                    whiteSpace: 'nowrap',
+                                                }}
                                             >
-                                                {uploading ? 'Uploading...' : 'Upload PDF / Image'}
+                                                {uploading ? (t('common.loading') || 'Uploading...') : (t('tests.uploadDocument') || 'Upload PDF / Image')}
                                             </Button>
                                         </>
                                     )}
@@ -485,8 +595,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         <Divider className="mb-6" />
 
                         {/* Medical Test Substances & Results Table */}
-                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3">
-                            Medical Test Substances & Results (Read-Only)
+                        <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                            {t('tests.testParameters') || 'Medical Test Substances & Results (Read-Only)'}
                         </Typography>
                         <TableContainer
                             component={Paper}
@@ -495,27 +605,28 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                 borderRadius: 2,
                                 backgroundColor: dark ? 'rgba(15, 23, 42, 0.4)' : '#ffffff',
                                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                                direction: isRtl ? 'rtl' : 'ltr',
                             }}
                         >
                             <Table size="medium">
                                 <TableHead sx={{ backgroundColor: dark ? 'rgba(15, 23, 42, 0.8)' : '#f8fafc' }}>
                                     <TableRow>
-                                        <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Substance</TableCell>
-                                        <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Software Result</TableCell>
-                                        <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Visual Result</TableCell>
+                                        <TableCell align={isRtl ? 'right' : 'left'} sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.parameter') || 'Substance'}</TableCell>
+                                        <TableCell align={isRtl ? 'left' : 'right'} sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.result') || 'Software Result'}</TableCell>
+                                        <TableCell align={isRtl ? 'left' : 'right'} sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.interpretation') || 'Visual Result'}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {patient.tests && patient.tests.length > 0 ? (
                                         patient.tests.map((substanceRow) => (
                                             <TableRow key={substanceRow.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                                <TableCell component="th" scope="row" sx={{ color: dark ? '#cbd5e1' : '#334155', fontWeight: 600 }}>
+                                                <TableCell component="th" scope="row" align={isRtl ? 'right' : 'left'} sx={{ color: dark ? '#cbd5e1' : '#334155', fontWeight: 600 }}>
                                                     {substanceRow.substance}
                                                 </TableCell>
-                                                <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#1e293b' }}>
+                                                <TableCell align={isRtl ? 'left' : 'right'} sx={{ color: dark ? '#f1f5f9' : '#1e293b' }}>
                                                     {substanceRow.softwareResult || '-'}
                                                 </TableCell>
-                                                <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#1e293b' }}>
+                                                <TableCell align={isRtl ? 'left' : 'right'} sx={{ color: dark ? '#f1f5f9' : '#1e293b' }}>
                                                     {substanceRow.visualResult || '-'}
                                                 </TableCell>
                                             </TableRow>
@@ -540,18 +651,25 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         onClose={() => setPreviewOpen(false)}
                         maxWidth="md"
                         fullWidth
+                        PaperProps={{
+                            dir: isRtl ? 'rtl' : 'ltr',
+                            sx: {
+                                direction: isRtl ? 'rtl' : 'ltr',
+                                textAlign: isRtl ? 'right' : 'left',
+                            }
+                        }}
                     >
-                        <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center', direction: isRtl ? 'rtl' : 'ltr' }}>
                             <span>Preview: {attachment.name}</span>
                             <Button
                                 component="a"
                                 href={`/tests/${patient.id}/file/download`}
                                 variant="outlined"
                                 size="small"
-                                startIcon={<DownloadIcon />}
-                                sx={{ textTransform: 'none' }}
+                                startIcon={<DownloadIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
+                                sx={{ textTransform: 'none', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
                             >
-                                Download
+                                {t('common.download') || 'Download'}
                             </Button>
                         </DialogTitle>
                         <DialogContent dividers sx={{ textAlign: 'center', p: 3 }}>
@@ -561,8 +679,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                 style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }}
                             />
                         </DialogContent>
-                        <DialogActions>
-                            <Button onClick={() => setPreviewOpen(false)}>Close</Button>
+                        <DialogActions sx={{ direction: isRtl ? 'rtl' : 'ltr', justifyContent: isRtl ? 'flex-start' : 'flex-end' }}>
+                            <Button onClick={() => setPreviewOpen(false)}>{t('common.close') || 'Close'}</Button>
                         </DialogActions>
                     </Dialog>
                 )}

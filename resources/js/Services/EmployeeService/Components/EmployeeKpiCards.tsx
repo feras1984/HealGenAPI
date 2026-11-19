@@ -2,15 +2,17 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { useEmployeeContext } from "@/Services/EmployeeService/State/EmployeeContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const EmployeeKpiCards: React.FC = () => {
-    const { data, loading } = useEmployeeContext();
+    const { t } = useTranslation();
+    const { data } = useEmployeeContext();
     const kpis = data.kpis;
     const dark = useAppSelector(state => state.theme.dark);
 
     const cards = [
         {
-            label: 'My Assigned Devices',
+            label: t('employee.myAssignedDevices') || 'My Assigned Devices',
             count: kpis.assignedDevicesCount || 0,
             colorLight: '#0288d1',
             colorDark: '#38bdf8',
@@ -18,7 +20,7 @@ const EmployeeKpiCards: React.FC = () => {
             bgDark: '#0f172a',
         },
         {
-            label: 'Tests Ingested Today',
+            label: t('employee.testsToday') || 'Tests Ingested Today',
             count: kpis.testsTodayCount || 0,
             colorLight: '#2e7d32',
             colorDark: '#4ade80',
@@ -26,7 +28,7 @@ const EmployeeKpiCards: React.FC = () => {
             bgDark: '#064e3b',
         },
         {
-            label: 'Pending Inspection',
+            label: t('employee.pendingInspection') || 'Pending Inspection',
             count: kpis.pendingInspectionCount || 0,
             colorLight: '#ed6c02',
             colorDark: '#fb923c',
@@ -34,7 +36,7 @@ const EmployeeKpiCards: React.FC = () => {
             bgDark: '#1c1917',
         },
         {
-            label: 'Total Ingested (All Time)',
+            label: t('employee.totalIngested') || 'Total Ingested (All Time)',
             count: kpis.totalIngestedCount || 0,
             colorLight: '#9c27b0',
             colorDark: '#c084fc',
@@ -46,7 +48,7 @@ const EmployeeKpiCards: React.FC = () => {
     return (
         <Box className="mb-6">
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
-                Employee Dashboard Overview
+                {t('employee.overview') || 'Employee Dashboard Overview'}
             </Typography>
 
             {/* Line 1: Statistics Cards */}

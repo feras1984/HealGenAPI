@@ -43,8 +43,13 @@ class HandleInertiaRequests extends Middleware
         $logo = 'logo.png';
         $languages = LanguageService::getLanguages();
         $activeLanguages = LanguageService::getActiveLanguages();
+        $locale = app()->getLocale();
+        $direction = $locale === 'ar' ? 'rtl' : 'ltr';
+
         return [
             ...parent::share($request),
+            'lang' => $locale,
+            'direction' => $direction,
             'settings' => [
                 'languages' => $languages,
                 'activeLanguages' => $activeLanguages,

@@ -17,6 +17,7 @@ import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useAdminDashboardContext } from "@/Services/AdminDashboardService/State/AdminDashboardContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const statusColorMap: Record<string, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
     'Imported': 'info',
@@ -33,11 +34,14 @@ const statusColorMap: Record<string, "default" | "primary" | "secondary" | "erro
 };
 
 const StatusTemplate = (props: any) => {
+    const { t } = useTranslation();
     const status = props.status || 'Imported';
     const color = statusColorMap[status] || 'default';
+    const translatedStatus = t(`status.${status}`) || status;
+
     return (
         <Chip
-            label={status}
+            label={translatedStatus}
             color={color}
             size="small"
             variant="outlined"
@@ -48,8 +52,12 @@ const StatusTemplate = (props: any) => {
 
 const SystemRecentOperationsGrid: React.FC = () => {
     const { data } = useAdminDashboardContext();
+    const { t, i18n } = useTranslation();
     const tests = data.recentOperations || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
     const gridRef = useRef<GridComponent | null>(null);
 
     const mappedGridData = tests.map(pt => ({
@@ -77,13 +85,13 @@ const SystemRecentOperationsGrid: React.FC = () => {
             <CardContent>
                 <Box className="flex justify-between items-center mb-3">
                     <Typography variant="h6" color="text.primary" className="font-semibold">
-                        Recent System Test Operations ({mappedGridData.length})
+                        {t('dashboard.recentOperations') || 'Recent System Test Operations'} ({mappedGridData.length})
                     </Typography>
                 </Box>
                 {mappedGridData.length === 0 ? (
                     <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
-                            No system-wide test operations recorded yet.
+                            {t('dashboard.noTestsRecorded') || 'No system-wide test operations recorded yet.'}
                         </Typography>
                     </Box>
                 ) : (
@@ -96,11 +104,12 @@ const SystemRecentOperationsGrid: React.FC = () => {
                             allowFiltering={true}
                             allowExcelExport={true}
                             allowPdfExport={true}
+                            enableRtl={isRtl}
                             toolbar={['ExcelExport', 'PdfExport', 'Search']}
                             toolbarClick={(args: ClickEventArgs) =>
                                 handleGridToolbarClick(gridRef.current, args, {
-                                    fileName: 'System_Recent_Operations',
-                                    title: 'Recent System Test Operations',
+                                    fileName: isRtl ? 'العمليات_الأخيرة_للنظام' : 'System_Recent_Operations',
+                                    title: t('dashboard.recentOperations') || 'Recent System Test Operations',
                                     isLandscape: true
                                 })
                             }
@@ -108,14 +117,14 @@ const SystemRecentOperationsGrid: React.FC = () => {
                             rowHeight={45}
                         >
                             <ColumnsDirective>
-                                <ColumnDirective field="id" headerText="Id" width="80" textAlign="Center" />
-                                <ColumnDirective field="patientId" headerText="Patient Code" width="180" textAlign="Center" />
-                                <ColumnDirective field="donorId" headerText="Donor Name" width="200" textAlign="Center" />
-                                <ColumnDirective field="deviceCode" headerText="Device Code" width="160" textAlign="Center" />
-                                <ColumnDirective field="deviceName" headerText="Device Name" width="180" textAlign="Center" />
-                                <ColumnDirective field="locationName" headerText="Location" width="160" textAlign="Center" />
-                                <ColumnDirective field="status" headerText="Status" width="180" textAlign="Center" template={StatusTemplate} />
-                                <ColumnDirective field="createdAt" headerText="Received Time" width="160" textAlign="Center" />
+                                <ColumnDirective field="id" headerText={t('tests.testId') || 'Id'} width="80" textAlign="Center" />
+                                <ColumnDirective field="patientId" headerText={t('tests.patientCode') || 'Patient Code'} width="180" textAlign="Center" />
+                                <ColumnDirective field="donorId" headerText={t('tests.donorName') || 'Donor Name'} width="200" textAlign="Center" />
+                                <ColumnDirective field="deviceCode" headerText={t('tests.deviceCode') || 'Device Code'} width="160" textAlign="Center" />
+                                <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="180" textAlign="Center" />
+                                <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="160" textAlign="Center" />
+                                <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="180" textAlign="Center" template={StatusTemplate} />
+                                <ColumnDirective field="createdAt" headerText={t('tests.receivedTime') || 'Received Time'} width="160" textAlign="Center" />
                             </ColumnsDirective>
                             <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>

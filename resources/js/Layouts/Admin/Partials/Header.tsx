@@ -1,42 +1,63 @@
-import React, {useEffect, useState} from "react";
+import React from "react";
 import Account from "@/Components/Account/Account";
 import styles from "./styles.module.scss";
 import MenuIcon from '@mui/icons-material/Menu';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import EmailIcon from '@mui/icons-material/Email';
-import LanguageIcon from '@mui/icons-material/Language';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import {useAppSelector, useAppDispatch} from "@/Redux/Store/hook";
-import {setMode} from "@/Redux/Reducers/ThemeSlice/ThemeSlice";
-import {
-    Stack,
-    IconButton,
-    Box,
-} from "@mui/material";
+import { useAppSelector, useAppDispatch } from "@/Redux/Store/hook";
+import { setMode } from "@/Redux/Reducers/ThemeSlice/ThemeSlice";
+import LanguageDropdown from "@/Layouts/Admin/Partials/LanguageDropdown";
+import { IconButton, Box } from "@mui/material";
 import Icon from "@/Components/Icon/Icon";
-const Header: React.FC<{handleExpand: () => void}> = ({handleExpand}) => {
+import { useTranslation } from "react-i18next";
+
+const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
     const dispatch = useAppDispatch();
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentReduxLang = useAppSelector(state => state.languages.language);
+    const { i18n } = useTranslation();
+    const isRtl = direction === 'rtl' || currentReduxLang === 'ar' || (i18n.language && i18n.language.startsWith('ar'));
 
     const handleTheme = () => {
         dark ? dispatch(setMode(false)) : dispatch(setMode(true));
-    }
+    };
 
     const handleIconClass = () => (
         dark ? styles.iconDark : styles.iconLight
-    )
+    );
 
     return (
-        <Stack
-            direction="row"
-            className="h-100 items-center p-[10px]"
+        <Box
+            style={{
+                display: 'flex',
+                flexDirection: isRtl ? 'row-reverse' : 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                height: '100%',
+                padding: '0 16px',
+                width: '100%',
+                boxSizing: 'border-box',
+            }}
         >
-            <Box className="grow justify-self-start flex items-center gap-3">
-                <IconButton onClick={() => handleExpand()} >
+            {/* Nav Group 1: Sidebar Toggle Icon + Logos (Right in RTL, Left in LTR) */}
+            <Box
+                style={{
+                    display: 'flex',
+                    flexDirection: isRtl ? 'row-reverse' : 'row',
+                    alignItems: 'center',
+                    gap: '12px',
+                }}
+            >
+                <IconButton onClick={() => handleExpand()} size="medium">
                     <MenuIcon className={handleIconClass()}/>
                 </IconButton>
-                <Box className="flex items-center gap-3 ms-1">
+                <Box
+                    style={{
+                        display: 'flex',
+                        flexDirection: isRtl ? 'row-reverse' : 'row',
+                        alignItems: 'center',
+                        gap: '12px',
+                    }}
+                >
                     <img
                         src="/images/logo-1.png"
                         alt="Logo 1"
@@ -49,34 +70,32 @@ const Header: React.FC<{handleExpand: () => void}> = ({handleExpand}) => {
                     />
                 </Box>
             </Box>
-            <Box className="flex flex-nowrap ">
-                {
-                    dark ?
-                        <IconButton onClick={handleTheme} >
-                            <Icon name="light-mode"></Icon>
-                        </IconButton>
-                        :
-                        <IconButton onClick={handleTheme} >
-                            <Icon name="dark-mode"></Icon>
-                        </IconButton>
-                }
 
-                <IconButton>
-                    <Icon name="notification-mui"></Icon>
+            {/* Nav Group 2: Actions & Account (Left in RTL, Right in LTR) */}
+            <Box
+                style={{
+                    display: 'flex',
+                    flexDirection: isRtl ? 'row-reverse' : 'row',
+                    alignItems: 'center',
+                    gap: '8px',
+                }}
+            >
+                <IconButton onClick={handleTheme}>
+                    <Icon name={dark ? "light-mode" : "dark-mode"} />
                 </IconButton>
                 <IconButton>
-                    <Icon name="mail-mui"></Icon>
+                    <Icon name="notification-mui" />
                 </IconButton>
                 <IconButton>
-                    <Icon name="language"></Icon>
+                    <Icon name="mail-mui" />
                 </IconButton>
-                <Box className="ms-[40px]">
+                <LanguageDropdown />
+                <Box style={{ margin: isRtl ? '0 12px 0 0' : '0 0 0 12px' }}>
                     <Account />
                 </Box>
-
             </Box>
-        </Stack>
+        </Box>
     );
-}
+};
 
 export default Header;

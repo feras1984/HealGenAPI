@@ -18,9 +18,11 @@ import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useSupervisorContext } from "@/Services/SupervisorService/State/SupervisorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const ActionTemplate = (props: any) => {
     const { openTestDetails } = useSupervisorContext();
+    const { t } = useTranslation();
     const rowData = props;
     return (
         <Button
@@ -31,15 +33,17 @@ const ActionTemplate = (props: any) => {
             onClick={() => openTestDetails(rowData.rawPatient)}
             sx={{ textTransform: 'none', borderRadius: 1.5 }}
         >
-            Review
+            {t('supervisor.review') || 'Review'}
         </Button>
     );
 };
 
 const StatusTemplate = (props: any) => {
+    const { t } = useTranslation();
+    const status = props.status || 'Awaiting Supervisor';
     return (
         <Chip
-            label={props.status || 'Awaiting Supervisor'}
+            label={t(`status.${status}`) || status}
             color="secondary"
             size="small"
             variant="outlined"
@@ -50,8 +54,12 @@ const StatusTemplate = (props: any) => {
 
 const PendingQueueGrid: React.FC = () => {
     const { data } = useSupervisorContext();
+    const { t, i18n } = useTranslation();
     const queue = data.pendingQueue || [];
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
     const gridRef = useRef<GridComponent | null>(null);
 
     const mappedGridData = queue.map(pt => ({
@@ -81,13 +89,13 @@ const PendingQueueGrid: React.FC = () => {
             <CardContent>
                 <Box className="flex justify-between items-center mb-3">
                     <Typography variant="h6" color="text.primary" className="font-semibold">
-                        Pending Supervisor Review Queue ({mappedGridData.length})
+                        {t('supervisor.pendingQueue') || 'Pending Supervisor Review Queue'} ({mappedGridData.length})
                     </Typography>
                 </Box>
                 {mappedGridData.length === 0 ? (
                     <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
-                            No tests are currently waiting for supervisor review.
+                            {t('supervisor.noTestsWaiting') || 'No tests are currently waiting for supervisor review.'}
                         </Typography>
                     </Box>
                 ) : (
@@ -100,11 +108,12 @@ const PendingQueueGrid: React.FC = () => {
                             allowFiltering={true}
                             allowExcelExport={true}
                             allowPdfExport={true}
+                            enableRtl={isRtl}
                             toolbar={['ExcelExport', 'PdfExport', 'Search']}
                             toolbarClick={(args: ClickEventArgs) =>
                                 handleGridToolbarClick(gridRef.current, args, {
-                                    fileName: 'Pending_Supervisor_Queue',
-                                    title: 'Pending Supervisor Review Queue',
+                                    fileName: isRtl ? 'قائمة_انتظار_مراجعة_المشرف' : 'Pending_Supervisor_Queue',
+                                    title: t('supervisor.pendingQueue') || 'Pending Supervisor Review Queue',
                                     isLandscape: true
                                 })
                             }
@@ -112,16 +121,16 @@ const PendingQueueGrid: React.FC = () => {
                             rowHeight={50}
                         >
                             <ColumnsDirective>
-                                <ColumnDirective field="id" headerText="Id" width="80" textAlign="Center" />
-                                <ColumnDirective field="patientId" headerText="Patient Code" width="180" textAlign="Center" />
-                                <ColumnDirective field="donorId" headerText="Donor Name" width="200" textAlign="Center" />
-                                <ColumnDirective field="deviceCode" headerText="Device Code" width="160" textAlign="Center" />
-                                <ColumnDirective field="deviceName" headerText="Device Name" width="180" textAlign="Center" />
-                                <ColumnDirective field="locationName" headerText="Location" width="160" textAlign="Center" />
-                                <ColumnDirective field="inspectorName" headerText="Inspector" width="160" textAlign="Center" />
-                                <ColumnDirective field="status" headerText="Status" width="180" textAlign="Center" template={StatusTemplate} />
-                                <ColumnDirective field="createdAt" headerText="Received Time" width="160" textAlign="Center" />
-                                <ColumnDirective headerText="Review" width="140" textAlign="Center" template={ActionTemplate} />
+                                <ColumnDirective field="id" headerText={t('tests.testId') || 'Id'} width="80" textAlign="Center" />
+                                <ColumnDirective field="patientId" headerText={t('tests.patientCode') || 'Patient Code'} width="180" textAlign="Center" />
+                                <ColumnDirective field="donorId" headerText={t('tests.donorName') || 'Donor Name'} width="200" textAlign="Center" />
+                                <ColumnDirective field="deviceCode" headerText={t('tests.deviceCode') || 'Device Code'} width="160" textAlign="Center" />
+                                <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="180" textAlign="Center" />
+                                <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="160" textAlign="Center" />
+                                <ColumnDirective field="inspectorName" headerText={t('tests.inspector') || 'Inspector'} width="160" textAlign="Center" />
+                                <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="180" textAlign="Center" template={StatusTemplate} />
+                                <ColumnDirective field="createdAt" headerText={t('tests.receivedTime') || 'Received Time'} width="160" textAlign="Center" />
+                                <ColumnDirective headerText={t('supervisor.review') || 'Review'} width="140" textAlign="Center" template={ActionTemplate} />
                             </ColumnsDirective>
                             <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>
