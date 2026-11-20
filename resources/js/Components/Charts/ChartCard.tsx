@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box, Skeleton, Alert } from '@mui/material';
 import { useAppSelector } from '@/Redux/Store/hook';
+import { useTranslation } from 'react-i18next';
 
 interface ChartCardProps {
     title: string;
@@ -20,12 +21,14 @@ export const ChartCard: React.FC<ChartCardProps> = ({
     loading = false,
     error = null,
     empty = false,
-    emptyMessage = 'No chart data available for the selected filters.',
+    emptyMessage,
     children,
     action,
     height = 320,
 }) => {
     const dark = useAppSelector((state) => state.theme.dark);
+    const { t } = useTranslation();
+    const resolvedEmptyMessage = emptyMessage || t('charts.noData') || 'No chart data available for the selected filters.';
 
     return (
         <Card
@@ -64,7 +67,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
                     ) : empty ? (
                         <Box className="h-full w-full flex items-center justify-center text-center p-4">
                             <Typography variant="body2" color="text.secondary">
-                                {emptyMessage}
+                                {resolvedEmptyMessage}
                             </Typography>
                         </Box>
                     ) : (

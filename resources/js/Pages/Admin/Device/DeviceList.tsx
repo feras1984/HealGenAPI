@@ -5,11 +5,13 @@ import Device from "@/models/device/Device";
 import DeviceContainer from "@/Services/DeviceService/State/DeviceContainer";
 import { Box, Stack } from "@mui/material";
 import CustomButton from "@/Components/Button/CustomButton";
+import { useTranslation } from "react-i18next";
 
 const DeviceList: React.FC<{ devices: Device[] }> = ({ devices }) => {
+    const { t } = useTranslation();
     return (
         <AdminLayout>
-            <Head title="Devices"></Head>
+            <Head title={t('nav.devices') || 'Devices'}></Head>
             <Box className="py-[16px]">
                 <Stack
                     direction="row"
@@ -18,7 +20,7 @@ const DeviceList: React.FC<{ devices: Device[] }> = ({ devices }) => {
                     spacing={2}
                 >
                     <Link href={`/devices/add`}>
-                        <CustomButton task='add' text={'Device'}></CustomButton>
+                        <CustomButton task='add' text={t('common.device') || 'Device'}></CustomButton>
                     </Link>
                 </Stack>
             </Box>

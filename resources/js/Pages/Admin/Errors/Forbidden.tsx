@@ -13,6 +13,8 @@ import {
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import { useTranslation } from "react-i18next";
+import { useAppSelector } from "@/Redux/Store/hook";
 
 interface ForbiddenProps {
     status?: number;
@@ -27,11 +29,19 @@ const Forbidden: React.FC<ForbiddenProps> = ({
     message = "You don't have permission to access this page or the requested resource.",
     support = "Please contact your administrator if you believe this is a mistake.",
 }) => {
+    const { t, i18n } = useTranslation();
     const pageProps = usePage().props as any;
     const user = pageProps?.auth?.user || pageProps?.user;
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+    const activeLang = isRtl ? 'ar' : 'en';
 
-    // The root route ('/') automatically resolves to the role-appropriate dashboard
-    const dashboardUrl = "/";
+    const dashboardUrl = `/${activeLang}`;
+
+    const displayTitle = (title && title !== "Access Restricted") ? title : t('errors.forbiddenTitle');
+    const displayMessage = (message && message !== "You don't have permission to access this page or the requested resource.") ? message : t('errors.forbiddenMessage');
+    const displaySupport = (support && support !== "Please contact your administrator if you believe this is a mistake.") ? support : t('errors.forbiddenSupport');
 
     const errorCard = (
         <Box
@@ -42,6 +52,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                 justifyContent: "center",
                 py: { xs: 4, sm: 8 },
                 px: 2,
+                direction: isRtl ? 'rtl' : 'ltr',
             }}
         >
             <Card
@@ -71,7 +82,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                         "&:last-child": { pb: 0 },
                     }}
                 >
-                    {/* Security Restriction Icon */}
+                    {/* Security Shield / Lock Icon */}
                     <Box
                         sx={{
                             width: 88,
@@ -84,7 +95,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                             backgroundColor: (theme) =>
                                 theme.palette.mode === "dark"
                                     ? "rgba(239, 68, 68, 0.18)"
-                                    : "rgba(239, 68, 68, 0.1)",
+                                    : "rgba(220, 38, 38, 0.1)",
                             color: "error.main",
                         }}
                     >
@@ -93,7 +104,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
 
                     {/* HTTP Status Code Badge */}
                     <Chip
-                        label={`HTTP ${status}`}
+                        label={`${t('errors.httpStatus') || 'HTTP'} ${status}`}
                         color="error"
                         size="small"
                         variant="outlined"
@@ -117,7 +128,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                             fontSize: { xs: "1.5rem", sm: "1.875rem" },
                         }}
                     >
-                        {title}
+                        {displayTitle}
                     </Typography>
 
                     {/* Primary Message */}
@@ -131,7 +142,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                             fontSize: { xs: "0.95rem", sm: "1.05rem" },
                         }}
                     >
-                        {message}
+                        {displayMessage}
                     </Typography>
 
                     {/* Supporting Text */}
@@ -145,7 +156,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                             lineHeight: 1.5,
                         }}
                     >
-                        {support}
+                        {displaySupport}
                     </Typography>
 
                     {/* Primary Action Button */}
@@ -171,7 +182,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                                 minWidth: 200,
                             }}
                         >
-                            Back to Dashboard
+                            {t('errors.backToDashboard') || "Back to Dashboard"}
                         </Button>
                     </Stack>
                 </CardContent>
@@ -182,7 +193,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
     if (!user) {
         return (
             <AppRoot>
-                <Head title={`${status} - ${title}`} />
+                <Head title={`${status} - ${displayTitle}`} />
                 <Box
                     sx={{
                         minHeight: "100vh",
@@ -191,6 +202,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
                         justifyContent: "center",
                         bgcolor: "background.default",
                         p: 2,
+                        direction: isRtl ? 'rtl' : 'ltr',
                     }}
                 >
                     {errorCard}
@@ -201,7 +213,7 @@ const Forbidden: React.FC<ForbiddenProps> = ({
 
     return (
         <AdminLayout>
-            <Head title={`${status} - ${title}`} />
+            <Head title={`${status} - ${displayTitle}`} />
             {errorCard}
         </AdminLayout>
     );

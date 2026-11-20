@@ -57,6 +57,7 @@ class SupervisorService
             'device.deviceType',
             'tests',
             'latestInspectorAction.user.reference',
+            'file',
         ])->whereIn('Status', self::PENDING_STATUSES);
 
         if (!empty($filters['locationId'])) {

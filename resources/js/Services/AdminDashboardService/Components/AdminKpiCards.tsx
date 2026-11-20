@@ -2,15 +2,17 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { useAdminDashboardContext } from "@/Services/AdminDashboardService/State/AdminDashboardContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const AdminKpiCards: React.FC = () => {
     const { data } = useAdminDashboardContext();
+    const { t } = useTranslation();
     const kpis = data.kpis;
     const dark = useAppSelector(state => state.theme.dark);
 
     const cards = [
         {
-            label: 'Total Locations',
+            label: t('dashboard.totalLocations') || 'Total Locations',
             count: kpis.totalLocations || 0,
             colorLight: '#0288d1',
             colorDark: '#38bdf8',
@@ -18,7 +20,7 @@ const AdminKpiCards: React.FC = () => {
             bgDark: '#0f172a',
         },
         {
-            label: 'Active Devices',
+            label: t('dashboard.activeDevices') || 'Active Devices',
             count: `${kpis.activeDevices || 0} / ${kpis.totalDevices || 0}`,
             colorLight: '#2e7d32',
             colorDark: '#4ade80',
@@ -26,7 +28,7 @@ const AdminKpiCards: React.FC = () => {
             bgDark: '#064e3b',
         },
         {
-            label: 'Total System Users',
+            label: t('dashboard.totalUsers') || 'Total System Users',
             count: kpis.totalUsers || 0,
             colorLight: '#9c27b0',
             colorDark: '#c084fc',
@@ -34,7 +36,7 @@ const AdminKpiCards: React.FC = () => {
             bgDark: '#1e1b4b',
         },
         {
-            label: 'Today\'s Total Operations',
+            label: t('dashboard.todayOperations') || 'Today\'s Total Operations',
             count: kpis.todayOperations || 0,
             colorLight: '#1976d2',
             colorDark: '#60a5fa',
@@ -42,7 +44,7 @@ const AdminKpiCards: React.FC = () => {
             bgDark: '#1e3a8a',
         },
         {
-            label: 'Pending Inspector',
+            label: t('dashboard.pendingInspector') || 'Pending Inspector',
             count: kpis.pendingInspectorCount || 0,
             colorLight: '#ed6c02',
             colorDark: '#fb923c',
@@ -50,7 +52,7 @@ const AdminKpiCards: React.FC = () => {
             bgDark: '#1c1917',
         },
         {
-            label: 'Pending Supervisor',
+            label: t('dashboard.pendingSupervisor') || 'Pending Supervisor',
             count: kpis.pendingSupervisorCount || 0,
             colorLight: '#d32f2f',
             colorDark: '#f87171',
@@ -62,7 +64,7 @@ const AdminKpiCards: React.FC = () => {
     return (
         <Box className="mb-6">
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
-                System Overview KPIs
+                {t('dashboard.kpiOverview') || 'System Overview KPIs'}
             </Typography>
             <Grid container spacing={2} justifyContent="center">
                 {cards.map((card, idx) => (

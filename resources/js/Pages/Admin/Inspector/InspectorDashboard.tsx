@@ -5,6 +5,7 @@ import InspectorContainer from "@/Services/InspectorService/State/InspectorConta
 import Location from "@/models/location/Location";
 import Device from "@/models/device/Device";
 import { InspectorDashboardData, InspectorFilterParams } from "@/models/inspector/InspectorData";
+import { useTranslation } from "react-i18next";
 
 interface InspectorDashboardProps {
     dashboardData: InspectorDashboardData;
@@ -19,9 +20,11 @@ const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
     devices,
     initialFilters = {}
 }) => {
+    const { t } = useTranslation();
+
     return (
         <AdminLayout>
-            <Head title="Inspector Dashboard" />
+            <Head title={t('inspector.dashboard') || "Inspector Dashboard"} />
             <InspectorContainer
                 initialData={dashboardData}
                 locations={locations}

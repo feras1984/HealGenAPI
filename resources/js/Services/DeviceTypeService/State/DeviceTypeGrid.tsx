@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
     ColumnDirective,
     ColumnsDirective, ExcelExport, Filter,
@@ -19,59 +19,18 @@ import ActiveForm from "@/Services/DeviceTypeService/Components/ActiveForm";
 import { useDeviceTypeContext } from "@/Services/DeviceTypeService/State/DeviceTypeContext";
 import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
-
-const deviceTypeGridColumns: (GridColumnModel | GridColumnDirTypecast)[] = [
-    { type: 'checkbox', width: '50' },
-    {
-        field: 'id',
-        headerText: 'Id',
-        width: '100',
-        textAlign: 'Center',
-    },
-    {
-        field: 'name',
-        headerText: 'Name',
-        width: '200',
-        textAlign: 'Center',
-    },
-    {
-        field: 'manufacturer',
-        headerText: 'Manufacturer',
-        width: '180',
-        textAlign: 'Center',
-    },
-    {
-        field: 'model',
-        headerText: 'Model',
-        width: '180',
-        textAlign: 'Center',
-    },
-    {
-        field: 'isActive',
-        headerText: 'Status',
-        width: '150',
-        textAlign: 'Center',
-        template: ActiveForm,
-    },
-    {
-        field: 'Edit',
-        headerText: 'Edit',
-        width: '150',
-        textAlign: 'Center',
-        template: EditButton,
-    },
-    {
-        field: 'createdAt',
-        headerText: 'Created At',
-        width: '180',
-        textAlign: 'Center',
-    },
-];
+import { useTranslation } from "react-i18next";
+import { useAppSelector } from "@/Redux/Store/hook";
 
 const DeviceTypeGrid = () => {
     const deviceTypeService = ServiceContainer.get(DeviceTypeService);
     const { deviceTypes, onSearch } = useDeviceTypeContext();
-    let grid: GridComponent | null;
+    const { t, i18n } = useTranslation();
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+
+    let grid: GridComponent | null = null;
     const selectionSettings: SelectionSettingsModel = { type: 'Multiple' };
     const FilterOptions: FilterSettingsModel = { type: 'Excel' };
     const pageOptions: PageSettingsModel = {
@@ -80,6 +39,54 @@ const DeviceTypeGrid = () => {
         totalRecordsCount: deviceTypes.length,
         pageCount: 25,
     };
+
+    const deviceTypeGridColumns = useMemo<(GridColumnModel | GridColumnDirTypecast)[]>(() => [
+        { type: 'checkbox', width: '50' },
+        {
+            field: 'id',
+            headerText: t('common.id') || 'Id',
+            width: '100',
+            textAlign: 'Center',
+        },
+        {
+            field: 'name',
+            headerText: t('common.name') || 'Name',
+            width: '200',
+            textAlign: 'Center',
+        },
+        {
+            field: 'manufacturer',
+            headerText: t('forms.manufacturer') || 'Manufacturer',
+            width: '180',
+            textAlign: 'Center',
+        },
+        {
+            field: 'model',
+            headerText: t('forms.model') || 'Model',
+            width: '180',
+            textAlign: 'Center',
+        },
+        {
+            field: 'isActive',
+            headerText: t('common.status') || 'Status',
+            width: '150',
+            textAlign: 'Center',
+            template: ActiveForm,
+        },
+        {
+            field: 'Edit',
+            headerText: t('common.edit') || 'Edit',
+            width: '150',
+            textAlign: 'Center',
+            template: EditButton,
+        },
+        {
+            field: 'createdAt',
+            headerText: t('common.createdAt') || 'Created At',
+            width: '180',
+            textAlign: 'Center',
+        },
+    ], [t]);
 
     const actionComplete = (args: GridActionEventArgs) => {
         switch (args.requestType) {
@@ -99,6 +106,7 @@ const DeviceTypeGrid = () => {
     return (
         <Box>
             <GridComponent
+                key={`device-type-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                 ref={g => grid = g}
                 rowHeight={50}
                 id="deviceTypeComp"
@@ -108,11 +116,12 @@ const DeviceTypeGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
+                enableRtl={isRtl}
                 toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
                 toolbarClick={(args: ClickEventArgs) =>
                     handleGridToolbarClick(grid, args, {
-                        fileName: 'Device_Types_Catalog',
-                        title: 'Device Types Catalog',
+                        fileName: isRtl ? 'دليل_أنواع_الأجهزة' : 'Device_Types_Catalog',
+                        title: t('nav.deviceTypes') || 'Device Types Catalog',
                         isLandscape: false
                     })
                 }

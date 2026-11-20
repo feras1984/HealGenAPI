@@ -35,6 +35,7 @@ import {
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
     initialData,
@@ -56,6 +57,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
 
     const supervisorService = ServiceContainer.get(SupervisorService);
     const dark = useAppSelector(state => state.theme.dark);
+    const { t } = useTranslation();
     const { snackbar, setSnackbar, handleClose } = useSnackbarHook({ open: false, message: '', severity: 'info' });
 
     const fetchLatest = useCallback((currentFilters: SupervisorFilterParams, showLoading: boolean = false) => {
@@ -123,7 +125,9 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
 
     const closeTestDetails = () => {
         setIsDrawerOpen(false);
-        setSelectedTest(null);
+        setTimeout(() => {
+            setSelectedTest(null);
+        }, 350);
     };
 
     const openConfirmDialog = () => {
@@ -225,13 +229,14 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                 openRejectModal,
                 closeRejectModal,
                 handleConfirmSubmit,
-                handleRejectSubmit
+                handleRejectSubmit,
+                setSnackbar,
             }}
         >
             <Box className="p-6">
                 <Box className="flex justify-between items-center mb-6">
                     <Typography variant="h4" color="text.primary" className="font-bold">
-                        Supervisor Dashboard
+                        {t('supervisor.dashboard') || 'Supervisor Dashboard'}
                     </Typography>
                 </Box>
 
@@ -249,7 +254,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                     <CardContent>
                         <Box className="flex flex-wrap items-center justify-between mb-4">
                             <Typography variant="h6" color="text.primary" className="font-semibold">
-                                Queue Filters
+                                {t('filters.queueFilters') || 'Queue Filters'}
                             </Typography>
                             <Box className="flex items-center space-x-3">
                                 <FormControlLabel
@@ -263,11 +268,11 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                                     }
                                     label={
                                         <Typography variant="body2" color="text.secondary">
-                                            Auto-refresh (10s)
+                                            {t('filters.autoRefresh') || 'Auto-refresh (10s)'}
                                         </Typography>
                                     }
                                 />
-                                <Tooltip title="Refresh Now">
+                                <Tooltip title={t('filters.refreshNow') || "Refresh Now"}>
                                     <span>
                                         <IconButton
                                             onClick={refreshData}
@@ -280,7 +285,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                                     </span>
                                 </Tooltip>
                                 <Typography variant="caption" color="text.secondary">
-                                    Updated: {lastUpdated.toLocaleTimeString()}
+                                    {t('filters.lastUpdated') || 'Updated: '}{lastUpdated.toLocaleTimeString()}
                                 </Typography>
                             </Box>
                         </Box>
@@ -288,13 +293,13 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                         <Grid container spacing={2} alignItems="center" justifyContent="flex-start">
                             <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel>Location</InputLabel>
+                                    <InputLabel>{t('filters.location') || 'Location'}</InputLabel>
                                     <Select
                                         value={filters.locationId || ''}
-                                        label="Location"
+                                        label={t('filters.location') || 'Location'}
                                         onChange={(e) => updateFilter('locationId', e.target.value)}
                                     >
-                                        <MenuItem value="">All Locations</MenuItem>
+                                        <MenuItem value="">{t('filters.allLocations') || 'All Locations'}</MenuItem>
                                         {locations.map((loc) => (
                                             <MenuItem key={loc.id} value={loc.id}>
                                                 {loc.name} ({loc.code})
@@ -306,13 +311,13 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
 
                             <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel>Device</InputLabel>
+                                    <InputLabel>{t('filters.device') || 'Device'}</InputLabel>
                                     <Select
                                         value={filters.deviceId || ''}
-                                        label="Device"
+                                        label={t('filters.device') || 'Device'}
                                         onChange={(e) => updateFilter('deviceId', e.target.value)}
                                     >
-                                        <MenuItem value="">All Devices</MenuItem>
+                                        <MenuItem value="">{t('filters.allDevices') || 'All Devices'}</MenuItem>
                                         {devices.map((dev) => (
                                             <MenuItem key={dev.id} value={dev.id}>
                                                 {dev.name} ({dev.deviceCode})
@@ -327,7 +332,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                                     fullWidth
                                     size="small"
                                     type="date"
-                                    label="Date"
+                                    label={t('filters.date') || 'Date'}
                                     InputLabelProps={{ shrink: true }}
                                     value={filters.date || ''}
                                     onChange={(e) => updateFilter('date', e.target.value)}
@@ -338,8 +343,8 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                                 <TextField
                                     fullWidth
                                     size="small"
-                                    label="Search"
-                                    placeholder="Patient ID, Donor, Site..."
+                                    label={t('filters.search') || 'Search'}
+                                    placeholder={t('placeholders.search') || 'Patient ID, Donor, Site...'}
                                     value={filters.search || ''}
                                     onChange={(e) => updateFilter('search', e.target.value)}
                                 />
@@ -354,7 +359,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                                     size="small"
                                     fullWidth
                                 >
-                                    Reset
+                                    {t('filters.reset') || 'Reset'}
                                 </Button>
                             </Grid>
                         </Grid>

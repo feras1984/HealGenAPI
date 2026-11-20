@@ -13,6 +13,8 @@ import {
 } from "@mui/material";
 import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import { useTranslation } from "react-i18next";
+import { useAppSelector } from "@/Redux/Store/hook";
 
 interface NotFoundProps {
     status?: number;
@@ -27,11 +29,19 @@ const NotFound: React.FC<NotFoundProps> = ({
     message = "Sorry, the page you're looking for doesn't exist or may have been moved.",
     support = "You can return to your dashboard and continue working.",
 }) => {
+    const { t, i18n } = useTranslation();
     const pageProps = usePage().props as any;
     const user = pageProps?.auth?.user || pageProps?.user;
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+    const activeLang = isRtl ? 'ar' : 'en';
 
-    // The root route ('/') automatically resolves to the role-appropriate dashboard
-    const dashboardUrl = "/";
+    const dashboardUrl = `/${activeLang}`;
+
+    const displayTitle = (title && title !== "Page Not Found") ? title : t('errors.notFoundTitle');
+    const displayMessage = (message && message !== "Sorry, the page you're looking for doesn't exist or may have been moved.") ? message : t('errors.notFoundMessage');
+    const displaySupport = (support && support !== "You can return to your dashboard and continue working.") ? support : t('errors.notFoundSupport');
 
     const errorCard = (
         <Box
@@ -42,6 +52,7 @@ const NotFound: React.FC<NotFoundProps> = ({
                 justifyContent: "center",
                 py: { xs: 4, sm: 8 },
                 px: 2,
+                direction: isRtl ? 'rtl' : 'ltr',
             }}
         >
             <Card
@@ -93,7 +104,7 @@ const NotFound: React.FC<NotFoundProps> = ({
 
                     {/* HTTP Status Code Badge */}
                     <Chip
-                        label={`HTTP ${status}`}
+                        label={`${t('errors.httpStatus') || 'HTTP'} ${status}`}
                         color="primary"
                         size="small"
                         variant="outlined"
@@ -117,7 +128,7 @@ const NotFound: React.FC<NotFoundProps> = ({
                             fontSize: { xs: "1.5rem", sm: "1.875rem" },
                         }}
                     >
-                        {title}
+                        {displayTitle}
                     </Typography>
 
                     {/* Primary Message */}
@@ -131,7 +142,7 @@ const NotFound: React.FC<NotFoundProps> = ({
                             fontSize: { xs: "0.95rem", sm: "1.05rem" },
                         }}
                     >
-                        {message}
+                        {displayMessage}
                     </Typography>
 
                     {/* Supporting Text */}
@@ -145,7 +156,7 @@ const NotFound: React.FC<NotFoundProps> = ({
                             lineHeight: 1.5,
                         }}
                     >
-                        {support}
+                        {displaySupport}
                     </Typography>
 
                     {/* Primary Action Button */}
@@ -171,7 +182,7 @@ const NotFound: React.FC<NotFoundProps> = ({
                                 minWidth: 200,
                             }}
                         >
-                            Back to Dashboard
+                            {t('errors.backToDashboard') || "Back to Dashboard"}
                         </Button>
                     </Stack>
                 </CardContent>
@@ -182,7 +193,7 @@ const NotFound: React.FC<NotFoundProps> = ({
     if (!user) {
         return (
             <AppRoot>
-                <Head title={`${status} - ${title}`} />
+                <Head title={`${status} - ${displayTitle}`} />
                 <Box
                     sx={{
                         minHeight: "100vh",
@@ -191,6 +202,7 @@ const NotFound: React.FC<NotFoundProps> = ({
                         justifyContent: "center",
                         bgcolor: "background.default",
                         p: 2,
+                        direction: isRtl ? 'rtl' : 'ltr',
                     }}
                 >
                     {errorCard}
@@ -201,7 +213,7 @@ const NotFound: React.FC<NotFoundProps> = ({
 
     return (
         <AdminLayout>
-            <Head title={`${status} - ${title}`} />
+            <Head title={`${status} - ${displayTitle}`} />
             {errorCard}
         </AdminLayout>
     );

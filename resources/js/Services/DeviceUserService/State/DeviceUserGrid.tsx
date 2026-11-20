@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
     ColumnDirective,
     ColumnsDirective, ExcelExport, Filter,
@@ -19,71 +19,18 @@ import ActiveForm from "@/Services/DeviceUserService/Components/ActiveForm";
 import { useDeviceUserContext } from "@/Services/DeviceUserService/State/DeviceUserContext";
 import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
-
-const deviceUserGridColumns: (GridColumnModel | GridColumnDirTypecast)[] = [
-    { type: 'checkbox', width: '50' },
-    {
-        field: 'id',
-        headerText: 'Id',
-        width: '100',
-        textAlign: 'Center',
-    },
-    {
-        field: 'deviceName',
-        headerText: 'Device Name',
-        width: '200',
-        textAlign: 'Center',
-    },
-    {
-        field: 'deviceCode',
-        headerText: 'Device Code',
-        width: '180',
-        textAlign: 'Center',
-    },
-    {
-        field: 'userName',
-        headerText: 'User Name',
-        width: '200',
-        textAlign: 'Center',
-    },
-    {
-        field: 'userEmail',
-        headerText: 'User Email',
-        width: '220',
-        textAlign: 'Center',
-    },
-    {
-        field: 'assignedAt',
-        headerText: 'Assigned At',
-        width: '180',
-        textAlign: 'Center',
-    },
-    {
-        field: 'unassignedAt',
-        headerText: 'Unassigned At',
-        width: '180',
-        textAlign: 'Center',
-    },
-    {
-        field: 'isActive',
-        headerText: 'Active',
-        width: '120',
-        textAlign: 'Center',
-        template: ActiveForm,
-    },
-    {
-        field: 'Action',
-        headerText: 'Action',
-        width: '150',
-        textAlign: 'Center',
-        template: UnassignButton,
-    },
-];
+import { useTranslation } from "react-i18next";
+import { useAppSelector } from "@/Redux/Store/hook";
 
 const DeviceUserGrid = () => {
     const deviceUserService = ServiceContainer.get(DeviceUserService);
     const { assignments, onSearch } = useDeviceUserContext();
-    let grid: GridComponent | null;
+    const { t, i18n } = useTranslation();
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+
+    let grid: GridComponent | null = null;
     const selectionSettings: SelectionSettingsModel = { type: 'Multiple' };
     const FilterOptions: FilterSettingsModel = { type: 'Excel' };
     const pageOptions: PageSettingsModel = {
@@ -92,6 +39,66 @@ const DeviceUserGrid = () => {
         totalRecordsCount: assignments.length,
         pageCount: 25,
     };
+
+    const deviceUserGridColumns = useMemo<(GridColumnModel | GridColumnDirTypecast)[]>(() => [
+        { type: 'checkbox', width: '50' },
+        {
+            field: 'id',
+            headerText: t('common.id') || 'Id',
+            width: '100',
+            textAlign: 'Center',
+        },
+        {
+            field: 'deviceName',
+            headerText: t('forms.deviceName') || 'Device Name',
+            width: '200',
+            textAlign: 'Center',
+        },
+        {
+            field: 'deviceCode',
+            headerText: t('forms.deviceCode') || 'Device Code',
+            width: '180',
+            textAlign: 'Center',
+        },
+        {
+            field: 'userName',
+            headerText: t('forms.employee') || 'User Name',
+            width: '200',
+            textAlign: 'Center',
+        },
+        {
+            field: 'userEmail',
+            headerText: t('forms.email') || 'User Email',
+            width: '220',
+            textAlign: 'Center',
+        },
+        {
+            field: 'assignedAt',
+            headerText: t('common.createdAt') || 'Assigned At',
+            width: '180',
+            textAlign: 'Center',
+        },
+        {
+            field: 'unassignedAt',
+            headerText: t('common.unassigned') || 'Unassigned At',
+            width: '180',
+            textAlign: 'Center',
+        },
+        {
+            field: 'isActive',
+            headerText: t('common.status') || 'Active',
+            width: '120',
+            textAlign: 'Center',
+            template: ActiveForm,
+        },
+        {
+            field: 'Action',
+            headerText: t('common.actions') || 'Action',
+            width: '150',
+            textAlign: 'Center',
+            template: UnassignButton,
+        },
+    ], [t]);
 
     const actionComplete = (args: GridActionEventArgs) => {
         switch (args.requestType) {
@@ -111,6 +118,7 @@ const DeviceUserGrid = () => {
     return (
         <Box>
             <GridComponent
+                key={`device-user-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                 ref={g => grid = g}
                 rowHeight={50}
                 id="deviceUserComp"
@@ -120,11 +128,12 @@ const DeviceUserGrid = () => {
                 allowFiltering
                 allowExcelExport={true}
                 allowPdfExport={true}
+                enableRtl={isRtl}
                 toolbar={['ExcelExport', 'PdfExport', 'Delete', 'Search']}
                 toolbarClick={(args: ClickEventArgs) =>
                     handleGridToolbarClick(grid, args, {
-                        fileName: 'Device_User_Assignments',
-                        title: 'Device User Assignments',
+                        fileName: isRtl ? 'تعيينات_الأجهزة_للمستخدمين' : 'Device_User_Assignments',
+                        title: t('nav.deviceAssignments') || 'Device User Assignments',
                         isLandscape: true
                     })
                 }

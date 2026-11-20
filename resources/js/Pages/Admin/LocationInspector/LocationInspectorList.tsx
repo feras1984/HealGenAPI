@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/Admin/AdminLayout";
+import { useTranslation } from "react-i18next";
 import axios from 'axios';
 import {
     Box,
@@ -86,6 +87,7 @@ const LocationInspectorList: React.FC<LocationInspectorListProps> = ({
     locations = [],
     inspectors = [],
 }) => {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
 
@@ -126,10 +128,12 @@ const LocationInspectorList: React.FC<LocationInspectorListProps> = ({
     });
 
     const getInspectorDisplayName = (insp: InspectorItem): string => {
-        if (insp.fullName && insp.fullName.trim() !== '') return insp.fullName;
-        if (insp.firstName || insp.lastName) return `${insp.firstName ?? ''} ${insp.lastName ?? ''}`.trim();
-        if (insp.name && insp.name.trim() !== '') return insp.name;
-        return insp.email;
+        let base = '';
+        if (insp.fullName && insp.fullName.trim() !== '') base = insp.fullName;
+        else if (insp.firstName || insp.lastName) base = `${insp.firstName ?? ''} ${insp.lastName ?? ''}`.trim();
+        else if (insp.name && insp.name.trim() !== '') base = insp.name;
+        else base = insp.email;
+        return t(`users.${base}`) || t(`users.${insp.email}`) || base;
     };
 
     // Assign Inspector to Location
@@ -390,7 +394,7 @@ const LocationInspectorList: React.FC<LocationInspectorListProps> = ({
                                             <TableCell>
                                                 <Box>
                                                     <Typography variant="body2" fontWeight={600}>
-                                                        {assignment.userName}
+                                                        {t(`users.${assignment.userName}`) || t(`users.${assignment.userEmail}`) || assignment.userName}
                                                     </Typography>
                                                     <Typography variant="caption" color="text.secondary">
                                                         {assignment.userEmail}

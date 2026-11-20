@@ -1,34 +1,86 @@
-.addMargin {
-    transition: margin 0.3s ease-in-out;
-}
-
-.removeMargin {
-    transition: margin 0.3s ease-in-out, opacity 0.3s ease-in-out;
-}
-
-.showSidebar {
+/* LTR (English) Sidebar */
+.sidebarLtr {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0 !important;
+    right: auto !important;
     width: 256px;
-    left: 0;
+    z-index: 1200;
+    overflow-y: auto;
+    direction: ltr !important;
+    text-align: left !important;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.sidebarLtrOpen {
+    transform: translateX(0);
     opacity: 1;
-    transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out, left 0.3s ease-in-out;
+    pointer-events: auto;
 }
 
-.hideSidebar {
-    width:0;
-    left: -256px;
+.sidebarLtrClosed {
+    transform: translateX(-100%);
     opacity: 0;
-    transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
+    pointer-events: none;
 }
 
+/* RTL (Arabic) Sidebar */
+.sidebarRtl {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0 !important;
+    left: auto !important;
+    width: 256px;
+    z-index: 1200;
+    overflow-y: auto;
+    direction: rtl !important;
+    text-align: right !important;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
 
+.sidebarRtlOpen {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.sidebarRtlClosed {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Main Content Container Transitions */
+.contentLtrClosed {
+    margin-left: 0;
+    margin-right: 0;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.contentLtrOpen {
+    margin-left: 256px;
+    margin-right: 0;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.contentRtlClosed {
+    margin-right: 0;
+    margin-left: 0;
+    transition: margin-right 0.3s ease-in-out;
+}
+
+.contentRtlOpen {
+    margin-right: 256px;
+    margin-left: 0;
+    transition: margin-right 0.3s ease-in-out;
+}
 
 .boxShadow {
     position: sticky;
     top: 0;
     z-index: 1029;
-    //box-shadow: 0 2px 2px 0 rgba(var(--cui-elevation-base-color,60,75,100),.14),0 3px 1px -2px
-    //rgba(var(--cui-elevation-base-color,60,75,100),.12),0 1px 5px 0
-    //rgba(var(--cui-elevation-base-color,60,75,100),.2);
     box-shadow: 0 2px 3px 0 rgba(var(--cui-elevation-base-color, 60,75,100),0.75);
     -webkit-box-shadow: 0 2px 3px 0 rgba(var(--cui-elevation-base-color,60,75,100),0.75);
     -moz-box-shadow: 0 2px 3px 0 rgba(var(--cui-elevation-base-color,60,75,100),0.75);

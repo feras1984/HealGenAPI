@@ -13,8 +13,10 @@ import { Box, Breadcrumbs, Stack, Typography } from "@mui/material";
 import ValidatedCheckbox from "@/Components/ValidatedComponents/ValidatedCheckbox";
 import CustomButton from "@/Components/Button/CustomButton";
 import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
+import { useTranslation } from "react-i18next";
 
 const LocationAdd = () => {
+    const { t } = useTranslation();
     const locationService = Container.get(LocationService);
     const [loading, setLoading] = React.useState(false);
 
@@ -22,14 +24,14 @@ const LocationAdd = () => {
         useSnackbarHook({ open: false, message: '', severity: "success" });
 
     const locationSchema = z.object({
-        name: z.string().min(3, { message: 'Name should be at least 3 characters!' }),
-        code: z.string().min(2, { message: 'Code should be at least 2 characters!' })
+        name: z.string().min(3, { message: t('validation.nameMin') || 'Name should be at least 3 characters!' }),
+        code: z.string().min(2, { message: t('validation.codeMin') || 'Code should be at least 2 characters!' })
             .refine(
                 async (code) => {
                     const response = await locationService.validateCode(code);
                     return response.data.status;
                 },
-                { message: 'Location code already exists!' }
+                { message: t('validation.codeExists') || 'Location code already exists!' }
             ),
         address: z.string().optional(),
         city: z.string().optional(),
@@ -64,14 +66,14 @@ const LocationAdd = () => {
                 methods.reset();
                 setSnackbar({
                     open: true,
-                    message: 'Location added successfully!',
+                    message: t('messages.addedSuccess') || 'Location added successfully!',
                     severity: "success"
                 });
             })
             .catch((error) => {
                 setSnackbar({
                     open: true,
-                    message: 'Error happened while storing location!',
+                    message: t('messages.errorOccurred') || 'Error happened while storing location!',
                     severity: "error"
                 });
             })
@@ -82,14 +84,14 @@ const LocationAdd = () => {
 
     return (
         <AdminLayout>
-            <Head title="Add Location" />
+            <Head title={t('forms.addNewLocation') || "Add Location"} />
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/locations`}>Back to locations</Link>
-                    <Typography>Add New Location</Typography>
+                    <Link href={`/locations`}>{t('nav.locations') || 'Locations'}</Link>
+                    <Typography>{t('forms.addNewLocation') || 'Add New Location'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Add New Location</Typography>
+                    <Typography variant="h5">{t('forms.addNewLocation') || 'Add New Location'}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -107,15 +109,15 @@ const LocationAdd = () => {
                             id="isActive"
                             color="secondary"
                             control={methods.control}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                         />
 
                         <ValidatedInput
                             controlName="name"
                             name="name"
                             id="name"
-                            label="Location Name"
-                            placeholder="Location Name"
+                            label={t('forms.locationName') || "Location Name"}
+                            placeholder={t('placeholders.locationName') || "Location Name"}
                             control={methods.control}
                         />
 
@@ -123,8 +125,8 @@ const LocationAdd = () => {
                             controlName="code"
                             name="code"
                             id="code"
-                            label="Location Code"
-                            placeholder="e.g. LOC-001"
+                            label={t('forms.locationCode') || "Location Code"}
+                            placeholder={t('placeholders.locationCode') || "e.g. LOC-001"}
                             control={methods.control}
                         />
 
@@ -132,8 +134,8 @@ const LocationAdd = () => {
                             controlName="city"
                             name="city"
                             id="city"
-                            label="City"
-                            placeholder="City"
+                            label={t('forms.city') || "City"}
+                            placeholder={t('placeholders.city') || "City"}
                             control={methods.control}
                         />
 
@@ -141,8 +143,8 @@ const LocationAdd = () => {
                             controlName="country"
                             name="country"
                             id="country"
-                            label="Country"
-                            placeholder="Country"
+                            label={t('forms.country') || "Country"}
+                            placeholder={t('placeholders.country') || "Country"}
                             control={methods.control}
                         />
 
@@ -150,8 +152,8 @@ const LocationAdd = () => {
                             controlName="address"
                             name="address"
                             id="address"
-                            label="Address"
-                            placeholder="Full Address"
+                            label={t('forms.address') || "Address"}
+                            placeholder={t('placeholders.address') || "Full Address"}
                             multiline
                             rows={3}
                             control={methods.control}
@@ -161,8 +163,8 @@ const LocationAdd = () => {
                             controlName="notes"
                             name="notes"
                             id="notes"
-                            label="Notes"
-                            placeholder="Additional Notes"
+                            label={t('forms.notes') || "Notes"}
+                            placeholder={t('placeholders.notes') || "Additional Notes"}
                             multiline
                             rows={2}
                             control={methods.control}
@@ -177,7 +179,7 @@ const LocationAdd = () => {
                         >
                             <CustomButton
                                 task="add"
-                                text={'Location'}
+                                text={t('common.save') || 'Location'}
                                 disabled={loading}
                             />
                         </Stack>

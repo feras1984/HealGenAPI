@@ -33,6 +33,7 @@ import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { SystemAuditLogItem, AuditLogFilterParams } from "@/models/audit/SystemAuditLogData";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 import axios from 'axios';
 
 interface AuditLogListProps {
@@ -63,11 +64,21 @@ const ActionTemplate = (props: any) => {
     );
 };
 
+const RoleTemplate = (props: any) => {
+    const { t } = useTranslation();
+    const role = props.role;
+    return <span>{t(`roles.${role}`) || role}</span>;
+};
+
 const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialFilters = {} }) => {
     const [logs, setLogs] = useState<SystemAuditLogItem[]>(initialLogs);
     const [filters, setFiltersState] = useState<AuditLogFilterParams>(initialFilters);
     const [loading, setLoading] = useState<boolean>(false);
+    const { t, i18n } = useTranslation();
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
     const gridRef = useRef<GridComponent | null>(null);
 
     const fetchLogs = (currentFilters: AuditLogFilterParams) => {
@@ -96,11 +107,11 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
 
     return (
         <AdminLayout>
-            <Head title="System Audit Logs" />
+            <Head title={t('nav.auditLogs') || 'System Audit Logs'} />
             <Box className="p-6">
                 <Box className="flex justify-between items-center mb-6">
                     <Typography variant="h4" color="text.primary" className="font-bold">
-                        System Audit Logs
+                        {t('nav.auditLogs') || 'System Audit Logs'}
                     </Typography>
                 </Box>
 
@@ -117,22 +128,22 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                 >
                     <CardContent>
                         <Typography variant="h6" color="text.primary" className="font-semibold mb-4">
-                            Audit Trail Filters
+                            {t('filters.operationalFilters') || 'Audit Trail Filters'}
                         </Typography>
                         <Grid container spacing={2} alignItems="center" justifyContent="flex-start">
                             <Grid item xs={12} sm={6} md={2.5} sx={{ flexGrow: 1, minWidth: 200 }}>
                                 <FormControl fullWidth size="small">
-                                    <InputLabel>Role</InputLabel>
+                                    <InputLabel>{t('forms.role') || 'Role'}</InputLabel>
                                     <Select
                                         value={filters.role || ''}
-                                        label="Role"
+                                        label={t('forms.role') || 'Role'}
                                         onChange={(e) => updateFilter('role', e.target.value)}
                                     >
-                                        <MenuItem value="">All Roles</MenuItem>
-                                        <MenuItem value="Administrator">Administrator</MenuItem>
-                                        <MenuItem value="Supervisor">Supervisor</MenuItem>
-                                        <MenuItem value="Inspector">Inspector</MenuItem>
-                                        <MenuItem value="Employee">Employee</MenuItem>
+                                        <MenuItem value="">{t('common.all') || 'All Roles'}</MenuItem>
+                                        <MenuItem value="Administrator">{t('roles.Administrator') || 'Administrator'}</MenuItem>
+                                        <MenuItem value="Supervisor">{t('roles.Supervisor') || 'Supervisor'}</MenuItem>
+                                        <MenuItem value="Inspector">{t('roles.Inspector') || 'Inspector'}</MenuItem>
+                                        <MenuItem value="Employee">{t('roles.Employee') || 'Employee'}</MenuItem>
                                         <MenuItem value="System">System</MenuItem>
                                     </Select>
                                 </FormControl>
@@ -143,7 +154,7 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                                     fullWidth
                                     size="small"
                                     type="date"
-                                    label="Date"
+                                    label={t('filters.date') || 'Date'}
                                     InputLabelProps={{ shrink: true }}
                                     value={filters.date || ''}
                                     onChange={(e) => updateFilter('date', e.target.value)}
@@ -154,8 +165,8 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                                 <TextField
                                     fullWidth
                                     size="small"
-                                    label="Search"
-                                    placeholder="User, Action, Details..."
+                                    label={t('filters.search') || 'Search'}
+                                    placeholder={t('placeholders.search') || 'User, Action, Details...'}
                                     value={filters.search || ''}
                                     onChange={(e) => updateFilter('search', e.target.value)}
                                 />
@@ -170,7 +181,7 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                                     size="small"
                                     fullWidth
                                 >
-                                    Reset
+                                    {t('filters.reset') || 'Reset'}
                                 </Button>
                             </Grid>
                         </Grid>
@@ -189,17 +200,18 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                 >
                     <CardContent>
                         <Typography variant="h6" color="text.primary" className="font-semibold mb-3">
-                            Audit Trail Log Entries ({logs.length})
+                            {t('nav.auditLogs') || 'Audit Trail Log Entries'} ({logs.length})
                         </Typography>
                         {logs.length === 0 ? (
                             <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                                 <Typography color="text.secondary">
-                                    No audit log records match the selected filters.
+                                    {t('dashboard.noTestsRecorded') || 'No audit log records match the selected filters.'}
                                 </Typography>
                             </Box>
                         ) : (
                             <Box className="w-full overflow-x-auto">
                                 <GridComponent
+                                    key={`audit-log-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                                     ref={gridRef}
                                     dataSource={logs}
                                     allowPaging={true}
@@ -207,11 +219,12 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                                     allowFiltering={true}
                                     allowExcelExport={true}
                                     allowPdfExport={true}
+                                    enableRtl={isRtl}
                                     toolbar={['ExcelExport', 'PdfExport', 'Search']}
                                     toolbarClick={(args: ClickEventArgs) =>
                                         handleGridToolbarClick(gridRef.current, args, {
-                                            fileName: 'System_Audit_Logs',
-                                            title: 'System Audit Logs',
+                                            fileName: isRtl ? 'سجلات_التدقيق' : 'System_Audit_Logs',
+                                            title: t('nav.auditLogs') || 'System Audit Logs',
                                             isLandscape: true
                                         })
                                     }
@@ -219,15 +232,15 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                                     rowHeight={45}
                                 >
                                     <ColumnsDirective>
-                                        <ColumnDirective field="id" headerText="ID" width="80" textAlign="Center" />
-                                        <ColumnDirective field="userName" headerText="User" width="160" textAlign="Center" />
-                                        <ColumnDirective field="role" headerText="Role" width="140" textAlign="Center" />
-                                        <ColumnDirective field="action" headerText="Action" width="180" textAlign="Center" template={ActionTemplate} />
-                                        <ColumnDirective field="entityType" headerText="Entity" width="140" textAlign="Center" />
-                                        <ColumnDirective field="entityId" headerText="Entity ID" width="100" textAlign="Center" />
-                                        <ColumnDirective field="details" headerText="Details" width="280" textAlign="Left" />
-                                        <ColumnDirective field="ipAddress" headerText="IP Address" width="130" textAlign="Center" />
-                                        <ColumnDirective field="createdAt" headerText="Timestamp" width="180" textAlign="Center" />
+                                        <ColumnDirective field="id" headerText={t('common.id') || 'ID'} width="80" textAlign="Center" />
+                                        <ColumnDirective field="userName" headerText={t('forms.employee') || 'User'} width="160" textAlign="Center" />
+                                        <ColumnDirective field="role" headerText={t('forms.role') || 'Role'} width="140" textAlign="Center" template={RoleTemplate} />
+                                        <ColumnDirective field="action" headerText={t('tests.action') || 'Action'} width="180" textAlign="Center" template={ActionTemplate} />
+                                        <ColumnDirective field="entityType" headerText={t('common.details') || 'Entity'} width="140" textAlign="Center" />
+                                        <ColumnDirective field="entityId" headerText={t('common.id') || 'Entity ID'} width="100" textAlign="Center" />
+                                        <ColumnDirective field="details" headerText={t('forms.description') || 'Details'} width="280" textAlign="Left" />
+                                        <ColumnDirective field="ipAddress" headerText={t('forms.ipAddress') || 'IP Address'} width="130" textAlign="Center" />
+                                        <ColumnDirective field="createdAt" headerText={t('tests.timestamp') || 'Timestamp'} width="180" textAlign="Center" />
                                     </ColumnsDirective>
                                     <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                                 </GridComponent>

@@ -10,6 +10,7 @@ import {
 import { Box } from '@mui/material';
 import ChartCard from './ChartCard';
 import { useAppSelector } from '@/Redux/Store/hook';
+import { useTranslation } from 'react-i18next';
 
 export interface StatusItem {
     status: string;
@@ -47,6 +48,7 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
     loading = false,
     height = 360,
 }) => {
+    const { t } = useTranslation();
     const dark = useAppSelector((state) => state.theme.dark);
 
     const chartData = data.filter((item) => item.count > 0);
@@ -54,7 +56,14 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
     const isEmpty = chartData.length === 0;
 
     return (
-        <ChartCard title={title} subtitle={subtitle} loading={loading} empty={isEmpty} height={height}>
+        <ChartCard
+            title={title}
+            subtitle={subtitle}
+            loading={loading}
+            empty={isEmpty}
+            emptyMessage={t('filters.noData') || 'No chart data available for the selected filters.'}
+            height={height}
+        >
             <Box sx={{ width: '100%', height: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
@@ -68,7 +77,7 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
                             outerRadius={95}
                             paddingAngle={3}
                             labelLine={{ stroke: dark ? '#94a3b8' : '#64748b', strokeWidth: 1.5 }}
-                            label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                            label={({ name, value, percent }) => `${t(`status.${name}`) || name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                         >
                             {chartData.map((entry, index) => (
                                 <Cell
@@ -92,7 +101,8 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
                             labelStyle={{ color: dark ? '#f8fafc' : '#0f172a' }}
                             formatter={(value: number, name: string) => {
                                 const pct = totalCount > 0 ? ((value / totalCount) * 100).toFixed(1) : '0';
-                                return [`${value} Tests (${pct}%)`, name];
+                                const translatedName = t(`status.${name}`) || name;
+                                return [`${value} ${t('employee.testsCount') || 'Tests'} (${pct}%)`, translatedName];
                             }}
                         />
                         <Legend
@@ -103,9 +113,10 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
                             formatter={(value, entry: any) => {
                                 const count = entry?.payload?.count ?? 0;
                                 const pct = totalCount > 0 ? ((count / totalCount) * 100).toFixed(0) : '0';
+                                const translatedValue = t(`status.${value}`) || value;
                                 return (
                                     <span style={{ color: dark ? '#e2e8f0' : '#1e293b', fontSize: '0.875rem', fontWeight: 600, paddingRight: '12px' }}>
-                                        {value}: <span style={{ color: dark ? '#38bdf8' : '#0284c7', fontWeight: 700 }}>{count}</span> ({pct}%)
+                                        {translatedValue}: <span style={{ color: dark ? '#38bdf8' : '#0284c7', fontWeight: 700 }}>{count}</span> ({pct}%)
                                     </span>
                                 );
                             }}

@@ -12,7 +12,21 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-//        return $request->expectsJson() ? null : route('login', [app()->getLocale()]);
-        $request->expectsJson() ? null : route('login');
+        if ($request->expectsJson()) {
+            return null;
+        }
+
+        $locale = $request->route('locale')
+            ?? $request->cookie('locale')
+            ?? ($request->hasSession() ? $request->session()->get('locale') : null)
+            ?? $request->getPreferredLanguage(['en', 'ar'])
+            ?? app()->getLocale()
+            ?? config('app.locale', 'en');
+
+        if (!in_array($locale, ['en', 'ar'], true)) {
+            $locale = 'en';
+        }
+
+        return route('admin.login', ['locale' => $locale]);
     }
 }

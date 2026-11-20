@@ -1,8 +1,8 @@
-import {SnackbarProps} from "@mui/material";
+import {SnackbarProps, AlertColor} from "@mui/material";
 
 interface CustomSnackbarProps extends SnackbarProps {
     message: string;
-    severity: "success" | "error";
+    severity?: AlertColor | "success" | "error" | "info" | "warning";
 }
 
 export default CustomSnackbarProps;

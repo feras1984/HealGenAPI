@@ -14,8 +14,10 @@ import ValidatedCheckbox from "@/Components/ValidatedComponents/ValidatedCheckbo
 import CustomButton from "@/Components/Button/CustomButton";
 import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
 import DeviceType from "@/models/device/DeviceType";
+import { useTranslation } from "react-i18next";
 
 const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) => {
+    const { t } = useTranslation();
     const deviceTypeService = Container.get(DeviceTypeService);
     const [loading, setLoading] = React.useState(false);
 
@@ -23,7 +25,7 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
         useSnackbarHook({ open: false, message: '', severity: "success" });
 
     const deviceTypeSchema = z.object({
-        name: z.string().min(2, { message: 'Name should be at least 2 characters!' }),
+        name: z.string().min(2, { message: t('validation.nameMin') || 'Name should be at least 2 characters!' }),
         manufacturer: z.string().optional(),
         model: z.string().optional(),
         description: z.string().optional(),
@@ -51,14 +53,14 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
             .then(() => {
                 setSnackbar({
                     open: true,
-                    message: 'Device Type updated successfully!',
+                    message: t('messages.updatedSuccess') || 'Device Type updated successfully!',
                     severity: "success"
                 });
             })
             .catch((error) => {
                 setSnackbar({
                     open: true,
-                    message: 'Error happened while updating device type!',
+                    message: t('messages.errorOccurred') || 'Error happened while updating device type!',
                     severity: "error"
                 });
             })
@@ -69,14 +71,14 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
 
     return (
         <AdminLayout>
-            <Head title="Edit Device Type" />
+            <Head title={t('forms.editDeviceType') || "Edit Device Type"} />
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/device-types`}>Back to device types</Link>
-                    <Typography>Edit Device Type</Typography>
+                    <Link href={`/device-types`}>{t('nav.deviceTypes') || 'Device Types'}</Link>
+                    <Typography>{t('forms.editDeviceType') || 'Edit Device Type'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Edit Device Type: {deviceType.name}</Typography>
+                    <Typography variant="h5">{t('forms.editDeviceType') || 'Edit Device Type'}: {deviceType.name}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -94,15 +96,15 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
                             id="isActive"
                             color="secondary"
                             control={methods.control}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                         />
 
                         <ValidatedInput
                             controlName="name"
                             name="name"
                             id="name"
-                            label="Type Name"
-                            placeholder="e.g. HealGen D600 Reader"
+                            label={t('forms.deviceName') || "Type Name"}
+                            placeholder={t('placeholders.deviceName') || "e.g. HealGen D600 Reader"}
                             control={methods.control}
                         />
 
@@ -110,8 +112,8 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
                             controlName="manufacturer"
                             name="manufacturer"
                             id="manufacturer"
-                            label="Manufacturer"
-                            placeholder="e.g. HealGen Scientific"
+                            label={t('forms.manufacturer') || "Manufacturer"}
+                            placeholder={t('placeholders.manufacturer') || "e.g. HealGen Scientific"}
                             control={methods.control}
                         />
 
@@ -119,8 +121,8 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
                             controlName="model"
                             name="model"
                             id="model"
-                            label="Model Number / Code"
-                            placeholder="e.g. D600-V2"
+                            label={t('forms.model') || "Model Number / Code"}
+                            placeholder={t('placeholders.model') || "e.g. D600-V2"}
                             control={methods.control}
                         />
 
@@ -128,8 +130,8 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
                             controlName="description"
                             name="description"
                             id="description"
-                            label="Description"
-                            placeholder="Device type specifications"
+                            label={t('forms.description') || "Description"}
+                            placeholder={t('placeholders.description') || "Device type specifications"}
                             multiline
                             rows={3}
                             control={methods.control}
@@ -144,7 +146,7 @@ const DeviceTypeEdit: React.FC<{ deviceType: DeviceType }> = ({ deviceType }) =>
                         >
                             <CustomButton
                                 task="update"
-                                text={'Device Type'}
+                                text={t('common.update') || 'Device Type'}
                                 disabled={loading}
                             />
                         </Stack>

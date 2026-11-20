@@ -35,7 +35,7 @@ const CustomButton: React.FC<IButtonProps> = ({
                     color="secondary"
                     disabled={disabled}
                     startIcon={<AddIcon/>}>
-                    <Typography variant={'body2'}>Add {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.add')} {text}</Typography>
                 </Button>
             );
         }
@@ -50,10 +50,8 @@ const CustomButton: React.FC<IButtonProps> = ({
                     color="primary"
                     disabled={disabled}
                     startIcon={<SendIcon />}
-                    // endIcon={<SendIcon />}
                 >
-
-                    <Typography variant={'body2'} className="px-[5px]">{t('send')} {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.save') || 'Send'} {text}</Typography>
                 </Button>
             );
         }
@@ -68,7 +66,7 @@ const CustomButton: React.FC<IButtonProps> = ({
                     color="secondary"
                     disabled={disabled}
                     startIcon={<ChangeCircleOutlinedIcon />}>
-                    <Typography variant={'body2'}>Update {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.update')} {text}</Typography>
                 </Button>
             );
         }
@@ -80,9 +78,8 @@ const CustomButton: React.FC<IButtonProps> = ({
                     size="small"
                     variant="contained"
                     color="info"
-                    // sx={{bgcolor: lime[900]}}
                     startIcon={<SmartDisplayOutlinedIcon />}>
-                    <Typography variant={'body2'}>View {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.view')} {text}</Typography>
                 </Button>
             );
         }
@@ -97,7 +94,7 @@ const CustomButton: React.FC<IButtonProps> = ({
                     color="error"
                     disabled={disabled}
                     startIcon={<DeleteOutlineOutlinedIcon />}>
-                    <Typography variant={'body2'}>Delete {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.delete')} {text}</Typography>
                 </Button>
             );
         }
@@ -112,7 +109,7 @@ const CustomButton: React.FC<IButtonProps> = ({
                     color="primary"
                     disabled={disabled}
                     startIcon={<AutoFixNormalIcon />}>
-                    <Typography variant={'body2'}>Generate {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.generate') || 'Generate'} {text}</Typography>
                 </Button>
             );
         }
@@ -127,7 +124,7 @@ const CustomButton: React.FC<IButtonProps> = ({
                     color="secondary"
                     disabled={disabled}
                     startIcon={<ReorderIcon />}>
-                    <Typography variant={'body2'}>Reorder {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.reorder') || 'Reorder'} {text}</Typography>
                 </Button>
             );
         }
@@ -142,7 +139,7 @@ const CustomButton: React.FC<IButtonProps> = ({
                     color="error"
                     disabled={disabled}
                     startIcon={<ArrowBackIosIcon />}>
-                    <Typography variant={'body2'}>Back {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.back')} {text}</Typography>
                 </Button>
             );
         }
@@ -155,9 +152,8 @@ const CustomButton: React.FC<IButtonProps> = ({
                     variant="contained"
                     color="info"
                     type={type}
-                    // sx={{bgcolor: lime[900]}}
                     startIcon={<SmartDisplayOutlinedIcon />}>
-                    <Typography variant={'body2'}>View {text}</Typography>
+                    <Typography variant={'body2'}>{t('common.view') || 'View'} {text}</Typography>
                 </Button>
             );
         }
@@ -169,7 +165,7 @@ const CustomButton: React.FC<IButtonProps> = ({
                     variant="contained"
                     color="primary"
                     startIcon={<AddIcon/>}>
-                    <Typography>Add {text}</Typography>
+                    <Typography>{t('common.add') || 'Add'} {text}</Typography>
                 </Button>
             );
         }

@@ -25,7 +25,7 @@ class InspectorService
     public function getUserRole(User $user): string
     {
         $adminRef = $user->reference()->first();
-        return strtolower($adminRef && isset($adminRef->role) ? $adminRef->role : '');
+        return strtolower(trim($adminRef?->role ?? ''));
     }
 
     /**
@@ -121,7 +121,7 @@ class InspectorService
             return [];
         }
 
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests'])
+        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests', 'file'])
             ->whereIn('Status', self::PENDING_STATUSES);
 
         // Security rule: Inspector is strictly scoped to their assigned Location
@@ -211,8 +211,7 @@ class InspectorService
 
     public function checkInspectorAuthorization(User $user): void
     {
-        $adminRef = $user->reference()->first();
-        $role = strtolower($adminRef && isset($adminRef->role) ? $adminRef->role : '');
+        $role = $this->getUserRole($user);
         if (!in_array($role, ['inspector', 'administrator'], true)) {
             throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors or Administrators can accept or reject tests.");
         }
@@ -428,7 +427,7 @@ class InspectorService
         return [
             'breakdown' => [
                 ['name' => 'Accepted', 'count' => $acceptCount, 'color' => '#10b981'],
-                ['name' => 'Rejected', 'count' => $rejectCount, 'color' => '#ef4444'],
+                ['name' => 'Rejected', 'count' => $rejectCount, 'color' => '#f97316'],
             ],
             'trend' => $trend,
         ];
@@ -459,7 +458,7 @@ class InspectorService
                     'activityChart' => [
                         'breakdown' => [
                             ['name' => 'Accepted', 'count' => 0, 'color' => '#10b981'],
-                            ['name' => 'Rejected', 'count' => 0, 'color' => '#ef4444'],
+                            ['name' => 'Rejected', 'count' => 0, 'color' => '#f97316'],
                         ],
                         'trend' => array_map(function ($h) {
                             return ['period' => sprintf('%02d:00', $h), 'accepted' => 0, 'rejected' => 0];

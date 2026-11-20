@@ -20,8 +20,10 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import { useEmployeeContext } from "@/Services/EmployeeService/State/EmployeeContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const EmployeeFilterToolbar: React.FC = () => {
+    const { t } = useTranslation();
     const {
         locations,
         devices,
@@ -82,7 +84,7 @@ const EmployeeFilterToolbar: React.FC = () => {
             <CardContent>
                 <Box className="flex flex-wrap items-center justify-between mb-4">
                     <Typography variant="h6" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
-                        Assigned Device Operations Filters
+                        {t('employee.filtersTitle') || 'Assigned Device Operations Filters'}
                     </Typography>
                     <Box className="flex items-center space-x-3">
                         <FormControlLabel
@@ -96,11 +98,11 @@ const EmployeeFilterToolbar: React.FC = () => {
                             }
                             label={
                                 <Typography variant="body2" sx={{ color: dark ? '#cbd5e1' : '#475569' }}>
-                                    Auto-refresh (10s)
+                                    {t('filters.autoRefresh') || 'Auto-refresh (10s)'}
                                 </Typography>
                             }
                         />
-                        <Tooltip title="Refresh Now">
+                        <Tooltip title={t('filters.refreshNow') || 'Refresh Now'}>
                             <span>
                                 <IconButton
                                     onClick={refreshData}
@@ -113,7 +115,7 @@ const EmployeeFilterToolbar: React.FC = () => {
                             </span>
                         </Tooltip>
                         <Typography variant="caption" sx={{ color: dark ? '#94a3b8' : '#64748b' }}>
-                            Updated: {lastUpdated.toLocaleTimeString()}
+                            {t('filters.lastUpdated') || 'Updated: '} {lastUpdated.toLocaleTimeString()}
                         </Typography>
                     </Box>
                 </Box>
@@ -121,10 +123,10 @@ const EmployeeFilterToolbar: React.FC = () => {
                 <Grid container spacing={2} alignItems="center" justifyContent="flex-start">
                     <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                         <FormControl fullWidth size="small">
-                            <InputLabel sx={labelSx}>Location</InputLabel>
+                            <InputLabel sx={labelSx}>{t('tests.location') || 'Location'}</InputLabel>
                             <Select
                                 value={filters.locationId || ''}
-                                label="Location"
+                                label={t('tests.location') || 'Location'}
                                 onChange={(e) => updateFilter('locationId', e.target.value)}
                                 sx={inputSx}
                                 MenuProps={{
@@ -136,7 +138,7 @@ const EmployeeFilterToolbar: React.FC = () => {
                                     }
                                 }}
                             >
-                                <MenuItem value="">All Locations</MenuItem>
+                                <MenuItem value="">{t('filters.allLocations') || 'All Locations'}</MenuItem>
                                 {locations.map((loc) => (
                                     <MenuItem key={loc.id} value={loc.id}>
                                         {loc.name} ({loc.code})
@@ -148,10 +150,10 @@ const EmployeeFilterToolbar: React.FC = () => {
 
                     <Grid item xs={12} sm={6} md={3} sx={{ flexGrow: 1, minWidth: 220 }}>
                         <FormControl fullWidth size="small">
-                            <InputLabel sx={labelSx}>Device</InputLabel>
+                            <InputLabel sx={labelSx}>{t('nav.devices') || 'Device'}</InputLabel>
                             <Select
                                 value={filters.deviceId || ''}
-                                label="Device"
+                                label={t('nav.devices') || 'Device'}
                                 onChange={(e) => updateFilter('deviceId', e.target.value)}
                                 sx={inputSx}
                                 MenuProps={{
@@ -163,7 +165,7 @@ const EmployeeFilterToolbar: React.FC = () => {
                                     }
                                 }}
                             >
-                                <MenuItem value="">All Devices</MenuItem>
+                                <MenuItem value="">{t('filters.allDevices') || 'All Devices'}</MenuItem>
                                 {devices.map((dev) => (
                                     <MenuItem key={dev.id} value={dev.id}>
                                         {dev.name} ({dev.deviceCode})
@@ -178,7 +180,7 @@ const EmployeeFilterToolbar: React.FC = () => {
                             fullWidth
                             size="small"
                             type="date"
-                            label="Date"
+                            label={t('filters.date') || 'Date'}
                             InputLabelProps={{ shrink: true, sx: labelSx }}
                             value={filters.date || ''}
                             onChange={(e) => updateFilter('date', e.target.value)}
@@ -190,8 +192,8 @@ const EmployeeFilterToolbar: React.FC = () => {
                         <TextField
                             fullWidth
                             size="small"
-                            label="Search"
-                            placeholder="Patient ID, Donor, Site..."
+                            label={t('filters.search') || 'Search'}
+                            placeholder={t('placeholders.search') || 'Patient ID, Donor, Site...'}
                             InputLabelProps={{ sx: labelSx }}
                             value={filters.search || ''}
                             onChange={(e) => updateFilter('search', e.target.value)}
@@ -216,7 +218,7 @@ const EmployeeFilterToolbar: React.FC = () => {
                                 }
                             }}
                         >
-                            Reset
+                            {t('filters.reset') || 'Reset'}
                         </Button>
                     </Grid>
                 </Grid>

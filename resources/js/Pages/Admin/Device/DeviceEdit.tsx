@@ -17,6 +17,7 @@ import CustomButton from "@/Components/Button/CustomButton";
 import Location from "@/models/location/Location";
 import DeviceType from "@/models/device/DeviceType";
 import Device from "@/models/device/Device";
+import { useTranslation } from "react-i18next";
 
 interface DeviceEditProps {
     device: Device;
@@ -25,6 +26,7 @@ interface DeviceEditProps {
 }
 
 const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes }) => {
+    const { t } = useTranslation();
     const deviceService = Container.get(DeviceService);
     const [loading, setLoading] = React.useState(false);
 
@@ -32,16 +34,14 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
         useSnackbarHook({ open: false, message: '', severity: "success" });
 
     const deviceSchema = z.object({
-        // locationId: z.number().min(1, { message: 'Please select a location!' }),
-        // deviceTypeId: z.number().min(1, { message: 'Please select a device type!' }),
-        name: z.string().min(2, { message: 'Name should be at least 2 characters!' }),
-        deviceCode: z.string().min(2, { message: 'Device code should be at least 2 characters!' })
+        name: z.string().min(2, { message: t('validation.nameMin') || 'Name should be at least 2 characters!' }),
+        deviceCode: z.string().min(2, { message: t('validation.codeMin') || 'Device code should be at least 2 characters!' })
             .refine(
                 async (code) => {
                     const response = await deviceService.validateCode(code, device.id);
                     return response.data.status;
                 },
-                { message: 'Device code already exists!' }
+                { message: t('validation.codeExists') || 'Device code already exists!' }
             ),
         serialNumber: z.string().optional(),
         ipAddress: z.string().optional(),
@@ -73,14 +73,14 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
             .then(() => {
                 setSnackbar({
                     open: true,
-                    message: 'Device updated successfully!',
+                    message: t('messages.updatedSuccess') || 'Device updated successfully!',
                     severity: "success"
                 });
             })
             .catch((error) => {
                 setSnackbar({
                     open: true,
-                    message: 'Error happened while updating device!',
+                    message: t('messages.errorOccurred') || 'Error happened while updating device!',
                     severity: "error"
                 });
             })
@@ -91,14 +91,14 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
 
     return (
         <AdminLayout>
-            <Head title="Edit Device" />
+            <Head title={t('forms.editDevice') || "Edit Device"} />
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/devices`}>Back to devices</Link>
-                    <Typography>Edit Device</Typography>
+                    <Link href={`/devices`}>{t('nav.devices') || 'Devices'}</Link>
+                    <Typography>{t('forms.editDevice') || 'Edit Device'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Edit Device: {device.name}</Typography>
+                    <Typography variant="h5">{t('forms.editDevice') || 'Edit Device'}: {device.name}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -116,15 +116,15 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                             id="isActive"
                             color="secondary"
                             control={methods.control}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                         />
 
                         <ValidatedSelect
                             control={methods.control}
                             controlName="locationId"
                             id="locationId"
-                            label="Location"
-                            placeholder="Select Location"
+                            label={t('forms.locationName') || "Location"}
+                            placeholder={t('forms.chooseLocation') || "Select Location"}
                             withNone={false}
                             items={locations.map(loc => ({
                                 id: loc.id,
@@ -136,8 +136,8 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                             control={methods.control}
                             controlName="deviceTypeId"
                             id="deviceTypeId"
-                            label="Device Type"
-                            placeholder="Select Device Type"
+                            label={t('forms.deviceType') || "Device Type"}
+                            placeholder={t('forms.chooseDeviceType') || "Select Device Type"}
                             withNone={false}
                             items={deviceTypes.map(dt => ({
                                 id: dt.id,
@@ -149,8 +149,8 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                             controlName="name"
                             name="name"
                             id="name"
-                            label="Device Name"
-                            placeholder="e.g. Lab D600 Reader 01"
+                            label={t('forms.deviceName') || "Device Name"}
+                            placeholder={t('placeholders.deviceName') || "e.g. Lab D600 Reader 01"}
                             control={methods.control}
                         />
 
@@ -158,8 +158,8 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                             controlName="deviceCode"
                             name="deviceCode"
                             id="deviceCode"
-                            label="Device Integration Code"
-                            placeholder="e.g. D600-DXB-001"
+                            label={t('forms.deviceCode') || "Device Integration Code"}
+                            placeholder={t('placeholders.deviceCode') || "e.g. D600-DXB-001"}
                             control={methods.control}
                         />
 
@@ -167,8 +167,8 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                             controlName="serialNumber"
                             name="serialNumber"
                             id="serialNumber"
-                            label="Serial Number"
-                            placeholder="Manufacturer Serial Number"
+                            label={t('forms.serialNumber') || "Serial Number"}
+                            placeholder={t('placeholders.serialNumber') || "Manufacturer Serial Number"}
                             control={methods.control}
                         />
 
@@ -176,8 +176,8 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                             controlName="ipAddress"
                             name="ipAddress"
                             id="ipAddress"
-                            label="IP Address"
-                            placeholder="192.168.1.100"
+                            label={t('forms.ipAddress') || "IP Address"}
+                            placeholder={t('placeholders.ipAddress') || "192.168.1.100"}
                             control={methods.control}
                         />
 
@@ -185,8 +185,8 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                             controlName="notes"
                             name="notes"
                             id="notes"
-                            label="Notes"
-                            placeholder="Additional Notes"
+                            label={t('forms.notes') || "Notes"}
+                            placeholder={t('placeholders.notes') || "Additional Notes"}
                             multiline
                             rows={2}
                             control={methods.control}
@@ -201,7 +201,7 @@ const DeviceEdit: React.FC<DeviceEditProps> = ({ device, locations, deviceTypes 
                         >
                             <CustomButton
                                 task="update"
-                                text={'Device'}
+                                text={t('common.update') || 'Device'}
                                 disabled={loading}
                             />
                         </Stack>

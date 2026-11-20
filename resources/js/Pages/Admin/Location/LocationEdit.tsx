@@ -14,8 +14,10 @@ import ValidatedCheckbox from "@/Components/ValidatedComponents/ValidatedCheckbo
 import CustomButton from "@/Components/Button/CustomButton";
 import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
 import Location from "@/models/location/Location";
+import { useTranslation } from "react-i18next";
 
 const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
+    const { t } = useTranslation();
     const locationService = Container.get(LocationService);
     const [loading, setLoading] = React.useState(false);
 
@@ -23,14 +25,14 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
         useSnackbarHook({ open: false, message: '', severity: "success" });
 
     const locationSchema = z.object({
-        name: z.string().min(3, { message: 'Name should be at least 3 characters!' }),
-        code: z.string().min(2, { message: 'Code should be at least 2 characters!' })
+        name: z.string().min(3, { message: t('validation.nameMin') || 'Name should be at least 3 characters!' }),
+        code: z.string().min(2, { message: t('validation.codeMin') || 'Code should be at least 2 characters!' })
             .refine(
                 async (code) => {
                     const response = await locationService.validateCode(code, location.id);
                     return response.data.status;
                 },
-                { message: 'Location code already exists!' }
+                { message: t('validation.codeExists') || 'Location code already exists!' }
             ),
         address: z.string().optional(),
         city: z.string().optional(),
@@ -62,14 +64,14 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
             .then(() => {
                 setSnackbar({
                     open: true,
-                    message: 'Location updated successfully!',
+                    message: t('messages.updatedSuccess') || 'Location updated successfully!',
                     severity: "success"
                 });
             })
             .catch((error) => {
                 setSnackbar({
                     open: true,
-                    message: 'Error happened while updating location!',
+                    message: t('messages.errorOccurred') || 'Error happened while updating location!',
                     severity: "error"
                 });
             })
@@ -80,14 +82,14 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
 
     return (
         <AdminLayout>
-            <Head title="Edit Location" />
+            <Head title={t('forms.editLocation') || "Edit Location"} />
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/locations`}>Back to locations</Link>
-                    <Typography>Edit Location</Typography>
+                    <Link href={`/locations`}>{t('nav.locations') || 'Locations'}</Link>
+                    <Typography>{t('forms.editLocation') || 'Edit Location'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Edit Location: {location.name}</Typography>
+                    <Typography variant="h5">{t('forms.editLocation') || 'Edit Location'}: {location.name}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -105,15 +107,15 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
                             id="isActive"
                             color="secondary"
                             control={methods.control}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                         />
 
                         <ValidatedInput
                             controlName="name"
                             name="name"
                             id="name"
-                            label="Location Name"
-                            placeholder="Location Name"
+                            label={t('forms.locationName') || "Location Name"}
+                            placeholder={t('placeholders.locationName') || "Location Name"}
                             control={methods.control}
                         />
 
@@ -121,8 +123,8 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
                             controlName="code"
                             name="code"
                             id="code"
-                            label="Location Code"
-                            placeholder="e.g. LOC-001"
+                            label={t('forms.locationCode') || "Location Code"}
+                            placeholder={t('placeholders.locationCode') || "e.g. LOC-001"}
                             control={methods.control}
                         />
 
@@ -130,8 +132,8 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
                             controlName="city"
                             name="city"
                             id="city"
-                            label="City"
-                            placeholder="City"
+                            label={t('forms.city') || "City"}
+                            placeholder={t('placeholders.city') || "City"}
                             control={methods.control}
                         />
 
@@ -139,8 +141,8 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
                             controlName="country"
                             name="country"
                             id="country"
-                            label="Country"
-                            placeholder="Country"
+                            label={t('forms.country') || "Country"}
+                            placeholder={t('placeholders.country') || "Country"}
                             control={methods.control}
                         />
 
@@ -148,8 +150,8 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
                             controlName="address"
                             name="address"
                             id="address"
-                            label="Address"
-                            placeholder="Full Address"
+                            label={t('forms.address') || "Address"}
+                            placeholder={t('placeholders.address') || "Full Address"}
                             multiline
                             rows={3}
                             control={methods.control}
@@ -159,8 +161,8 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
                             controlName="notes"
                             name="notes"
                             id="notes"
-                            label="Notes"
-                            placeholder="Additional Notes"
+                            label={t('forms.notes') || "Notes"}
+                            placeholder={t('placeholders.notes') || "Additional Notes"}
                             multiline
                             rows={2}
                             control={methods.control}
@@ -175,7 +177,7 @@ const LocationEdit: React.FC<{ location: Location }> = ({ location }) => {
                         >
                             <CustomButton
                                 task="update"
-                                text={'Location'}
+                                text={t('common.update') || 'Location'}
                                 disabled={loading}
                             />
                         </Stack>

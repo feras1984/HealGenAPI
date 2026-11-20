@@ -2,15 +2,17 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { useSupervisorContext } from "@/Services/SupervisorService/State/SupervisorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const SupervisorKpiCards: React.FC = () => {
     const { data } = useSupervisorContext();
+    const { t } = useTranslation();
     const kpis = data.kpis;
     const dark = useAppSelector(state => state.theme.dark);
 
     const cards = [
         {
-            label: 'Pending Supervisor Review',
+            label: t('supervisor.pendingSupervisorReview') || 'Pending Supervisor Review',
             count: kpis.pendingCount || 0,
             colorLight: '#ed6c02',
             colorDark: '#fb923c',
@@ -18,7 +20,7 @@ const SupervisorKpiCards: React.FC = () => {
             bgDark: '#1c1917',
         },
         {
-            label: 'Confirmed Today',
+            label: t('supervisor.confirmedToday') || 'Confirmed Today',
             count: kpis.confirmedTodayCount || 0,
             colorLight: '#2e7d32',
             colorDark: '#4ade80',
@@ -26,7 +28,7 @@ const SupervisorKpiCards: React.FC = () => {
             bgDark: '#064e3b',
         },
         {
-            label: 'Rejected Today',
+            label: t('supervisor.rejectedToday') || 'Rejected Today',
             count: kpis.rejectedTodayCount || 0,
             colorLight: '#d32f2f',
             colorDark: '#f87171',
@@ -34,7 +36,7 @@ const SupervisorKpiCards: React.FC = () => {
             bgDark: '#450a0a',
         },
         {
-            label: 'Total Processed Today',
+            label: t('supervisor.totalProcessedToday') || 'Total Processed Today',
             count: kpis.processedTodayCount || 0,
             colorLight: '#0288d1',
             colorDark: '#38bdf8',
@@ -46,7 +48,7 @@ const SupervisorKpiCards: React.FC = () => {
     return (
         <Box className="mb-6">
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
-                Supervisor Overview
+                {t('supervisor.overview') || 'Supervisor Overview'}
             </Typography>
             <Grid container spacing={2} justifyContent="center">
                 {cards.map((card, idx) => (

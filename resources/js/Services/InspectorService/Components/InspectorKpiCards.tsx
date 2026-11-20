@@ -2,15 +2,17 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { useInspectorContext } from "@/Services/InspectorService/State/InspectorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const InspectorKpiCards: React.FC = () => {
     const { data } = useInspectorContext();
+    const { t } = useTranslation();
     const kpis = data.kpis;
     const dark = useAppSelector(state => state.theme.dark);
 
     const cards = [
         {
-            label: 'Pending Inspection',
+            label: t('inspector.pendingInspection') || 'Pending Inspection',
             count: kpis.pendingCount || 0,
             colorLight: '#ed6c02',
             colorDark: '#fb923c',
@@ -18,7 +20,7 @@ const InspectorKpiCards: React.FC = () => {
             bgDark: '#1c1917',
         },
         {
-            label: 'Accepted Today',
+            label: t('inspector.forwardedToday') || t('inspector.acceptedToday') || 'Forwarded Today',
             count: kpis.acceptedTodayCount || 0,
             colorLight: '#2e7d32',
             colorDark: '#4ade80',
@@ -26,15 +28,15 @@ const InspectorKpiCards: React.FC = () => {
             bgDark: '#064e3b',
         },
         {
-            label: 'Rejected Today',
+            label: t('inspector.retestToday') || t('inspector.rejectedToday') || 'Retest Today',
             count: kpis.rejectedTodayCount || 0,
-            colorLight: '#d32f2f',
-            colorDark: '#f87171',
-            bgLight: '#ffebee',
-            bgDark: '#450a0a',
+            colorLight: '#ed6c02',
+            colorDark: '#fb923c',
+            bgLight: '#fff3e0',
+            bgDark: '#1c1917',
         },
         {
-            label: 'Inspected Today',
+            label: t('inspector.inspectedToday') || 'Inspected Today',
             count: kpis.inspectedTodayCount || 0,
             colorLight: '#0288d1',
             colorDark: '#38bdf8',
@@ -46,7 +48,7 @@ const InspectorKpiCards: React.FC = () => {
     return (
         <Box className="mb-6">
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
-                Inspector Overview
+                {t('inspector.overview') || 'Inspector Overview'}
             </Typography>
             <Grid container spacing={2} justifyContent="center">
                 {cards.map((card, idx) => (

@@ -1,6 +1,7 @@
 import React from "react";
 import {Controller} from "react-hook-form";
 import IValidatedSelect from "@/Interfaces/ValidatedInput/IValidatedSelect";
+import { useTranslation } from "react-i18next";
 import {
     FormControl,
     FormHelperText,
@@ -21,6 +22,7 @@ const ValidatedSelect: React.FC<IValidatedSelect<any>> = ({
             selectChanged,
             ...props
       }) => {
+    const { t } = useTranslation();
     return (
         <Controller
             name={controlName}
@@ -49,7 +51,7 @@ const ValidatedSelect: React.FC<IValidatedSelect<any>> = ({
                         {...props}
                     >
                         {withNone && <MenuItem value={-1}>
-                            <em>None</em>
+                            <em>{t('common.none') || 'None'}</em>
                         </MenuItem>}
                         {items.map((item, key) => (
                             <MenuItem value={item.id} key={key}>{item.name}</MenuItem>

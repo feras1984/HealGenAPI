@@ -17,8 +17,10 @@ import AdminRoleEnum from "@/Enums/AdminRoleEnum";
 import ValidatedSelect from "@/Components/ValidatedComponents/ValidatedSelect";
 import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
 import {Visibility, VisibilityOff } from '@mui/icons-material';
+import { useTranslation } from "react-i18next";
 
 const AdministratorAdd = () => {
+    const { t } = useTranslation();
     const adminService = Container.get(AdminService);
     const roles = Object.entries(AdminRoleEnum).map(([key, value]) => ({
         id: key,
@@ -37,33 +39,33 @@ const AdministratorAdd = () => {
     // =========================================================================================
 
     const blockSchema = z.object({
-        firstName: z.string().min(3, {message: 'First Name should be at least 3 characters!'}),
-        lastName: z.string().min(3, {message: 'Last Name should be at least 3 characters!'}),
+        firstName: z.string().min(3, {message: t('validation.firstNameMin') || 'First Name should be at least 3 characters!'}),
+        lastName: z.string().min(3, {message: t('validation.lastNameMin') || 'Last Name should be at least 3 characters!'}),
         email: z.string()
-            .email('Please enter valid email address!')
+            .email(t('validation.emailInvalid') || 'Please enter valid email address!')
             .refine(
                 async (email) => {
                     const response = await adminService.validateEmail(email);
                     return response.data.status;
                 },
-                {message: 'Email address already exists!'}
+                {message: t('validation.emailExists') || 'Email address already exists!'}
             )
         ,
 
         pwSchema: z.object({
             password: z
                 .string()
-                .min(12, "Password must be at least 12 characters")
-                .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-                .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-                .regex(/[0-9]/, "Password must contain at least one number")
-                .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+                .min(12, t('validation.passwordComplexMin') || "Password must be at least 12 characters")
+                .regex(/[a-z]/, t('validation.passwordLowercase') || "Password must contain at least one lowercase letter")
+                .regex(/[A-Z]/, t('validation.passwordUppercase') || "Password must contain at least one uppercase letter")
+                .regex(/[0-9]/, t('validation.passwordNumber') || "Password must contain at least one number")
+                .regex(/[^A-Za-z0-9]/, t('validation.passwordSpecial') || "Password must contain at least one special character"),
 
             passwordConfirmation: z.string(),
         }).refine(
             (data) => data.password === data.passwordConfirmation,
             {
-                message: "Passwords do not match",
+                message: t('validation.passwordsMatch') || "Passwords do not match",
                 path: ["passwordConfirmation"],
             }
         ),
@@ -110,7 +112,7 @@ const AdministratorAdd = () => {
             .then((res) => {
                 methods.reset();
                 setSnackbar(snackbarState =>
-                    ({ ...snackbarState, open: true, message: 'A new User has been added', severity: "success" })
+                    ({ ...snackbarState, open: true, message: t('messages.addedSuccess') || 'A new User has been added', severity: "success" })
                 );
             })
             .catch((error) => {
@@ -118,7 +120,7 @@ const AdministratorAdd = () => {
                     ({
                         ...snackbarState,
                         open: true,
-                        message: 'Error Happened while storing the user',
+                        message: t('messages.errorOccurred') || 'Error Happened while storing the user',
                         severity: "error"
                     })
                 );
@@ -130,17 +132,17 @@ const AdministratorAdd = () => {
     }
     return (
         <AdminLayout>
-            <Head title="Add User"></Head>
+            <Head title={t('forms.addNewUser') || "Add User"}></Head>
             {/*
             TODO: 1. ADD THE FORM HERE
             */}
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/users`}>Back to users</Link>
-                    <Typography>Add New User</Typography>
+                    <Link href={`/users`}>{t('nav.users') || 'Users'}</Link>
+                    <Typography>{t('forms.addNewUser') || 'Add New User'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Add New User</Typography>
+                    <Typography variant="h5">{t('forms.addNewUser') || 'Add New User'}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -165,15 +167,15 @@ const AdministratorAdd = () => {
                             id="isActive"
                             color="secondary"
                             control={methods.control}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                         />
 
                         <ValidatedInput
                             controlName="firstName"
                             name="firstName"
                             id="firstName"
-                            label="First Name"
-                            placeholder="First Name"
+                            label={t('forms.firstName') || "First Name"}
+                            placeholder={t('placeholders.firstName') || "First Name"}
                             control={methods.control}
                         />
 
@@ -181,8 +183,8 @@ const AdministratorAdd = () => {
                             controlName="lastName"
                             name="lastName"
                             id="lastName"
-                            label="Last Name"
-                            placeholder="Last Name"
+                            label={t('forms.lastName') || "Last Name"}
+                            placeholder={t('placeholders.lastName') || "Last Name"}
                             control={methods.control}
                         />
 
@@ -190,8 +192,8 @@ const AdministratorAdd = () => {
                             controlName="email"
                             name="email"
                             id="email"
-                            label="Email"
-                            placeholder="Email"
+                            label={t('forms.email') || "Email"}
+                            placeholder={t('placeholders.email') || "Email"}
                             control={methods.control}
                         />
 
@@ -199,8 +201,8 @@ const AdministratorAdd = () => {
                             control={methods.control}
                             controlName='role'
                             id="role"
-                            label="Choose Role"
-                            placeholder="Role"
+                            label={t('forms.chooseRole') || "Choose Role"}
+                            placeholder={t('forms.role') || "Role"}
                             withNone={false}
                             items={roles.map(role => ({
                                 id: role.id,
@@ -211,8 +213,8 @@ const AdministratorAdd = () => {
                             controlName="pwSchema.password"
                             name="password"
                             id="password"
-                            label="Password"
-                            placeholder="Password"
+                            label={t('forms.password') || "Password"}
+                            placeholder={t('placeholders.password') || "Password"}
                             control={methods.control}
                             type={showPassword ? 'text' : 'password'}
                             adornmentDirection={'end'}
@@ -225,8 +227,8 @@ const AdministratorAdd = () => {
                             controlName="pwSchema.passwordConfirmation"
                             name="passwordConfirmation"
                             id="passwordConfirmation"
-                            label="Password Confirmation"
-                            placeholder="Password Confirmation"
+                            label={t('forms.confirmPassword') || "Confirm Password"}
+                            placeholder={t('placeholders.confirmPassword') || "Confirm Password"}
                             control={methods.control}
                             type={showPassword ? 'text' : 'password'}
                             adornmentDirection={'end'}
@@ -244,7 +246,7 @@ const AdministratorAdd = () => {
                         >
                             <CustomButton
                                 task="add"
-                                text={'User'}
+                                text={t('common.save') || 'User'}
                                 disabled={loading}
                             ></CustomButton>
                         </Stack>

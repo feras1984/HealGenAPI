@@ -23,10 +23,15 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useMonitorContext } from "@/Services/MonitorService/State/MonitorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 import { exportCustomTableToExcel, exportCustomTableToPdf } from "@/Utils/GridExportHelper";
+import { useTranslation } from "react-i18next";
 
 const RoleOperationsGrid: React.FC = () => {
+    const { t, i18n } = useTranslation();
     const { data } = useMonitorContext();
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || (i18n.language && i18n.language.startsWith('ar'));
 
     const roleOps = data.roleOperations || {
         roles: { Administrator: 0, Supervisor: 0, Inspector: 0, Employee: 0 },
@@ -43,12 +48,12 @@ const RoleOperationsGrid: React.FC = () => {
     ];
 
     const getExportData = () => {
-        const columns = ['Metric / Role', 'Count'];
+        const columns = [t('monitor.metricOrRole') || 'Metric / Role', t('monitor.count') || 'Count'];
         const rows: (string | number)[][] = [
-            ['Total System Users', roleOps.totalUsers],
-            ['Active Account Users', roleOps.activeUsers],
-            ['Assigned to Devices', roleOps.assignedDeviceUsers],
-            ...roleRows.map(r => [r.role, r.count])
+            [t('monitor.totalUsers') || 'Total System Users', roleOps.totalUsers],
+            [t('monitor.activeUsers') || 'Active Account Users', roleOps.activeUsers],
+            [t('monitor.assignedDeviceUsers') || 'Assigned to Devices', roleOps.assignedDeviceUsers],
+            ...roleRows.map(r => [t(`roles.${r.role}`) || r.role, r.count])
         ];
         return { columns, rows };
     };
@@ -56,8 +61,8 @@ const RoleOperationsGrid: React.FC = () => {
     const handleExportExcel = () => {
         const { columns, rows } = getExportData();
         exportCustomTableToExcel({
-            fileName: 'Role_User_Operations',
-            title: 'Role & User Operational State',
+            fileName: isRtl ? 'حالة_العمليات_للأدوار_والمستخدمين' : 'Role_User_Operations',
+            title: t('monitor.roleOperations') || 'Role & User Operational State',
             columns,
             rows
         });
@@ -66,8 +71,8 @@ const RoleOperationsGrid: React.FC = () => {
     const handleExportPdf = () => {
         const { columns, rows } = getExportData();
         exportCustomTableToPdf({
-            fileName: 'Role_User_Operations',
-            title: 'Role & User Operational State',
+            fileName: isRtl ? 'حالة_العمليات_للأدوار_والمستخدمين' : 'Role_User_Operations',
+            title: t('monitor.roleOperations') || 'Role & User Operational State',
             columns,
             rows
         });
@@ -87,7 +92,7 @@ const RoleOperationsGrid: React.FC = () => {
             <CardContent>
                 <Box className="flex flex-wrap items-center justify-between mb-3 gap-2">
                     <Typography variant="h6" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600 }}>
-                        Role & User Operational State
+                        {t('monitor.roleOperations') || 'Role & User Operational State'}
                     </Typography>
                     <Stack direction="row" spacing={1.5}>
                         <Button
@@ -108,7 +113,7 @@ const RoleOperationsGrid: React.FC = () => {
                                 }
                             }}
                         >
-                            Export Excel
+                            {t('common.exportExcel') || 'Export Excel'}
                         </Button>
                         <Button
                             variant="outlined"
@@ -128,7 +133,7 @@ const RoleOperationsGrid: React.FC = () => {
                                 }
                             }}
                         >
-                            Export PDF
+                            {t('common.exportPdf') || 'Export PDF'}
                         </Button>
                     </Stack>
                 </Box>
@@ -145,11 +150,11 @@ const RoleOperationsGrid: React.FC = () => {
                                 alignItems: 'center',
                             }}
                         >
-                            <Box sx={{ p: 1.5, borderRadius: '50%', backgroundColor: dark ? '#2563eb' : '#3b82f6', color: '#ffffff', mr: 2 }}>
+                            <Box sx={{ p: 1.5, borderRadius: '50%', backgroundColor: dark ? '#2563eb' : '#3b82f6', color: '#ffffff', marginInlineEnd: 2 }}>
                                 <PeopleIcon />
                             </Box>
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Total System Users</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('monitor.totalUsers') || 'Total System Users'}</Typography>
                                 <Typography variant="h5" color="text.primary" className="font-bold">{roleOps.totalUsers}</Typography>
                             </Box>
                         </Paper>
@@ -167,11 +172,11 @@ const RoleOperationsGrid: React.FC = () => {
                                 alignItems: 'center',
                             }}
                         >
-                            <Box sx={{ p: 1.5, borderRadius: '50%', backgroundColor: dark ? '#16a34a' : '#22c55e', color: '#ffffff', mr: 2 }}>
+                            <Box sx={{ p: 1.5, borderRadius: '50%', backgroundColor: dark ? '#16a34a' : '#22c55e', color: '#ffffff', marginInlineEnd: 2 }}>
                                 <CheckCircleIcon />
                             </Box>
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Active Account Users</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('monitor.activeUsers') || 'Active Account Users'}</Typography>
                                 <Typography variant="h5" color="text.primary" className="font-bold">{roleOps.activeUsers}</Typography>
                             </Box>
                         </Paper>
@@ -189,11 +194,11 @@ const RoleOperationsGrid: React.FC = () => {
                                 alignItems: 'center',
                             }}
                         >
-                            <Box sx={{ p: 1.5, borderRadius: '50%', backgroundColor: dark ? '#9333ea' : '#a855f7', color: '#ffffff', mr: 2 }}>
+                            <Box sx={{ p: 1.5, borderRadius: '50%', backgroundColor: dark ? '#9333ea' : '#a855f7', color: '#ffffff', marginInlineEnd: 2 }}>
                                 <DevicesIcon />
                             </Box>
                             <Box>
-                                <Typography variant="caption" color="text.secondary">Assigned to Devices</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('monitor.assignedDeviceUsers') || 'Assigned to Devices'}</Typography>
                                 <Typography variant="h5" color="text.primary" className="font-bold">{roleOps.assignedDeviceUsers}</Typography>
                             </Box>
                         </Paper>
@@ -212,17 +217,21 @@ const RoleOperationsGrid: React.FC = () => {
                             <Table size="small">
                                 <TableHead sx={{ backgroundColor: dark ? '#111827' : '#f1f5f9' }}>
                                     <TableRow>
-                                        <TableCell sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#374151' : '#cbd5e1' }}>Role Name</TableCell>
-                                        <TableCell align="right" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#374151' : '#cbd5e1' }}>User Count</TableCell>
+                                        <TableCell sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#374151' : '#cbd5e1' }}>
+                                            {t('monitor.roleName') || 'Role Name'}
+                                        </TableCell>
+                                        <TableCell align={isRtl ? 'left' : 'right'} sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#374151' : '#cbd5e1' }}>
+                                            {t('monitor.userCount') || 'User Count'}
+                                        </TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {roleRows.map((r) => (
                                         <TableRow key={r.role} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                             <TableCell component="th" scope="row" sx={{ color: dark ? '#f8fafc' : '#0f172a', borderColor: dark ? '#334155' : '#f1f5f9' }}>
-                                                {r.role}
+                                                {t(`roles.${r.role}`) || r.role}
                                             </TableCell>
-                                            <TableCell align="right" sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#334155' : '#f1f5f9' }}>
+                                            <TableCell align={isRtl ? 'left' : 'right'} sx={{ color: dark ? '#f8fafc' : '#0f172a', fontWeight: 600, borderColor: dark ? '#334155' : '#f1f5f9' }}>
                                                 {r.count}
                                             </TableCell>
                                         </TableRow>

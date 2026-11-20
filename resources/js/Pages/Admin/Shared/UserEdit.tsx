@@ -21,6 +21,7 @@ import CustomSnackbar from "@/Components/Snackbar/CustomSnackbar";
 import {useAppDispatch, useAppSelector} from "@/Redux/Store/hook";
 import {getUser} from "@/Redux/Reducers/UserSlice/UserSlice";
 import User from "@/models/User/User";
+import { useTranslation } from "react-i18next";
 
 const UserEdit: React.FC<
     {
@@ -28,6 +29,7 @@ const UserEdit: React.FC<
         enabled?: boolean,
     }
 > = ({user, enabled = true}) => {
+    const { t } = useTranslation();
     const adminService = Container.get(AdminService);
     const commonService = Container.get(CommonService);
     const [selectedUser, setSelectedUser] = useState<Administrator>({...user});
@@ -60,36 +62,19 @@ const UserEdit: React.FC<
     // =========================================================================================
 
     const blockSchema = z.object({
-        firstName: z.string().min(3, {message: 'First Name should be at least 3 characters!'}),
-        lastName: z.string().min(3, {message: 'Last Name should be at least 3 characters!'}),
+        firstName: z.string().min(3, {message: t('validation.firstNameMin') || 'First Name should be at least 3 characters!'}),
+        lastName: z.string().min(3, {message: t('validation.lastNameMin') || 'Last Name should be at least 3 characters!'}),
         email: z.string()
-            .email('Please enter valid email address!')
+            .email(t('validation.emailInvalid') || 'Please enter valid email address!')
             .refine(
                 async (email) => {
                     const response = await adminService.validateEmail(email, selectedUser.id);
                     return response.data.status;
                 },
-                {message: 'Email address already exists!'}
+                {message: t('validation.emailExists') || 'Email address already exists!'}
             )
         ,
 
-        // pwSchema: z.object({
-        //     password: z
-        //         .string()
-        //         .min(12, "Password must be at least 12 characters")
-        //         .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-        //         .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-        //         .regex(/[0-9]/, "Password must contain at least one number")
-        //         .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-        //
-        //     passwordConfirmation: z.string(),
-        // }).refine(
-        //     (data) => data.password === data.passwordConfirmation,
-        //     {
-        //         message: "Passwords do not match",
-        //         path: ["passwordConfirmation"],
-        //     }
-        // ),
         pwSchema: z.object({
             password: z.string(),
             passwordConfirmation: z.string(),
@@ -103,7 +88,7 @@ const UserEdit: React.FC<
                 ctx.addIssue({
                     code: 'custom',
                     path: ['password'],
-                    message: 'Password must be at least 12 characters',
+                    message: t('validation.passwordComplexMin') || 'Password must be at least 12 characters',
                 });
             }
 
@@ -111,7 +96,7 @@ const UserEdit: React.FC<
                 ctx.addIssue({
                     code: 'custom',
                     path: ['password'],
-                    message: 'Password must contain at least one lowercase letter',
+                    message: t('validation.passwordLowercase') || 'Password must contain at least one lowercase letter',
                 });
             }
 
@@ -119,7 +104,7 @@ const UserEdit: React.FC<
                 ctx.addIssue({
                     code: 'custom',
                     path: ['password'],
-                    message: 'Password must contain at least one uppercase letter',
+                    message: t('validation.passwordUppercase') || 'Password must contain at least one uppercase letter',
                 });
             }
 
@@ -127,7 +112,7 @@ const UserEdit: React.FC<
                 ctx.addIssue({
                     code: 'custom',
                     path: ['password'],
-                    message: 'Password must contain at least one number',
+                    message: t('validation.passwordNumber') || 'Password must contain at least one number',
                 });
             }
 
@@ -135,7 +120,7 @@ const UserEdit: React.FC<
                 ctx.addIssue({
                     code: 'custom',
                     path: ['password'],
-                    message: 'Password must contain at least one special character',
+                    message: t('validation.passwordSpecial') || 'Password must contain at least one special character',
                 });
             }
 
@@ -143,7 +128,7 @@ const UserEdit: React.FC<
                 ctx.addIssue({
                     code: 'custom',
                     path: ['passwordConfirmation'],
-                    message: 'Passwords do not match',
+                    message: t('validation.passwordsMatch') || 'Passwords do not match',
                 });
             }
         }),
@@ -269,12 +254,12 @@ const UserEdit: React.FC<
         adminService.updateAdmin(formData, user.id).then(response => {
             setSelectedUser(response.data.user);
             setSnackbar(snackbarState =>
-                ({ ...snackbarState, open: true, message: 'The user has been updated', severity: "success" })
+                ({ ...snackbarState, open: true, message: t('messages.updatedSuccess') || 'The user has been updated', severity: "success" })
             );
         }).catch(error => {
             console.log(error);
             setSnackbar(snackbarState =>
-                ({ ...snackbarState, open: true, message: 'Error Happened while updating user', severity: "error" })
+                ({ ...snackbarState, open: true, message: t('messages.errorOccurred') || 'Error Happened while updating user', severity: "error" })
             );
         }).finally(() => {
             setLoading(false);
@@ -292,7 +277,7 @@ const UserEdit: React.FC<
                 {/*    <Typography>Update User {selectedUser.name}</Typography>*/}
                 {/*</Breadcrumbs>*/}
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Update User {selectedUser.name}</Typography>
+                    <Typography variant="h5">{t('forms.editUser') || 'Update User'} ({selectedUser.name})</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -319,7 +304,7 @@ const UserEdit: React.FC<
                             id="isActive"
                             color="secondary"
                             methods={methods}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                             sendSwitchState={(value) => receiveSwitchState(value)}
                         />}
 
@@ -327,8 +312,8 @@ const UserEdit: React.FC<
                             controlName="firstName"
                             name="firstName"
                             id="firstName"
-                            label="First Name"
-                            placeholder="First Name"
+                            label={t('forms.firstName') || "First Name"}
+                            placeholder={t('placeholders.firstName') || "First Name"}
                             control={methods.control}
                         />
 
@@ -336,8 +321,8 @@ const UserEdit: React.FC<
                             controlName="lastName"
                             name="lastName"
                             id="lastName"
-                            label="Last Name"
-                            placeholder="Last Name"
+                            label={t('forms.lastName') || "Last Name"}
+                            placeholder={t('placeholders.lastName') || "Last Name"}
                             control={methods.control}
                         />
 
@@ -345,8 +330,8 @@ const UserEdit: React.FC<
                             controlName="email"
                             name="email"
                             id="email"
-                            label="Email"
-                            placeholder="Email"
+                            label={t('forms.email') || "Email"}
+                            placeholder={t('placeholders.email') || "Email"}
                             control={methods.control}
                         />}
 
@@ -354,8 +339,8 @@ const UserEdit: React.FC<
                             control={methods.control}
                             controlName='role'
                             id="role"
-                            label="Choose Role"
-                            placeholder="Role"
+                            label={t('forms.chooseRole') || "Choose Role"}
+                            placeholder={t('forms.role') || "Role"}
                             withNone={false}
                             items={roles.map(role => ({
                                 id: role.id,
@@ -366,8 +351,8 @@ const UserEdit: React.FC<
                             controlName="pwSchema.password"
                             name="password"
                             id="password"
-                            label="Password"
-                            placeholder="Password"
+                            label={t('forms.password') || "Password"}
+                            placeholder={t('placeholders.password') || "Password"}
                             control={methods.control}
                             type={showPassword ? 'text' : 'password'}
                             adornmentDirection={'end'}
@@ -380,8 +365,8 @@ const UserEdit: React.FC<
                             controlName="pwSchema.passwordConfirmation"
                             name="passwordConfirmation"
                             id="passwordConfirmation"
-                            label="Password Confirmation"
-                            placeholder="Password Confirmation"
+                            label={t('forms.confirmPassword') || "Confirm Password"}
+                            placeholder={t('placeholders.confirmPassword') || "Confirm Password"}
                             control={methods.control}
                             type={showPassword ? 'text' : 'password'}
                             adornmentDirection={'end'}
@@ -397,7 +382,7 @@ const UserEdit: React.FC<
                             spacing={2}
                             className="m-[8px]"
                         >
-                            <CustomButton task="update" text={'user'}></CustomButton>
+                            <CustomButton task="update" text={t('common.update') || 'user'}></CustomButton>
                             {/*<CustomButton task="delete" text={'user'} onClick={handleOpenModal}></CustomButton>*/}
                         </Stack>
                     </Box>

@@ -5,6 +5,7 @@ import SupervisorContainer from "@/Services/SupervisorService/State/SupervisorCo
 import Location from "@/models/location/Location";
 import Device from "@/models/device/Device";
 import { SupervisorDashboardData, SupervisorFilterParams } from "@/models/supervisor/SupervisorData";
+import { useTranslation } from "react-i18next";
 
 interface SupervisorDashboardProps {
     dashboardData: SupervisorDashboardData;
@@ -19,9 +20,11 @@ const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({
     devices,
     initialFilters = {}
 }) => {
+    const { t } = useTranslation();
+
     return (
         <AdminLayout>
-            <Head title="Supervisor Dashboard" />
+            <Head title={t('supervisor.dashboard') || "Supervisor Dashboard"} />
             <SupervisorContainer
                 initialData={dashboardData}
                 locations={locations}

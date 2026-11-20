@@ -15,9 +15,11 @@ import {
 } from '@mui/material';
 import { useInspectorContext } from "@/Services/InspectorService/State/InspectorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const MyRecentActivity: React.FC = () => {
     const { data } = useInspectorContext();
+    const { t } = useTranslation();
     const activity = data.recentActivity || [];
     const dark = useAppSelector(state => state.theme.dark);
 
@@ -35,13 +37,13 @@ const MyRecentActivity: React.FC = () => {
             <CardContent>
                 <Box className="flex justify-between items-center mb-3">
                     <Typography variant="h6" color="text.primary" className="font-semibold">
-                        My Recent Activity ({activity.length})
+                        {t('inspector.myRecentActivity') || 'My Recent Activity'} ({activity.length})
                     </Typography>
                 </Box>
                 {activity.length === 0 ? (
                     <Box className="p-6 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
-                            You have not performed any inspector actions yet today.
+                            {t('inspector.noActivityToday') || 'You have not performed any inspector actions yet today.'}
                         </Typography>
                     </Box>
                 ) : (
@@ -57,12 +59,12 @@ const MyRecentActivity: React.FC = () => {
                         <Table size="small">
                             <TableHead sx={{ backgroundColor: dark ? 'rgba(15, 23, 42, 0.8)' : '#f8fafc' }}>
                                 <TableRow>
-                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Test ID</TableCell>
-                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Patient / Donor</TableCell>
-                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Action</TableCell>
-                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Status Transition</TableCell>
-                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Reason</TableCell>
-                                    <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>Timestamp</TableCell>
+                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.testId') || 'Test ID'}</TableCell>
+                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.patientOrDonor') || 'Patient / Donor'}</TableCell>
+                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.action') || 'Action'}</TableCell>
+                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.statusTransition') || 'Status Transition'}</TableCell>
+                                    <TableCell sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.reason') || 'Reason'}</TableCell>
+                                    <TableCell align="right" sx={{ color: dark ? '#f1f5f9' : '#334155', fontWeight: 600 }}>{t('tests.timestamp') || 'Timestamp'}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -78,14 +80,14 @@ const MyRecentActivity: React.FC = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <Chip
-                                                    label={isAccept ? 'Accepted' : 'Rejected'}
-                                                    color={isAccept ? 'success' : 'error'}
+                                                    label={isAccept ? (t('inspector.forwarded') || t('common.forwarded') || 'Forwarded') : (t('inspector.retest') || t('common.retest') || 'Retest')}
+                                                    color={isAccept ? 'success' : 'warning'}
                                                     size="small"
                                                     variant="filled"
                                                 />
                                             </TableCell>
                                             <TableCell sx={{ color: dark ? '#cbd5e1' : '#334155' }}>
-                                                <span className="text-xs text-gray-500">{act.previousStatus}</span> → <strong className="text-xs">{act.newStatus}</strong>
+                                                <span className="text-xs text-gray-500">{t(`status.${act.previousStatus}`) || act.previousStatus}</span> → <strong className="text-xs">{t(`status.${act.newStatus}`) || act.newStatus}</strong>
                                             </TableCell>
                                             <TableCell sx={{ color: dark ? '#cbd5e1' : '#334155', maxWidth: 200 }}>
                                                 {act.reason || '-'}

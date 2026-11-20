@@ -13,8 +13,10 @@ import { Box, Breadcrumbs, Stack, Typography } from "@mui/material";
 import ValidatedCheckbox from "@/Components/ValidatedComponents/ValidatedCheckbox";
 import CustomButton from "@/Components/Button/CustomButton";
 import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
+import { useTranslation } from "react-i18next";
 
 const DeviceTypeAdd = () => {
+    const { t } = useTranslation();
     const deviceTypeService = Container.get(DeviceTypeService);
     const [loading, setLoading] = React.useState(false);
 
@@ -22,7 +24,7 @@ const DeviceTypeAdd = () => {
         useSnackbarHook({ open: false, message: '', severity: "success" });
 
     const deviceTypeSchema = z.object({
-        name: z.string().min(2, { message: 'Name should be at least 2 characters!' }),
+        name: z.string().min(2, { message: t('validation.nameMin') || 'Name should be at least 2 characters!' }),
         manufacturer: z.string().optional(),
         model: z.string().optional(),
         description: z.string().optional(),
@@ -51,14 +53,14 @@ const DeviceTypeAdd = () => {
                 methods.reset();
                 setSnackbar({
                     open: true,
-                    message: 'Device Type added successfully!',
+                    message: t('messages.addedSuccess') || 'Device Type added successfully!',
                     severity: "success"
                 });
             })
             .catch((error) => {
                 setSnackbar({
                     open: true,
-                    message: 'Error happened while storing device type!',
+                    message: t('messages.errorOccurred') || 'Error happened while storing device type!',
                     severity: "error"
                 });
             })
@@ -69,14 +71,14 @@ const DeviceTypeAdd = () => {
 
     return (
         <AdminLayout>
-            <Head title="Add Device Type" />
+            <Head title={t('forms.addNewDeviceType') || "Add Device Type"} />
             <Box>
                 <Breadcrumbs>
-                    <Link href={`/device-types`}>Back to device types</Link>
-                    <Typography>Add New Device Type</Typography>
+                    <Link href={`/device-types`}>{t('nav.deviceTypes') || 'Device Types'}</Link>
+                    <Typography>{t('forms.addNewDeviceType') || 'Add New Device Type'}</Typography>
                 </Breadcrumbs>
                 <Box className="p-[16px]">
-                    <Typography variant="h5">Add New Device Type</Typography>
+                    <Typography variant="h5">{t('forms.addNewDeviceType') || 'Add New Device Type'}</Typography>
                 </Box>
 
                 <FormProvider {...methods}>
@@ -94,15 +96,15 @@ const DeviceTypeAdd = () => {
                             id="isActive"
                             color="secondary"
                             control={methods.control}
-                            label="Is Active"
+                            label={t('forms.isActive') || "Is Active"}
                         />
 
                         <ValidatedInput
                             controlName="name"
                             name="name"
                             id="name"
-                            label="Type Name"
-                            placeholder="e.g. HealGen D600 Reader"
+                            label={t('forms.deviceName') || "Type Name"}
+                            placeholder={t('placeholders.deviceName') || "e.g. HealGen D600 Reader"}
                             control={methods.control}
                         />
 
@@ -110,8 +112,8 @@ const DeviceTypeAdd = () => {
                             controlName="manufacturer"
                             name="manufacturer"
                             id="manufacturer"
-                            label="Manufacturer"
-                            placeholder="e.g. HealGen Scientific"
+                            label={t('forms.manufacturer') || "Manufacturer"}
+                            placeholder={t('placeholders.manufacturer') || "e.g. HealGen Scientific"}
                             control={methods.control}
                         />
 
@@ -119,8 +121,8 @@ const DeviceTypeAdd = () => {
                             controlName="model"
                             name="model"
                             id="model"
-                            label="Model Number / Code"
-                            placeholder="e.g. D600-V2"
+                            label={t('forms.model') || "Model Number / Code"}
+                            placeholder={t('placeholders.model') || "e.g. D600-V2"}
                             control={methods.control}
                         />
 
@@ -128,8 +130,8 @@ const DeviceTypeAdd = () => {
                             controlName="description"
                             name="description"
                             id="description"
-                            label="Description"
-                            placeholder="Device type specifications"
+                            label={t('forms.description') || "Description"}
+                            placeholder={t('placeholders.description') || "Device type specifications"}
                             multiline
                             rows={3}
                             control={methods.control}
@@ -144,7 +146,7 @@ const DeviceTypeAdd = () => {
                         >
                             <CustomButton
                                 task="add"
-                                text={'Device Type'}
+                                text={t('common.save') || 'Device Type'}
                                 disabled={loading}
                             />
                         </Stack>

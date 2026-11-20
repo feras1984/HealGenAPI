@@ -72,7 +72,7 @@ class MonitorService
      */
     public function getTestOperations(array $filters = [], int $limit = 25): array
     {
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests']);
+        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests', 'file']);
 
         if (!empty($filters['status'])) {
             $query->where('Status', $filters['status']);
@@ -250,17 +250,18 @@ class MonitorService
             $query->where('DeviceId', $filters['deviceId']);
         }
 
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
         $isSingleDate = !empty($filters['date']);
         if ($isSingleDate) {
             $query->whereDate('CreatedAt', $filters['date']);
 
-            // Hourly aggregation for SQL Server
+            $hourExpr = $isSqlite ? "strftime('%H', CreatedAt)" : 'DATEPART(hour, CreatedAt)';
             $raw = $query->select(
-                DB::raw('DATEPART(hour, CreatedAt) as hr'),
+                DB::raw("{$hourExpr} as hr"),
                 DB::raw('COUNT(*) as count')
             )
-            ->groupBy(DB::raw('DATEPART(hour, CreatedAt)'))
-            ->orderBy(DB::raw('DATEPART(hour, CreatedAt)'), 'asc')
+            ->groupBy(DB::raw($hourExpr))
+            ->orderBy(DB::raw($hourExpr), 'asc')
             ->get();
 
             $hourMap = [];
@@ -281,12 +282,13 @@ class MonitorService
         }
 
         // Daily aggregation (default last 7-30 days or overall)
+        $dateExpr = $isSqlite ? 'date(CreatedAt)' : 'CAST(CreatedAt AS DATE)';
         $raw = $query->select(
-            DB::raw('CAST(CreatedAt AS DATE) as dt'),
+            DB::raw("{$dateExpr} as dt"),
             DB::raw('COUNT(*) as count')
         )
-        ->groupBy(DB::raw('CAST(CreatedAt AS DATE)'))
-        ->orderBy(DB::raw('CAST(CreatedAt AS DATE)'), 'desc')
+        ->groupBy(DB::raw($dateExpr))
+        ->orderBy(DB::raw($dateExpr), 'desc')
         ->limit(14)
         ->get()
         ->reverse();
@@ -294,10 +296,13 @@ class MonitorService
         $list = [];
         foreach ($raw as $row) {
             if ($row->dt) {
-                $list[] = [
-                    'period' => Carbon::make($row->dt)->format('M d'),
-                    'count' => (int) $row->count,
-                ];
+                $carbon = Carbon::make($row->dt);
+                if ($carbon) {
+                    $list[] = [
+                        'period' => $carbon->format('M d'),
+                        'count' => (int) $row->count,
+                    ];
+                }
             }
         }
 
@@ -317,6 +322,10 @@ class MonitorService
                 'locations.name as locationName',
                 DB::raw('COUNT(PatientHeader.Id) as count')
             );
+
+        if (!empty($filters['locationId'])) {
+            $query->where('locations.id', $filters['locationId']);
+        }
 
         if (!empty($filters['deviceId'])) {
             $query->where('PatientHeader.DeviceId', $filters['deviceId']);

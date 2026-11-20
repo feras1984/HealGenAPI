@@ -14,8 +14,21 @@ use Symfony\Component\HttpFoundation\Response as HTTPResponse;
 
 class SupervisorController extends Controller
 {
+    private function authorizeSupervisorRole(Request $request): void
+    {
+        $user = $request->user();
+        $adminRef = $user ? $user->reference()->first() : null;
+        $role = strtolower(trim($adminRef?->role ?? ''));
+
+        if (!in_array($role, ['administrator', 'supervisor'], true)) {
+            abort(403, 'Unauthorized access. Only Supervisors and Administrators can access the supervisor queue.');
+        }
+    }
+
     public function index(Request $request): Response
     {
+        $this->authorizeSupervisorRole($request);
+
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
 
@@ -33,6 +46,8 @@ class SupervisorController extends Controller
 
     public function data(Request $request): JsonResponse
     {
+        $this->authorizeSupervisorRole($request);
+
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
         $data = SupervisorService::getSupervisorDashboardData($user, $filters);

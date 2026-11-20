@@ -14,6 +14,8 @@ import {
 import VpnKeyOutlinedIcon from "@mui/icons-material/VpnKeyOutlined";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LoginIcon from "@mui/icons-material/Login";
+import { useTranslation } from "react-i18next";
+import { useAppSelector } from "@/Redux/Store/hook";
 
 interface UnauthorizedProps {
     status?: number;
@@ -28,12 +30,20 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
     message = "Authentication is required to access this page or the requested resource.",
     support = "Please sign in with valid credentials, or contact your administrator.",
 }) => {
+    const { t, i18n } = useTranslation();
     const pageProps = usePage().props as any;
     const user = pageProps?.auth?.user || pageProps?.user;
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+    const activeLang = isRtl ? 'ar' : 'en';
 
-    // The root route ('/') automatically resolves to the role-appropriate dashboard
-    const dashboardUrl = "/";
-    const loginUrl = "/login";
+    const dashboardUrl = `/${activeLang}`;
+    const loginUrl = `/${activeLang}/login`;
+
+    const displayTitle = (title && title !== "Unauthorized Access") ? title : t('errors.unauthorizedTitle');
+    const displayMessage = (message && message !== "Authentication is required to access this page or the requested resource.") ? message : t('errors.unauthorizedMessage');
+    const displaySupport = (support && support !== "Please sign in with valid credentials, or contact your administrator.") ? support : t('errors.unauthorizedSupport');
 
     const errorCard = (
         <Box
@@ -44,6 +54,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                 justifyContent: "center",
                 py: { xs: 4, sm: 8 },
                 px: 2,
+                direction: isRtl ? 'rtl' : 'ltr',
             }}
         >
             <Card
@@ -73,7 +84,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                         "&:last-child": { pb: 0 },
                     }}
                 >
-                    {/* Key / Authentication Icon */}
+                    {/* Security Key / Lock Icon */}
                     <Box
                         sx={{
                             width: 88,
@@ -85,8 +96,8 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                             mb: 2.5,
                             backgroundColor: (theme) =>
                                 theme.palette.mode === "dark"
-                                    ? "rgba(245, 158, 11, 0.18)"
-                                    : "rgba(245, 158, 11, 0.1)",
+                                    ? "rgba(237, 108, 2, 0.18)"
+                                    : "rgba(237, 108, 2, 0.1)",
                             color: "warning.main",
                         }}
                     >
@@ -95,7 +106,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
 
                     {/* HTTP Status Code Badge */}
                     <Chip
-                        label={`HTTP ${status}`}
+                        label={`${t('errors.httpStatus') || 'HTTP'} ${status}`}
                         color="warning"
                         size="small"
                         variant="outlined"
@@ -119,7 +130,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                             fontSize: { xs: "1.5rem", sm: "1.875rem" },
                         }}
                     >
-                        {title}
+                        {displayTitle}
                     </Typography>
 
                     {/* Primary Message */}
@@ -133,7 +144,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                             fontSize: { xs: "0.95rem", sm: "1.05rem" },
                         }}
                     >
-                        {message}
+                        {displayMessage}
                     </Typography>
 
                     {/* Supporting Text */}
@@ -147,7 +158,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                             lineHeight: 1.5,
                         }}
                     >
-                        {support}
+                        {displaySupport}
                     </Typography>
 
                     {/* Action Buttons */}
@@ -174,7 +185,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                                     minWidth: 200,
                                 }}
                             >
-                                Back to Dashboard
+                                {t('errors.backToDashboard') || "Back to Dashboard"}
                             </Button>
                         ) : (
                             <Button
@@ -194,7 +205,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                                     minWidth: 200,
                                 }}
                             >
-                                Sign In
+                                {t('errors.signIn') || "Sign In"}
                             </Button>
                         )}
                     </Stack>
@@ -206,7 +217,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
     if (!user) {
         return (
             <AppRoot>
-                <Head title={`${status} - ${title}`} />
+                <Head title={`${status} - ${displayTitle}`} />
                 <Box
                     sx={{
                         minHeight: "100vh",
@@ -215,6 +226,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
                         justifyContent: "center",
                         bgcolor: "background.default",
                         p: 2,
+                        direction: isRtl ? 'rtl' : 'ltr',
                     }}
                 >
                     {errorCard}
@@ -225,7 +237,7 @@ const Unauthorized: React.FC<UnauthorizedProps> = ({
 
     return (
         <AdminLayout>
-            <Head title={`${status} - ${title}`} />
+            <Head title={`${status} - ${displayTitle}`} />
             {errorCard}
         </AdminLayout>
     );

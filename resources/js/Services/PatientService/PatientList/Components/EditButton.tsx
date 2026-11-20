@@ -1,12 +1,15 @@
 import React from 'react';
 import CustomButton from "@/Components/Button/CustomButton";
-import {Link} from "@inertiajs/react";
-import {PatientGridProps} from "@/Services/PatientService/PatientList/Interfaces/PatientProps";
-// import {BlockGridProps} from "../../Interfaces";
+import { Link } from "@inertiajs/react";
+import { PatientGridProps } from "@/Services/PatientService/PatientList/Interfaces/PatientProps";
+import { useTranslation } from "react-i18next";
 
 const EditButton = (props: PatientGridProps) => {
+    const { i18n } = useTranslation();
+    const activeLang = i18n.language?.startsWith('ar') ? 'ar' : 'en';
+
     return (
-        <Link href={`/tests/${props.id}`}>
+        <Link href={`/${activeLang}/tests/${props.id}`}>
             <CustomButton task='display' text=""></CustomButton>
         </Link>
     );

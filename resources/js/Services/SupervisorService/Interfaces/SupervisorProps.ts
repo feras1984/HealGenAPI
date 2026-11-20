@@ -36,4 +36,5 @@ export interface SupervisorContextType {
     closeRejectModal: () => void;
     handleConfirmSubmit: (note?: string) => Promise<void>;
     handleRejectSubmit: (reason: string) => Promise<void>;
+    setSnackbar?: (params: { open: boolean; message: string; severity?: any }) => void;
 }

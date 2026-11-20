@@ -15,6 +15,7 @@ import { Box, Typography, Tabs, Tab } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import DevicesIcon from '@mui/icons-material/Devices';
 import StatusDonutChart from "@/Components/Charts/StatusDonutChart";
+import { useTranslation } from "react-i18next";
 
 const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
     initialData,
@@ -22,6 +23,7 @@ const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
     devices,
     initialFilters = {}
 }) => {
+    const { t } = useTranslation();
     const [data, setData] = useState<EmployeeDashboardData>(initialData);
     const [filters, setFiltersState] = useState<EmployeeFilterParams>(initialFilters);
     const [activeTab, setActiveTab] = useState<'tests' | 'devices'>('tests');
@@ -30,7 +32,7 @@ const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
     const employeeService = ServiceContainer.get(EmployeeDashboardService);
-    const { snackbar, setSnackbar, handleClose } = useSnackbarHook({ open: false, message: '', severity: 'info' });
+    const { snackbar, setSnackbar, handleClose } = useSnackbarHook({ open: false, message: '', severity: 'success' });
 
     const fetchLatest = useCallback((currentFilters: EmployeeFilterParams, showLoading: boolean = false) => {
         if (showLoading) setLoading(true);
@@ -110,7 +112,7 @@ const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
             <Box className="p-6">
                 <Box className="flex justify-between items-center mb-6">
                     <Typography variant="h4" color="text.primary" className="font-bold">
-                        Employee Dashboard (Assigned Devices Only)
+                        {t('employee.dashboardTitle') || 'Employee Dashboard (Assigned Devices Only)'}
                     </Typography>
                 </Box>
 
@@ -127,14 +129,14 @@ const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
                     >
                         <Tab
                             value="tests"
-                            label={`Tests (${data.recentTests?.length || 0})`}
+                            label={`${t('employee.testsTab') || 'Tests'} (${data.recentTests?.length || 0})`}
                             icon={<ScienceIcon />}
                             iconPosition="start"
                             sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.95rem' }}
                         />
                         <Tab
                             value="devices"
-                            label={`Assigned Devices (${data.assignedDevices?.length || 0})`}
+                            label={`${t('employee.assignedDevicesTab') || 'Assigned Devices'} (${data.assignedDevices?.length || 0})`}
                             icon={<DevicesIcon />}
                             iconPosition="start"
                             sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.95rem' }}
@@ -148,8 +150,8 @@ const EmployeeContainer: React.FC<EmployeeContainerProps> = ({
                         <Box className="mb-6">
                             <StatusDonutChart
                                 data={data.testsByStatus || []}
-                                title="Test Status Distribution"
-                                subtitle="Distribution of test statuses across your assigned devices"
+                                title={t('employee.testStatusDistribution') || 'Test Status Distribution'}
+                                subtitle={t('employee.testStatusDistributionSubtitle') || 'Distribution of test statuses across your assigned devices'}
                                 loading={loading}
                             />
                         </Box>

@@ -26,7 +26,9 @@ interface ActionActivityChartProps {
     subtitle?: string;
     loading?: boolean;
     height?: number;
-    primaryLabel?: 'Accepted' | 'Confirmed';
+    primaryKey?: 'accepted' | 'confirmed';
+    primaryLabel?: string;
+    secondaryLabel?: string;
     primaryColor?: string;
     secondaryColor?: string;
 }
@@ -37,15 +39,17 @@ export const ActionActivityChart: React.FC<ActionActivityChartProps> = ({
     subtitle,
     loading = false,
     height = 320,
+    primaryKey,
     primaryLabel = 'Accepted',
+    secondaryLabel = 'Rejected',
     primaryColor = '#10b981',
     secondaryColor = '#ef4444',
 }) => {
     const dark = useAppSelector((state) => state.theme.dark);
-    const primaryKey = primaryLabel.toLowerCase();
+    const resolvedPrimaryKey = primaryKey || (data && data.some((d) => d.confirmed !== undefined) ? 'confirmed' : 'accepted');
 
     const isEmpty = !data || data.length === 0 || data.every(
-        (d: any) => (d[primaryKey] || 0) === 0 && d.rejected === 0
+        (d: any) => (d[resolvedPrimaryKey] || 0) === 0 && d.rejected === 0
     );
 
     return (
@@ -88,7 +92,7 @@ export const ActionActivityChart: React.FC<ActionActivityChartProps> = ({
                             )}
                         />
                         <Bar
-                            dataKey={primaryKey}
+                            dataKey={resolvedPrimaryKey}
                             name={primaryLabel}
                             fill={primaryColor}
                             radius={[4, 4, 0, 0]}
@@ -96,7 +100,7 @@ export const ActionActivityChart: React.FC<ActionActivityChartProps> = ({
                         />
                         <Bar
                             dataKey="rejected"
-                            name="Rejected"
+                            name={secondaryLabel}
                             fill={secondaryColor}
                             radius={[4, 4, 0, 0]}
                             maxBarSize={30}

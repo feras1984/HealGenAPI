@@ -5,6 +5,7 @@ import MonitorContainer from "@/Services/MonitorService/State/MonitorContainer";
 import Location from "@/models/location/Location";
 import Device from "@/models/device/Device";
 import { MonitorData, MonitorFilterParams } from "@/models/monitor/MonitorData";
+import { useTranslation } from "react-i18next";
 
 interface MonitorListProps {
     monitorData: MonitorData;
@@ -19,9 +20,11 @@ const MonitorList: React.FC<MonitorListProps> = ({
     devices,
     initialFilters = {}
 }) => {
+    const { t } = useTranslation();
+
     return (
         <AdminLayout>
-            <Head title="Operational Monitor" />
+            <Head title={t('monitor.title') || "Operational Monitor"} />
             <MonitorContainer
                 initialData={monitorData}
                 locations={locations}

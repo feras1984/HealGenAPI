@@ -33,7 +33,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->encryptCookies(except: [
+            'locale',
+        ]);
         $middleware->web(append: [
+            Language::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
 //            App\Http\Kernel::class,
@@ -66,15 +70,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($request->wantsJson() && !$request->header('X-Inertia')) {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Authentication is required to access this resource.',
+                        'message' => trans('errors.401_message'),
                     ], Response::HTTP_UNAUTHORIZED);
                 }
 
                 return Inertia::render('Admin/Errors/Unauthorized', [
                     'status' => 401,
-                    'title' => 'Unauthorized Access',
-                    'message' => 'Authentication is required to access this page or the requested resource.',
-                    'support' => 'Please sign in with valid credentials, or contact your administrator.',
+                    'title' => trans('errors.401_title'),
+                    'message' => trans('errors.401_message'),
+                    'support' => trans('errors.401_support'),
                 ])->toResponse($request)->setStatusCode(Response::HTTP_UNAUTHORIZED);
             }
 
@@ -83,15 +87,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($request->wantsJson() && !$request->header('X-Inertia')) {
                     return response()->json([
                         'status' => false,
-                        'message' => "You don't have permission to access this page or the requested resource.",
+                        'message' => trans('errors.403_message'),
                     ], Response::HTTP_FORBIDDEN);
                 }
 
                 return Inertia::render('Admin/Errors/Forbidden', [
                     'status' => 403,
-                    'title' => 'Access Restricted',
-                    'message' => "You don't have permission to access this page or the requested resource.",
-                    'support' => 'Please contact your administrator if you believe this is a mistake.',
+                    'title' => trans('errors.403_title'),
+                    'message' => trans('errors.403_message'),
+                    'support' => trans('errors.403_support'),
                 ])->toResponse($request)->setStatusCode(Response::HTTP_FORBIDDEN);
             }
 
@@ -100,15 +104,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($request->wantsJson() && !$request->header('X-Inertia')) {
                     return response()->json([
                         'status' => false,
-                        'message' => 'The requested page or resource was not found.',
+                        'message' => trans('errors.404_message'),
                     ], Response::HTTP_NOT_FOUND);
                 }
 
                 return Inertia::render('Admin/Errors/NotFound', [
                     'status' => 404,
-                    'title' => 'Page Not Found',
-                    'message' => "Sorry, the page you're looking for doesn't exist or may have been moved.",
-                    'support' => 'You can return to your dashboard and continue working.',
+                    'title' => trans('errors.404_title'),
+                    'message' => trans('errors.404_message'),
+                    'support' => trans('errors.404_support'),
                 ])->toResponse($request)->setStatusCode(Response::HTTP_NOT_FOUND);
             }
 
@@ -117,16 +121,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($request->wantsJson() && !$request->header('X-Inertia')) {
                     return response()->json([
                         'status' => false,
-                        'message' => config('app.debug') ? $exception->getMessage() : 'An unexpected server error occurred.',
+                        'message' => config('app.debug') ? $exception->getMessage() : trans('errors.500_message'),
                     ], Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
 
                 if (!config('app.debug') || $request->header('X-Inertia')) {
                     return Inertia::render('Admin/Errors/ServerError', [
                         'status' => 500,
-                        'title' => 'Internal Server Error',
-                        'message' => 'Something went wrong on our end. We are actively working to fix the issue.',
-                        'support' => 'Please try again in a few moments or return to your dashboard.',
+                        'title' => trans('errors.500_title'),
+                        'message' => trans('errors.500_message'),
+                        'support' => trans('errors.500_support'),
                     ])->toResponse($request)->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
             }
