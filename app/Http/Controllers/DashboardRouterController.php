@@ -20,12 +20,22 @@ class DashboardRouterController extends Controller
         $adminRef = $user ? $user->reference()->first() : null;
         $role = strtolower($adminRef && isset($adminRef->role) ? $adminRef->role : '');
 
+        $locale = $request->route('locale')
+            ?? $request->cookie('locale')
+            ?? ($request->hasSession() ? $request->session()->get('locale') : null)
+            ?? app()->getLocale()
+            ?? 'en';
+
+        if (!in_array($locale, ['en', 'ar'], true)) {
+            $locale = 'en';
+        }
+
         if ($role === 'supervisor') {
-            return redirect()->route('admin.supervisor.dashboard');
+            return redirect()->route('admin.supervisor.dashboard', ['locale' => $locale]);
         }
 
         if ($role === 'inspector') {
-            return redirect()->route('admin.inspector.dashboard');
+            return redirect()->route('admin.inspector.dashboard', ['locale' => $locale]);
         }
 
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
@@ -66,6 +76,14 @@ class DashboardRouterController extends Controller
 
     public function adminData(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $adminRef = $user ? $user->reference()->first() : null;
+        $role = strtolower(trim($adminRef?->role ?? ''));
+
+        if ($role !== 'administrator') {
+            abort(403, 'Unauthorized access to administrator dashboard data.');
+        }
+
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
         $data = AdminDashboardService::getAdminDashboardData($filters);
 

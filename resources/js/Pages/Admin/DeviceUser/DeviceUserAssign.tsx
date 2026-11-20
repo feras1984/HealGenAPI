@@ -112,7 +112,7 @@ const DeviceUserAssign: React.FC<DeviceUserAssignProps> = ({ devices, users }) =
                             withNone={false}
                             items={users.map(u => ({
                                 id: u.id,
-                                name: `${u.name || u.firstName || 'User'} (${u.email})`,
+                                name: `${(u.name && t(`users.${u.name}`)) || (u.email && t(`users.${u.email}`)) || u.name || u.firstName || 'User'} (${u.email})`,
                             }))}
                         />
 

@@ -106,6 +106,7 @@ const DeviceTypeGrid = () => {
     return (
         <Box>
             <GridComponent
+                key={`device-type-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                 ref={g => grid = g}
                 rowHeight={50}
                 id="deviceTypeComp"

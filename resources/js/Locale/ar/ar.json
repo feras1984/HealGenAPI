@@ -62,7 +62,7 @@
     },
     "nav": {
         "home": "الرئيسية",
-        "monitor": "المراقبة المباشرة",
+        "monitor": "المراقبة التشغيلية",
         "inspectorQueue": "قائمة انتظار الفاحص",
         "supervisorQueue": "قائمة انتظار المشرف",
         "tests": "الفحوصات الطبية",
@@ -161,7 +161,38 @@
         "uploadFileSizeExceeded": "يجب ألا يتجاوز حجم الملف 20 ميجابايت.",
         "uploadSuccess": "تم رفع ملف الفحص بنجاح!",
         "deleteConfirm": "هل أنت متأكد من رغبتك في حذف هذا الملف المرفق؟",
-        "deleteSuccess": "تم حذف الملف المرفق بنجاح."
+        "deleteSuccess": "تم حذف الملف المرفق بنجاح.",
+        "confirmRemovalTitle": "تأكيد حذف المستند",
+        "confirmRemovalDescription": "هل أنت متأكد من رغبتك في حذف هذا الملف المرفق؟ لا يمكن التراجع عن هذا الإجراء.",
+        "cancelRemoval": "إلغاء",
+        "deleting": "جاري حذف المرفق...",
+        "removalCancelled": "تم إلغاء حذف المستند.",
+        "fileStaged": "تم تحديد المستند. يرجى المراجعة قبل تأكيد الرفع.",
+        "uploading": "جاري رفع المستند، يرجى الانتظار...",
+        "openingPreview": "جاري فتح معاينة المستند...",
+        "downloadStarted": "بدء تحميل المستند...",
+        "exportExcelStarted": "جاري تصدير تفاصيل الفحص إلى Excel...",
+        "exportPdfStarted": "جاري إنشاء ملخص تقرير PDF...",
+        "attachment": "المرفق",
+        "hasAttachment": "مرفق",
+        "noAttachment": "لا يوجد مرفق",
+        "viewAttachment": "عرض المستند المرفق"
+    },
+    "documentViewer": {
+        "title": "عارض المستندات",
+        "loadingPdf": "جاري تحميل مستند PDF...",
+        "pdfFallback": "متصفحك لا يدعم عرض ملفات PDF مباشرة، أو المستند محمي. يمكنك فتحه في نافذة جديدة أو تنزيله.",
+        "openNewTab": "فتح في علامة تبويب جديدة",
+        "zoomIn": "تكبير",
+        "zoomOut": "تصغير",
+        "rotateRight": "تدوير لليمين 90°",
+        "rotateLeft": "تدوير لليسار 90°",
+        "resetView": "إعادة ضبط العرض",
+        "previewBeforeUpload": "معاينة قبل الرفع",
+        "confirmUpload": "تأكيد ورفع المستند",
+        "viewDocument": "عرض المستند",
+        "previewPdf": "معاينة PDF",
+        "previewImage": "معاينة الصورة"
     },
     "dashboard": {
         "kpiOverview": "مؤشرات أداء النظام الرئيسية",
@@ -297,6 +328,7 @@
         "role": "الدور والصلاحية",
         "chooseRole": "اختر الدور والصلاحية",
         "isActive": "مفعل",
+        "location": "الموقع",
         "locationName": "اسم الموقع / المركز",
         "locationCode": "رمز الموقع",
         "city": "المدينة",
@@ -399,7 +431,25 @@
         "reset": "إعادة ضبط",
         "autoRefresh": "تحديث تلقائي (10 ث)",
         "refreshNow": "تحديث الآن",
-        "lastUpdated": "آخر تحديث: "
+        "lastUpdated": "آخر تحديث: ",
+        "clearFilters": "مسح الفلاتر",
+        "noAssignedDevice": "لا توجد أجهزة مخصصة"
+    },
+    "charts": {
+        "noData": "لا توجد بيانات متاحة للمخطط وفق الفلاتر المحددة."
+    },
+    "users": {
+        "michaelBennett": "مايكل بينيت",
+        "michael@email.com": "مايكل بينيت",
+        "Michael Bennett": "مايكل بينيت",
+        "james@email.com": "جيمس أندرسون",
+        "James Anderson": "جيمس أندرسون",
+        "daniel@email.com": "دانيال ميتشل",
+        "Daniel Mitchell": "دانيال ميتشل",
+        "ryan@email.com": "ريان طومسون",
+        "Ryan Thompson": "ريان طومسون",
+        "david@email.com": "ديفيد باركر",
+        "David Parker": "ديفيد باركر"
     },
     "dialogs": {
         "confirmTestTitle": "تأكيد الفحص #{{id}}؟",
@@ -434,5 +484,44 @@
         "deletedSuccess": "تم الحذف بنجاح!",
         "errorOccurred": "حدث خطأ أثناء حفظ البيانات!",
         "assignedSuccess": "تم تعيين الجهاز للمستخدم بنجاح!"
+    },
+    "monitor": {
+        "title": "المراقبة التشغيلية",
+        "workflowSummary": "ملخص مسار الفحوصات",
+        "inspection": "مرحلة الفحص",
+        "supervisor": "مراجعة المشرف",
+        "totalOperations": "إجمالي العمليات",
+        "deviceOperations": "عمليات الأجهزة",
+        "lastResult": "آخر نتيجة",
+        "resultsToday": "نتائج اليوم",
+        "roleOperations": "حالة العمليات للأدوار والمستخدمين",
+        "totalUsers": "إجمالي مستخدمي النظام",
+        "activeUsers": "المستخدمون النشطون",
+        "assignedDeviceUsers": "المعينون على أجهزة",
+        "roleName": "اسم الدور",
+        "userCount": "عدد المستخدمين",
+        "metricOrRole": "المقياس / الدور",
+        "count": "العدد",
+        "fetchError": "فشل تحديث بيانات المراقبة التشغيلية.",
+        "charts": {
+            "volumeOverTime": "حجم المعالجة بمرور الوقت",
+            "volumeOverTimeSubtitle": "تطور حجم الفحوصات في الوقت الفعلي",
+            "statusDistribution": "توزيع حالات الفحوصات",
+            "statusDistributionSubtitle": "تفصيل حالات الفحوصات في مسار العمل",
+            "volumeByLocation": "حجم الفحوصات حسب الموقع",
+            "volumeByLocationSubtitle": "إنتاجية النتائج على مستوى الموقع",
+            "deviceThroughput": "أعلى الأجهزة إنتاجية",
+            "deviceThroughputSubtitle": "إنتاجية النتائج على مستوى الأجهزة"
+        },
+        "pipeline": {
+            "title": "مسار العمليات التشغيلية للفحوصات",
+            "received": "1. تم الاستلام",
+            "receivedSubtext": "مستلمة من الجهاز",
+            "inspection": "2. مرحلة الفحص",
+            "pending": "معلقة",
+            "supervisor": "3. مراجعة المشرف",
+            "finalResult": "4. النتيجة النهائية / HIS",
+            "sentToHis": "مرسلة إلى HIS"
+        }
     }
 }

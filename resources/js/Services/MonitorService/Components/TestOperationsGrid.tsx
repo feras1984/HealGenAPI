@@ -91,6 +91,7 @@ const TestOperationsGrid: React.FC = () => {
                 </Box>
                 <Box className="w-full overflow-x-auto">
                     <GridComponent
+                        key={`test-ops-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                         ref={gridRef}
                         dataSource={mappedGridData}
                         allowPaging={true}

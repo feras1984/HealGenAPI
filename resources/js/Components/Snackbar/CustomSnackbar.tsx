@@ -1,37 +1,41 @@
-import React, {useEffect} from "react";
-import {Button, IconButton, Snackbar} from "@mui/material";
-import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import CloseIcon from "@mui/icons-material/Close";
+import React from "react";
+import { Snackbar } from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
 import CustomSnackbarProps from "@/Interfaces/CustomSnackbarProps";
-import {grey} from "@mui/material/colors";
 
 const CustomSnackbar: React.FC<CustomSnackbarProps> = ({
-       message,
-       open,
-       onClose,
-        severity,
-   }) => {
-
-    const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
-        props,
-        ref,
-    ) {
-        return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-    });
-
+    message,
+    open,
+    onClose,
+    severity = 'info',
+    autoHideDuration = 4000,
+    anchorOrigin = { vertical: 'bottom', horizontal: 'right' },
+    ...rest
+}) => {
     return (
         <Snackbar
             open={open}
-            autoHideDuration={2000}
-            anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+            autoHideDuration={autoHideDuration}
+            anchorOrigin={anchorOrigin}
             onClose={onClose}
-            message={message}
-        />
-            // {/*<Alert severity={severity} sx={{ width: '100%', color: grey[50] }}>*/}
-            // {/*    {message}*/}
-            // {/*</Alert>*/}
-        // </Snackbar>
+            {...rest}
+        >
+            <MuiAlert
+                elevation={6}
+                variant="filled"
+                severity={severity}
+                onClose={onClose as any}
+                sx={{
+                    width: '100%',
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+                }}
+            >
+                {message}
+            </MuiAlert>
+        </Snackbar>
     );
-}
+};
 
 export default CustomSnackbar;

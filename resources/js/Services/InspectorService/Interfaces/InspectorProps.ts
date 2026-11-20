@@ -36,4 +36,5 @@ export interface InspectorContextType {
     closeRejectModal: () => void;
     handleAcceptConfirm: () => Promise<void>;
     handleRejectSubmit: (reason: string) => Promise<void>;
+    setSnackbar?: (params: { open: boolean; message: string; severity?: any }) => void;
 }

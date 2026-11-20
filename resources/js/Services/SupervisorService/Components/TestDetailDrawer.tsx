@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Drawer,
     Box,
@@ -26,6 +26,8 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ImageIcon from '@mui/icons-material/Image';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DocumentViewerModal from '@/Components/DocumentViewer/DocumentViewerModal';
 import { useSupervisorContext } from "@/Services/SupervisorService/State/SupervisorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 import { exportTestDetailsToExcel, exportTestDetailsToPdf } from "@/Utils/TestDetailsExportHelper";
@@ -40,8 +42,10 @@ const TestDetailDrawer: React.FC = () => {
         closeTestDetails,
         openConfirmDialog,
         openRejectModal,
-        actionLoading
+        actionLoading,
+        setSnackbar,
     } = useSupervisorContext();
+    const [viewerOpen, setViewerOpen] = useState(false);
     const { t, i18n } = useTranslation();
     const dark = useAppSelector(state => state.theme.dark);
     const direction = useAppSelector(state => state.languages.direction);
@@ -64,6 +68,7 @@ const TestDetailDrawer: React.FC = () => {
     if (!activeTest) return null;
 
     return (
+        <>
         <Drawer
             anchor="right"
             open={isDrawerOpen && !!activeTest}
@@ -193,10 +198,10 @@ const TestDetailDrawer: React.FC = () => {
                                     </Button>
                                 </>
                             ) : (
-                                <Tooltip title="View Only: Only Supervisors can confirm test decisions.">
+                                <Tooltip title={t('supervisor.viewOnlyTooltip') || "View Only: Only Supervisors can confirm test decisions."}>
                                     <span>
                                         <Chip
-                                            label="View Only Mode"
+                                            label={t('supervisor.viewOnlyMode') || "View Only Mode"}
                                             color="default"
                                             variant="outlined"
                                             sx={{ fontWeight: 600 }}
@@ -233,7 +238,7 @@ const TestDetailDrawer: React.FC = () => {
                                             <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                                 <Typography variant="caption" color="text.secondary">{t('tests.inspector') || 'Inspector'}</Typography>
                                                 <Typography variant="body2" color="text.primary" className="font-semibold">
-                                                    {activeTest.reviewedBy.name || activeTest.reviewedBy.email || '-'}
+                                                    {(activeTest.reviewedBy.name && t(`users.${activeTest.reviewedBy.name}`)) || (activeTest.reviewedBy.email && t(`users.${activeTest.reviewedBy.email}`)) || activeTest.reviewedBy.name || activeTest.reviewedBy.email || '-'}
                                                 </Typography>
                                             </Grid>
                                             <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
@@ -386,23 +391,38 @@ const TestDetailDrawer: React.FC = () => {
                                                     href={activeTest.attachment.downloadUrl || `/tests/${activeTest.id}/file/download`}
                                                     variant="contained"
                                                     size="small"
-                                                    startIcon={<DownloadIcon />}
-                                                    sx={{ textTransform: 'none', borderRadius: 1.5, fontSize: '0.75rem' }}
+                                                    startIcon={<DownloadIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
+                                                    onClick={() => {
+                                                        if (setSnackbar) {
+                                                            setSnackbar({
+                                                                open: true,
+                                                                message: t('tests.downloadStarted') || 'Starting document download...',
+                                                                severity: 'info',
+                                                            });
+                                                        }
+                                                    }}
+                                                    sx={{ textTransform: 'none', borderRadius: 1.5, fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: 0.5, whiteSpace: 'nowrap' }}
                                                 >
                                                     {t('common.download') || 'Download'}
                                                 </Button>
                                                 {activeTest.attachment.url && (
                                                     <Button
-                                                        component="a"
-                                                        href={activeTest.attachment.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
                                                         variant="outlined"
                                                         size="small"
-                                                        startIcon={<OpenInNewIcon />}
-                                                        sx={{ textTransform: 'none', borderRadius: 1.5, fontSize: '0.75rem' }}
+                                                        startIcon={<VisibilityIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
+                                                        onClick={() => {
+                                                            setViewerOpen(true);
+                                                            if (setSnackbar) {
+                                                                setSnackbar({
+                                                                    open: true,
+                                                                    message: t('tests.openingPreview') || 'Opening document preview...',
+                                                                    severity: 'info',
+                                                                });
+                                                            }
+                                                        }}
+                                                        sx={{ textTransform: 'none', borderRadius: 1.5, fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: 0.5, whiteSpace: 'nowrap' }}
                                                     >
-                                                        {t('common.preview') || 'View'}
+                                                        {t('common.preview') || 'Preview'}
                                                     </Button>
                                                 )}
                                             </Box>
@@ -488,6 +508,26 @@ const TestDetailDrawer: React.FC = () => {
                 </>
             )}
         </Drawer>
+
+        {/* Universal Document Viewer Modal for Supervisor */}
+        {activeTest?.attachment && (
+            <DocumentViewerModal
+                open={viewerOpen}
+                onClose={() => setViewerOpen(false)}
+                document={activeTest.attachment}
+                mode="supervisor"
+                onDownload={() => {
+                    if (setSnackbar) {
+                        setSnackbar({
+                            open: true,
+                            message: t('tests.downloadStarted') || 'Starting document download...',
+                            severity: 'info',
+                        });
+                    }
+                }}
+            />
+        )}
+        </>
     );
 };
 

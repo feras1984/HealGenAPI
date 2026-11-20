@@ -44,6 +44,7 @@ Route::middleware(['admin.auth'])->group(function () {
 
     // Test File Actions & Direct Streaming Downloads
     Route::post('/tests/{patient}/file', [PatientController::class, 'uploadFile'])->name('admin.tests.file.upload');
+    Route::get('/tests/{patient}/file/view', [PatientController::class, 'viewFile'])->name('admin.tests.file.view');
     Route::get('/tests/{patient}/file/download', [PatientController::class, 'downloadFile'])->name('admin.tests.file.download');
     Route::delete('/tests/{patient}/file', [PatientController::class, 'deleteFile'])->name('admin.tests.file.delete');
 
@@ -85,8 +86,8 @@ Route::middleware(['admin.auth'])->group(function () {
 });
 
 // Authentication POST actions
-Route::post('login', [AuthenticatedSessionController::class, 'store'])->name('admin.store');
-Route::post('{locale}/login', [AuthenticatedSessionController::class, 'store'])->where(['locale' => 'en|ar']);
+Route::post('login', [AuthenticatedSessionController::class, 'store'])->name('admin.store')->middleware(['language']);
+Route::post('{locale}/login', [AuthenticatedSessionController::class, 'store'])->where(['locale' => 'en|ar'])->middleware(['language']);
 Route::middleware([AdminAuthenticate::class, AdminAuthorization::class])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
@@ -189,6 +190,26 @@ Route::middleware(['admin.auth'])->group(function () {
         $locale = $request->cookie('locale') ?? ($request->hasSession() ? $request->session()->get('locale') : null) ?? 'en';
         $locale = in_array($locale, ['en', 'ar'], true) ? $locale : 'en';
         return redirect("/{$locale}/audit-logs");
+    });
+    Route::get('/inspector/dashboard', function (\Illuminate\Http\Request $request) {
+        $locale = $request->cookie('locale') ?? ($request->hasSession() ? $request->session()->get('locale') : null) ?? 'en';
+        $locale = in_array($locale, ['en', 'ar'], true) ? $locale : 'en';
+        return redirect("/{$locale}/inspector/dashboard");
+    });
+    Route::get('/supervisor/dashboard', function (\Illuminate\Http\Request $request) {
+        $locale = $request->cookie('locale') ?? ($request->hasSession() ? $request->session()->get('locale') : null) ?? 'en';
+        $locale = in_array($locale, ['en', 'ar'], true) ? $locale : 'en';
+        return redirect("/{$locale}/supervisor/dashboard");
+    });
+    Route::get('/location-inspectors', function (\Illuminate\Http\Request $request) {
+        $locale = $request->cookie('locale') ?? ($request->hasSession() ? $request->session()->get('locale') : null) ?? 'en';
+        $locale = in_array($locale, ['en', 'ar'], true) ? $locale : 'en';
+        return redirect("/{$locale}/location-inspectors");
+    });
+    Route::get('/device-users', function (\Illuminate\Http\Request $request) {
+        $locale = $request->cookie('locale') ?? ($request->hasSession() ? $request->session()->get('locale') : null) ?? 'en';
+        $locale = in_array($locale, ['en', 'ar'], true) ? $locale : 'en';
+        return redirect("/{$locale}/device-users");
     });
     Route::get('/profile', function (\Illuminate\Http\Request $request) {
         $locale = $request->cookie('locale') ?? ($request->hasSession() ? $request->session()->get('locale') : null) ?? 'en';

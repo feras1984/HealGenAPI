@@ -123,7 +123,7 @@ const LanguageDropdown: React.FC = () => {
 
         router.visit(newPath, {
             preserveScroll: true,
-            preserveState: true,
+            preserveState: false,
             replace: true,
         });
     };

@@ -8,23 +8,25 @@ use Illuminate\Http\Request;
 
 class LanguageController extends Controller
 {
-    public function switch(Request $request, string $locale): JsonResponse|RedirectResponse
+    public function switch(Request $request, ?string $locale = null): JsonResponse|RedirectResponse
     {
-        if (!in_array($locale, ['en', 'ar'], true)) {
-            $locale = 'en';
+        $targetLocale = $locale ?? $request->route('locale') ?? $request->segment(2) ?? $request->input('locale') ?? 'en';
+
+        if (!in_array($targetLocale, ['en', 'ar'], true)) {
+            $targetLocale = 'en';
         }
 
-        app()->setLocale($locale);
+        app()->setLocale($targetLocale);
         if ($request->hasSession()) {
-            $request->session()->put('locale', $locale);
+            $request->session()->put('locale', $targetLocale);
         }
-        cookie()->queue(cookie()->forever('locale', $locale));
+        cookie()->queue(cookie()->forever('locale', $targetLocale));
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'locale' => $locale,
-                'direction' => $locale === 'ar' ? 'rtl' : 'ltr',
+                'locale' => $targetLocale,
+                'direction' => $targetLocale === 'ar' ? 'rtl' : 'ltr',
             ]);
         }
 

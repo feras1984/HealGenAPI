@@ -25,7 +25,7 @@ class InspectorService
     public function getUserRole(User $user): string
     {
         $adminRef = $user->reference()->first();
-        return strtolower($adminRef && isset($adminRef->role) ? $adminRef->role : '');
+        return strtolower(trim($adminRef?->role ?? ''));
     }
 
     /**
@@ -121,7 +121,7 @@ class InspectorService
             return [];
         }
 
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests'])
+        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests', 'file'])
             ->whereIn('Status', self::PENDING_STATUSES);
 
         // Security rule: Inspector is strictly scoped to their assigned Location
@@ -211,8 +211,7 @@ class InspectorService
 
     public function checkInspectorAuthorization(User $user): void
     {
-        $adminRef = $user->reference()->first();
-        $role = strtolower($adminRef && isset($adminRef->role) ? $adminRef->role : '');
+        $role = $this->getUserRole($user);
         if (!in_array($role, ['inspector', 'administrator'], true)) {
             throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors or Administrators can accept or reject tests.");
         }

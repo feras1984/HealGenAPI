@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { Box, Card, CardContent, Typography, Button, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ImageIcon from '@mui/icons-material/Image';
 import {
     ColumnDirective,
     ColumnsDirective,
@@ -38,6 +40,32 @@ const ActionTemplate = (props: any) => {
     );
 };
 
+const AttachmentTemplate = (props: any) => {
+    const { t } = useTranslation();
+    const attachment = props.attachment || props.rawPatient?.attachment;
+    const { openTestDetails } = useInspectorContext();
+
+    if (!attachment) {
+        return <Typography variant="caption" color="text.secondary">-</Typography>;
+    }
+
+    return (
+        <Chip
+            size="small"
+            icon={attachment.isImage ? <ImageIcon sx={{ fontSize: '14px !important' }} /> : <PictureAsPdfIcon sx={{ fontSize: '14px !important' }} />}
+            label={attachment.isImage ? (t('tests.imageDocument') || 'Image') : (t('tests.pdfDocument') || 'PDF')}
+            color={attachment.isImage ? 'primary' : 'error'}
+            variant="outlined"
+            clickable
+            onClick={(e) => {
+                e.stopPropagation();
+                openTestDetails(props.rawPatient);
+            }}
+            sx={{ fontWeight: 600, fontSize: '0.7rem', cursor: 'pointer' }}
+        />
+    );
+};
+
 const StatusTemplate = (props: any) => {
     const { t } = useTranslation();
     const status = props.status || 'Imported';
@@ -70,6 +98,7 @@ const PendingQueueGrid: React.FC = () => {
         deviceName: pt.device?.name || pt.deviceName || '-',
         locationName: pt.device?.locationName || pt.locationName || '-',
         status: pt.status,
+        attachment: pt.attachment || null,
         createdAt: pt.createdAt,
         rawPatient: pt,
     }));
@@ -100,6 +129,7 @@ const PendingQueueGrid: React.FC = () => {
                 ) : (
                     <Box className="w-full overflow-x-auto">
                         <GridComponent
+                            key={`inspector-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                             ref={gridRef}
                             dataSource={mappedGridData}
                             allowPaging={true}
@@ -127,6 +157,7 @@ const PendingQueueGrid: React.FC = () => {
                                 <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="180" textAlign="Center" />
                                 <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="160" textAlign="Center" />
                                 <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="160" textAlign="Center" template={StatusTemplate} />
+                                <ColumnDirective field="attachment" headerText={t('tests.attachment') || 'Attachment'} width="130" textAlign="Center" template={AttachmentTemplate} />
                                 <ColumnDirective field="createdAt" headerText={t('tests.receivedTime') || 'Received Time'} width="160" textAlign="Center" />
                                 <ColumnDirective headerText={t('inspector.inspect') || 'Inspect'} width="140" textAlign="Center" template={ActionTemplate} />
                             </ColumnsDirective>

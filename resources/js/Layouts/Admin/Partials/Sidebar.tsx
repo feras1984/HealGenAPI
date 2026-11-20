@@ -16,6 +16,7 @@ import { useAppSelector } from "@/Redux/Store/hook";
 const tabKeyMap: Record<string, string> = {
     'Home': 'nav.home',
     'Monitor': 'nav.monitor',
+    'Operational Monitor': 'nav.monitor',
     'Inspector Queue': 'nav.inspectorQueue',
     'Supervisor Queue': 'nav.supervisorQueue',
     'Tests': 'nav.tests',

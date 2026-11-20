@@ -211,6 +211,7 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                         ) : (
                             <Box className="w-full overflow-x-auto">
                                 <GridComponent
+                                    key={`audit-log-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                                     ref={gridRef}
                                     dataSource={logs}
                                     allowPaging={true}

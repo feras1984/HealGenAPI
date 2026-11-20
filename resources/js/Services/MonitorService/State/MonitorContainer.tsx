@@ -15,6 +15,7 @@ import RoleOperationsGrid from "@/Services/MonitorService/Components/RoleOperati
 import useSnackbarHook from "@/Hooks/SnackbarHook";
 import CustomSnackbar from "@/Components/Snackbar/CustomSnackbar";
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from "react-i18next";
 
 const MonitorContainer: React.FC<MonitorContainerProps> = ({
     initialData,
@@ -22,6 +23,7 @@ const MonitorContainer: React.FC<MonitorContainerProps> = ({
     devices,
     initialFilters = {}
 }) => {
+    const { t } = useTranslation();
     const [data, setData] = useState<MonitorData>(initialData);
     const [filters, setFiltersState] = useState<MonitorFilterParams>(initialFilters);
     const [loading, setLoading] = useState<boolean>(false);
@@ -45,14 +47,14 @@ const MonitorContainer: React.FC<MonitorContainerProps> = ({
                 console.error("Monitor poll error:", err);
                 setSnackbar({
                     open: true,
-                    message: "Failed to update monitor operational data.",
+                    message: t('monitor.fetchError') || "Failed to update monitor operational data.",
                     severity: "error"
                 });
             })
             .finally(() => {
                 if (showLoading) setLoading(false);
             });
-    }, [monitorService, setSnackbar]);
+    }, [monitorService, setSnackbar, t]);
 
     // Polling effect (10 seconds)
     useEffect(() => {
@@ -109,7 +111,7 @@ const MonitorContainer: React.FC<MonitorContainerProps> = ({
             <Box className="p-6">
                 <Box className="flex justify-between items-center mb-6">
                     <Typography variant="h4" color="text.primary" className="font-bold">
-                        Operational Monitor
+                        {t('monitor.title') || 'Operational Monitor'}
                     </Typography>
                 </Box>
 

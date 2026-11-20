@@ -2,15 +2,17 @@ import React from 'react';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
 import { useMonitorContext } from "@/Services/MonitorService/State/MonitorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const SummaryCards: React.FC = () => {
+    const { t } = useTranslation();
     const { data } = useMonitorContext();
     const summary = data.summary;
     const dark = useAppSelector(state => state.theme.dark);
 
     const cards = [
         {
-            label: 'Imported',
+            label: t('status.Imported') || 'Imported',
             count: summary.Imported || 0,
             colorLight: '#0288d1',
             colorDark: '#38bdf8',
@@ -18,7 +20,7 @@ const SummaryCards: React.FC = () => {
             bgDark: '#0f172a',
         },
         {
-            label: 'Inspection',
+            label: t('monitor.inspection') || 'Inspection',
             count: (summary['Awaiting Inspection'] || 0) + (summary['Inspector Accepted'] || 0) + (summary['Inspector Rejected'] || 0),
             colorLight: '#ed6c02',
             colorDark: '#fb923c',
@@ -26,7 +28,7 @@ const SummaryCards: React.FC = () => {
             bgDark: '#1c1917',
         },
         {
-            label: 'Supervisor',
+            label: t('monitor.supervisor') || 'Supervisor',
             count: (summary['Awaiting Supervisor'] || 0) + (summary['Confirmed'] || 0) + (summary['Supervisor Rejected'] || 0),
             colorLight: '#9c27b0',
             colorDark: '#c084fc',
@@ -34,7 +36,7 @@ const SummaryCards: React.FC = () => {
             bgDark: '#1e1b4b',
         },
         {
-            label: 'Sent to HIS',
+            label: t('status.SentToHIS') || 'Sent to HIS',
             count: summary.SentToHIS || 0,
             colorLight: '#2e7d32',
             colorDark: '#4ade80',
@@ -42,7 +44,7 @@ const SummaryCards: React.FC = () => {
             bgDark: '#064e3b',
         },
         {
-            label: 'Blocked',
+            label: t('status.Blocked') || 'Blocked',
             count: summary.Blocked || 0,
             colorLight: '#d32f2f',
             colorDark: '#f87171',
@@ -50,7 +52,7 @@ const SummaryCards: React.FC = () => {
             bgDark: '#450a0a',
         },
         {
-            label: 'Failed to Send',
+            label: t('status.FailedToSend') || 'Failed to Send',
             count: summary.FailedToSend || 0,
             colorLight: '#c62828',
             colorDark: '#f87171',
@@ -58,7 +60,7 @@ const SummaryCards: React.FC = () => {
             bgDark: '#450a0a',
         },
         {
-            label: 'Total Operations',
+            label: t('monitor.totalOperations') || 'Total Operations',
             count: summary.total || 0,
             colorLight: '#1976d2',
             colorDark: '#60a5fa',
@@ -70,7 +72,7 @@ const SummaryCards: React.FC = () => {
     return (
         <Box className="mb-6">
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
-                Test Workflow Summary
+                {t('monitor.workflowSummary') || 'Test Workflow Summary'}
             </Typography>
             <Grid container spacing={2} justifyContent="center">
                 {cards.map((card, idx) => (

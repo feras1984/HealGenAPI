@@ -560,6 +560,33 @@ html[dir="ltr"] {
 
 
 /* ==========================================================================
+   Root Layout & Emotion Class Directional Immunity
+   Guarantees that Emotion-generated classes (e.g. muirtl-*, muiltr-*) or layout wrappers
+   never force LTR direction in Arabic or RTL in English.
+   ========================================================================== */
+html[dir="rtl"] {
+    [class*="muirtl-"]:not([dir="ltr"]),
+    [class*="muiltr-"]:not([dir="ltr"]),
+    .dark:not([dir="ltr"]),
+    .light:not([dir="ltr"]),
+    main:not([dir="ltr"]),
+    aside:not([dir="ltr"]) {
+        direction: rtl !important;
+    }
+}
+
+html[dir="ltr"] {
+    [class*="muirtl-"]:not([dir="rtl"]),
+    [class*="muiltr-"]:not([dir="rtl"]),
+    .dark:not([dir="rtl"]),
+    .light:not([dir="rtl"]),
+    main:not([dir="rtl"]),
+    aside:not([dir="rtl"]) {
+        direction: ltr !important;
+    }
+}
+
+/* ==========================================================================
    Inspector / Supervisor Verification Drawer Smooth Backdrop Transition
    ========================================================================== */
 .MuiDrawer-root .MuiBackdrop-root {

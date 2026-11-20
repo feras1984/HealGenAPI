@@ -455,6 +455,56 @@ class PatientTestFileTest extends TestCase
             ->assertStatus(403);
     }
 
+    public function test_authorized_roles_can_view_file_inline(): void
+    {
+        // Upload a file first as employee 1
+        $fakePdf = UploadedFile::fake()->create('lab_report.pdf', 300, 'application/pdf');
+        $uploadRes = $this->actingAs($this->employee1)
+            ->postJson(route('admin.tests.file.upload', $this->patient1->Id), ['file' => $fakePdf]);
+
+        $uploadRes->assertStatus(201);
+        $this->assertEquals(route('admin.tests.file.view', $this->patient1->Id), $uploadRes->json('attachment.url'));
+
+        // 1. Employee 1 can view inline
+        $res = $this->actingAs($this->employee1)
+            ->get(route('admin.tests.file.view', $this->patient1->Id));
+        $res->assertStatus(200);
+        $this->assertStringContainsString('inline', $res->headers->get('content-disposition', ''));
+
+        // 2. Administrator can view inline
+        $this->actingAs($this->adminUser)
+            ->get(route('admin.tests.file.view', $this->patient1->Id))
+            ->assertStatus(200);
+
+        // 3. Supervisor can view inline
+        $this->actingAs($this->supervisorUser)
+            ->get(route('admin.tests.file.view', $this->patient1->Id))
+            ->assertStatus(200);
+
+        // 4. Inspector 1 (assigned to Location 1) can view inline
+        $this->actingAs($this->inspector1)
+            ->get(route('admin.tests.file.view', $this->patient1->Id))
+            ->assertStatus(200);
+    }
+
+    public function test_unauthorized_roles_cannot_view_file_inline(): void
+    {
+        // Upload file to Patient 1 (Location 1, Device 1)
+        $fakePdf = UploadedFile::fake()->create('lab_report.pdf', 300, 'application/pdf');
+        $this->actingAs($this->employee1)
+            ->postJson(route('admin.tests.file.upload', $this->patient1->Id), ['file' => $fakePdf]);
+
+        // Inspector 2 is assigned to Location 2 -> should be 403 Forbidden
+        $this->actingAs($this->inspector2)
+            ->get(route('admin.tests.file.view', $this->patient1->Id))
+            ->assertStatus(403);
+
+        // Employee 2 is assigned to Device 2 -> should be 403 Forbidden
+        $this->actingAs($this->employee2)
+            ->get(route('admin.tests.file.view', $this->patient1->Id))
+            ->assertStatus(403);
+    }
+
     public function test_employee_can_delete_file_for_assigned_device_and_others_cannot(): void
     {
         // Upload file

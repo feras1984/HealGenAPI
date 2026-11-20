@@ -239,7 +239,8 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                 openRejectModal,
                 closeRejectModal,
                 handleAcceptConfirm,
-                handleRejectSubmit
+                handleRejectSubmit,
+                setSnackbar,
             }}
         >
             <Box className="p-6">

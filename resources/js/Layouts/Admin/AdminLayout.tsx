@@ -23,13 +23,15 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
     useEffect(() => {
         const propLang = pageProps.lang;
         if (propLang && (propLang === 'ar' || propLang === 'en')) {
+            if (i18n.language !== propLang) {
+                i18n.changeLanguage(propLang);
+            }
             if (propLang !== currentReduxLang) {
                 dispatch(setLanguage(propLang));
                 dispatch(setDirection(propLang === 'ar' ? 'rtl' : 'ltr'));
-                i18n.changeLanguage(propLang);
             }
         }
-    }, [pageProps.lang]);
+    }, [pageProps.lang, currentReduxLang, i18n, dispatch]);
 
     const isRtl =
         pageProps?.lang === 'ar' ||
@@ -54,11 +56,11 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
     return (
         <AppRoot>
             <Box
+                dir={isRtl ? 'rtl' : 'ltr'}
                 className={`${dark ? 'dark' : 'light'}`}
                 sx={{
                     minHeight: '100vh',
                     position: 'relative',
-                    direction: isRtl ? 'rtl' : 'ltr',
                     bgcolor: dark ? '#111827' : '#f9fafb',
                 }}
             >
@@ -66,6 +68,7 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
                 <Box
                     component="aside"
                     aria-label="Application Sidebar"
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     className={`h-screen p-[16px] overflow-y-auto ${
                         isRtl
                             ? `${styles.sidebarRtl} ${expand ? styles.sidebarRtlOpen : styles.sidebarRtlClosed}`
@@ -73,7 +76,6 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
                     }`}
                     sx={{
                         bgcolor: 'background.paper',
-                        direction: isRtl ? 'rtl' : 'ltr',
                         textAlign: isRtl ? 'right' : 'left',
                     }}
                 >
@@ -83,13 +85,13 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
                 {/* Main Content Area with Smooth Dynamic Margin */}
                 <Box
                     component="main"
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     className={`grow ${
                         isRtl
                             ? (expand ? styles.contentRtlOpen : styles.contentRtlClosed)
                             : (expand ? styles.contentLtrOpen : styles.contentLtrClosed)
                     }`}
                     sx={{
-                        direction: isRtl ? 'rtl' : 'ltr',
                         width: 'auto',
                         minWidth: 0,
                         minHeight: '100vh',
@@ -99,6 +101,7 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
                 >
                     <Box
                         component="header"
+                        dir={isRtl ? 'rtl' : 'ltr'}
                         className={`h-[60px] ${styles.boxShadow} ${dark ? 'dark' : 'light'}`}
                         sx={{
                             bgcolor: dark ? '#1f2937' : '#ffffff',

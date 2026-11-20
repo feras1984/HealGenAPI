@@ -1,5 +1,8 @@
 import { PropsWithChildren, useEffect, useMemo } from "react";
-import { useAppSelector } from "@/Redux/Store/hook";
+import { usePage } from "@inertiajs/react";
+import { useTranslation } from "react-i18next";
+import { useAppDispatch, useAppSelector } from "@/Redux/Store/hook";
+import { setDirection, setLanguage } from "@/Redux/Reducers/LanguageSlice/LanguageSlice";
 import { createTheme, ThemeProvider } from "@mui/material";
 import { green, lightGreen, pink, red } from "@mui/material/colors";
 import createCache from '@emotion/cache';
@@ -19,13 +22,41 @@ const cacheLtr = createCache({
 });
 
 const AppRoot = ({ children }: PropsWithChildren) => {
+    const pageProps = usePage()?.props as any;
+    const { i18n } = useTranslation();
+    const dispatch = useAppDispatch();
     const themeMode = useAppSelector(state => state.theme.mode);
     const dark = useAppSelector(state => state.theme.dark);
     const direction = useAppSelector(state => state.languages.direction);
     const currentLang = useAppSelector(state => state.languages.language);
+
+    const targetLang: 'ar' | 'en' =
+        (pageProps?.lang === 'ar' || pageProps?.lang === 'en')
+            ? pageProps.lang
+            : (typeof window !== 'undefined' && (window.location.pathname.startsWith('/ar/') || window.location.pathname === '/ar'))
+                ? 'ar'
+                : (currentLang === 'ar' ? 'ar' : 'en');
+
+    // Keep i18next, Redux, and document language strictly synchronized
+    useEffect(() => {
+        if (i18n && i18n.language !== targetLang) {
+            i18n.changeLanguage(targetLang);
+        }
+        if (currentLang !== targetLang) {
+            dispatch(setLanguage(targetLang));
+        }
+        const targetDir = targetLang === 'ar' ? 'rtl' : 'ltr';
+        if (direction !== targetDir) {
+            dispatch(setDirection(targetDir));
+        }
+    }, [targetLang, currentLang, direction, i18n, dispatch]);
+
     const isRtl =
+        targetLang === 'ar' ||
+        pageProps?.lang === 'ar' ||
         direction === 'rtl' ||
         currentLang === 'ar' ||
+        (i18n?.language && i18n.language.startsWith('ar')) ||
         (typeof window !== 'undefined' && (
             window.location.pathname.startsWith('/ar/') ||
             window.location.pathname === '/ar' ||

@@ -184,7 +184,7 @@ class PatientController extends Controller
                 'attachment' => [
                     'id' => $file->id,
                     'name' => $file->name,
-                    'url' => Storage::disk('public')->url($file->url),
+                    'url' => route('admin.tests.file.view', $patient->Id),
                     'downloadUrl' => route('admin.tests.file.download', $patient->Id),
                     'isImage' => (bool) $file->is_image,
                     'description' => $file->description,
@@ -198,6 +198,35 @@ class PatientController extends Controller
                 'details' => $e->getMessage(),
             ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Preview / view the attachment inline for a test record.
+     * Available to all authorized roles (Admin, Supervisor, Inspector for their location, Employee for their devices).
+     */
+    public function viewFile(Request $request, PatientHeader $patient): StreamedResponse|BinaryFileResponse
+    {
+        $this->authorizePatientAccess($request, $patient, false);
+
+        $file = $patient->file;
+        if (!$file) {
+            abort(404, 'No file attached to this test.');
+        }
+
+        if (!Storage::disk('public')->exists($file->url)) {
+            abort(404, 'The attached file does not exist on storage.');
+        }
+
+        $mime = $file->description ?: Storage::disk('public')->mimeType($file->url);
+
+        return Storage::disk('public')->response(
+            $file->url,
+            $file->name,
+            [
+                'Content-Type' => $mime ?: 'application/octet-stream',
+                'Content-Disposition' => 'inline; filename="' . addslashes($file->name) . '"',
+            ]
+        );
     }
 
     /**

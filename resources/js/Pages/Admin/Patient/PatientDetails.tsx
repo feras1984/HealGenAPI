@@ -3,6 +3,10 @@ import PatientHeader from "@/models/patient/PatientHeader";
 import { Head, Link, usePage } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/Admin/AdminLayout";
 import axios from 'axios';
+import DocumentViewerModal from '@/Components/DocumentViewer/DocumentViewerModal';
+import { DocumentItem } from '@/Components/DocumentViewer/Interfaces/DocumentViewerTypes';
+import useSnackbarHook from "@/Hooks/SnackbarHook";
+import CustomSnackbar from "@/Components/Snackbar/CustomSnackbar";
 import {
     Box,
     Typography,
@@ -20,13 +24,11 @@ import {
     TableBody,
     Button,
     IconButton,
-    Alert,
     CircularProgress,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
-    Snackbar,
     Stack,
     Tooltip
 } from "@mui/material";
@@ -38,6 +40,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import TableChartIcon from '@mui/icons-material/TableChart';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useAppSelector } from "@/Redux/Store/hook";
 import { exportTestDetailsToExcel, exportTestDetailsToPdf } from "@/Utils/TestDetailsExportHelper";
 import { useTranslation } from "react-i18next";
@@ -82,39 +85,42 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
 
     const [attachment, setAttachment] = useState(patient.attachment || null);
     const [uploading, setUploading] = useState(false);
-    const [previewOpen, setPreviewOpen] = useState(false);
-    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [stagedDocument, setStagedDocument] = useState<DocumentItem | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const { snackbar, setSnackbar, handleClose: handleCloseSnackbar } = useSnackbarHook({
         open: false,
         message: '',
         severity: 'success',
     });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
-        if (!validTypes.includes(file.type)) {
-            setSnackbar({ open: true, message: t('tests.uploadFileTypes') || 'Please upload a PDF or Image file (.pdf, .jpg, .png, .webp).', severity: 'error' });
-            return;
-        }
-        if (file.size > 20 * 1024 * 1024) {
-            setSnackbar({ open: true, message: t('tests.uploadFileSizeExceeded') || 'File size must not exceed 20MB.', severity: 'error' });
-            return;
-        }
-
+    const executeUpload = async (file: File) => {
         const formData = new FormData();
         formData.append('file', file);
 
         setUploading(true);
+        setSnackbar({
+            open: true,
+            message: t('tests.uploading') || 'Uploading document, please wait...',
+            severity: 'info',
+        });
+
         try {
             const res = await axios.post(`/tests/${patient.id}/file`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             if (res.data.status) {
                 setAttachment(res.data.attachment);
-                setSnackbar({ open: true, message: t('tests.uploadSuccess') || 'Test file uploaded successfully!', severity: 'success' });
+                setStagedDocument(null);
+                setViewerOpen(false);
+                setSnackbar({
+                    open: true,
+                    message: t('tests.uploadSuccess') || 'Test file uploaded successfully!',
+                    severity: 'success',
+                });
             }
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || 'Failed to upload test file.';
@@ -125,18 +131,86 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
         }
     };
 
-    const handleDeleteFile = async () => {
-        if (!window.confirm(t('tests.deleteConfirm') || 'Are you sure you want to remove this attached file?')) return;
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
+        if (!validTypes.includes(file.type)) {
+            setSnackbar({
+                open: true,
+                message: t('tests.uploadFileTypes') || 'Please upload a PDF or Image file (.pdf, .jpg, .png, .webp).',
+                severity: 'error',
+            });
+            return;
+        }
+        if (file.size > 20 * 1024 * 1024) {
+            setSnackbar({
+                open: true,
+                message: t('tests.uploadFileSizeExceeded') || 'File size must not exceed 20MB.',
+                severity: 'error',
+            });
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        const isImage = file.type.startsWith('image/');
+        setStagedDocument({
+            name: file.name,
+            url: objectUrl,
+            isImage,
+            mimeType: file.type,
+            fileObject: file,
+        });
+        setViewerOpen(true);
+        setSnackbar({
+            open: true,
+            message: t('tests.fileStaged') || 'Document selected. Review preview before confirming upload.',
+            severity: 'info',
+        });
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const requestDeleteFile = () => {
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDeleteFile = async () => {
+        setIsDeleting(true);
+        setSnackbar({
+            open: true,
+            message: t('tests.deleting') || 'Removing attachment...',
+            severity: 'info',
+        });
+
         try {
             const res = await axios.delete(`/tests/${patient.id}/file`);
             if (res.data.status) {
                 setAttachment(null);
-                setSnackbar({ open: true, message: t('tests.deleteSuccess') || 'Attachment removed successfully.', severity: 'success' });
+                setViewerOpen(false);
+                setStagedDocument(null);
+                setDeleteModalOpen(false);
+                setSnackbar({
+                    open: true,
+                    message: t('tests.deleteSuccess') || 'Attachment removed successfully.',
+                    severity: 'success',
+                });
             }
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || 'Failed to remove attachment.';
             setSnackbar({ open: true, message: errorMsg, severity: 'error' });
+        } finally {
+            setIsDeleting(false);
         }
+    };
+
+    const cancelDeleteFile = () => {
+        setDeleteModalOpen(false);
+        setSnackbar({
+            open: true,
+            message: t('tests.removalCancelled') || 'Document removal cancelled.',
+            severity: 'info',
+        });
     };
 
     return (
@@ -214,7 +288,14 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                     }}
                                 />
                             }
-                            onClick={() => exportTestDetailsToExcel(patient)}
+                            onClick={() => {
+                                setSnackbar({
+                                    open: true,
+                                    message: t('tests.exportExcelStarted') || t('common.exportExcelStarted') || 'Exporting test details to Excel...',
+                                    severity: 'info',
+                                });
+                                exportTestDetailsToExcel(patient);
+                            }}
                             sx={{
                                 textTransform: 'none',
                                 borderRadius: 1.5,
@@ -246,7 +327,14 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                     }}
                                 />
                             }
-                            onClick={() => exportTestDetailsToPdf(patient)}
+                            onClick={() => {
+                                setSnackbar({
+                                    open: true,
+                                    message: t('tests.exportPdfStarted') || t('common.exportPdfStarted') || 'Generating PDF summary report...',
+                                    severity: 'info',
+                                });
+                                exportTestDetailsToPdf(patient);
+                            }}
                             sx={{
                                 textTransform: 'none',
                                 borderRadius: 1.5,
@@ -373,7 +461,7 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                     <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.inspector') || 'Inspector'}</Typography>
                                         <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            {patient.reviewedBy.name || patient.reviewedBy.email || '-'}
+                                            {(patient.reviewedBy.name && t(`users.${patient.reviewedBy.name}`)) || (patient.reviewedBy.email && t(`users.${patient.reviewedBy.email}`)) || patient.reviewedBy.name || patient.reviewedBy.email || '-'}
                                         </Typography>
                                     </Grid>
                                     <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
@@ -476,6 +564,13 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             color="primary"
                                             size="small"
                                             startIcon={<DownloadIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
+                                            onClick={() => {
+                                                setSnackbar({
+                                                    open: true,
+                                                    message: t('tests.downloadStarted') || 'Starting document download...',
+                                                    severity: 'info',
+                                                });
+                                            }}
                                             sx={{
                                                 textTransform: 'none',
                                                 borderRadius: 2,
@@ -488,25 +583,31 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             {t('common.download') || 'Download'}
                                         </Button>
 
-                                        {/* Image preview modal trigger */}
-                                        {attachment.isImage && (
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                startIcon={<VisibilityIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
-                                                onClick={() => setPreviewOpen(true)}
-                                                sx={{
-                                                    textTransform: 'none',
-                                                    borderRadius: 2,
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: 0.5,
-                                                    whiteSpace: 'nowrap',
-                                                }}
-                                            >
-                                                {t('common.preview') || 'Preview'}
-                                            </Button>
-                                        )}
+                                        {/* Document preview trigger (PDF or Image) */}
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            startIcon={<VisibilityIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
+                                            onClick={() => {
+                                                setStagedDocument(null);
+                                                setViewerOpen(true);
+                                                setSnackbar({
+                                                    open: true,
+                                                    message: t('tests.openingPreview') || 'Opening document preview...',
+                                                    severity: 'info',
+                                                });
+                                            }}
+                                            sx={{
+                                                textTransform: 'none',
+                                                borderRadius: 2,
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: 0.5,
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {t('common.preview') || 'Preview'}
+                                        </Button>
 
                                         {/* Employee-only actions: Replace & Remove */}
                                         {isEmployee && (
@@ -540,8 +641,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                                     <IconButton
                                                         color="error"
                                                         size="small"
-                                                        onClick={handleDeleteFile}
-                                                        disabled={uploading}
+                                                        onClick={requestDeleteFile}
+                                                        disabled={uploading || isDeleting}
                                                     >
                                                         <DeleteOutlineIcon />
                                                     </IconButton>
@@ -644,58 +745,121 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                     </CardContent>
                 </Card>
 
-                {/* Image Preview Lightbox Dialog */}
-                {attachment?.isImage && (
-                    <Dialog
-                        open={previewOpen}
-                        onClose={() => setPreviewOpen(false)}
-                        maxWidth="md"
-                        fullWidth
-                        PaperProps={{
-                            dir: isRtl ? 'rtl' : 'ltr',
-                            sx: {
-                                direction: isRtl ? 'rtl' : 'ltr',
-                                textAlign: isRtl ? 'right' : 'left',
-                            }
-                        }}
-                    >
-                        <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center', direction: isRtl ? 'rtl' : 'ltr' }}>
-                            <span>Preview: {attachment.name}</span>
-                            <Button
-                                component="a"
-                                href={`/tests/${patient.id}/file/download`}
-                                variant="outlined"
-                                size="small"
-                                startIcon={<DownloadIcon sx={{ mr: isRtl ? 0 : 0.5, ml: isRtl ? 0.5 : 0 }} />}
-                                sx={{ textTransform: 'none', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
-                            >
-                                {t('common.download') || 'Download'}
-                            </Button>
-                        </DialogTitle>
-                        <DialogContent dividers sx={{ textAlign: 'center', p: 3 }}>
-                            <img
-                                src={attachment.url}
-                                alt={attachment.name}
-                                style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }}
-                            />
-                        </DialogContent>
-                        <DialogActions sx={{ direction: isRtl ? 'rtl' : 'ltr', justifyContent: isRtl ? 'flex-start' : 'flex-end' }}>
-                            <Button onClick={() => setPreviewOpen(false)}>{t('common.close') || 'Close'}</Button>
-                        </DialogActions>
-                    </Dialog>
-                )}
+                {/* Universal Document Viewer Modal (PDF / Image) */}
+                <DocumentViewerModal
+                    open={viewerOpen}
+                    onClose={() => {
+                        setViewerOpen(false);
+                        if (stagedDocument?.fileObject) {
+                            URL.revokeObjectURL(stagedDocument.url);
+                            setStagedDocument(null);
+                        }
+                    }}
+                    document={stagedDocument || attachment}
+                    mode={isEmployee ? 'employee' : 'readOnly'}
+                    onUpload={executeUpload}
+                    onDelete={requestDeleteFile}
+                    onDownload={() => {
+                        setSnackbar({
+                            open: true,
+                            message: t('tests.downloadStarted') || 'Starting document download...',
+                            severity: 'info',
+                        });
+                    }}
+                    uploading={uploading}
+                />
 
-                {/* Snackbar Notifications */}
-                <Snackbar
-                    open={snackbar.open}
-                    autoHideDuration={5000}
-                    onClose={() => setSnackbar({ ...snackbar, open: false })}
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                {/* Document Removal Confirmation Modal */}
+                <Dialog
+                    open={deleteModalOpen}
+                    onClose={() => !isDeleting && cancelDeleteFile()}
+                    maxWidth="xs"
+                    fullWidth
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    PaperProps={{
+                        sx: {
+                            borderRadius: 3,
+                            p: 1,
+                            backgroundColor: dark ? '#1e293b' : '#ffffff',
+                            backgroundImage: 'none',
+                            direction: isRtl ? 'rtl' : 'ltr',
+                            textAlign: isRtl ? 'right' : 'left',
+                        }
+                    }}
                 >
-                    <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
-                        {snackbar.message}
-                    </Alert>
-                </Snackbar>
+                    <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+                        <Box
+                            sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                                color: 'error.main',
+                                flexShrink: 0,
+                            }}
+                        >
+                            <WarningAmberIcon />
+                        </Box>
+                        <Typography variant="h6" fontWeight={700} sx={{ fontSize: '1.1rem' }}>
+                            {t('tests.confirmRemovalTitle') || 'Confirm Document Removal'}
+                        </Typography>
+                    </DialogTitle>
+                    <DialogContent sx={{ py: 1.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                            {t('tests.confirmRemovalDescription') || 'Are you sure you want to remove this attached file? This action cannot be undone.'}
+                        </Typography>
+                        {attachment && (
+                            <Paper
+                                variant="outlined"
+                                sx={{
+                                    mt: 2,
+                                    p: 1.5,
+                                    borderRadius: 2,
+                                    backgroundColor: dark ? '#0f172a' : '#f8fafc',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1.5,
+                                }}
+                            >
+                                <DeleteOutlineIcon color="error" fontSize="small" />
+                                <Typography variant="caption" fontWeight={600} noWrap sx={{ maxWidth: 280 }}>
+                                    {attachment.name}
+                                </Typography>
+                            </Paper>
+                        )}
+                    </DialogContent>
+                    <DialogActions sx={{ px: 3, pb: 2, pt: 1, gap: 1, direction: isRtl ? 'rtl' : 'ltr' }}>
+                        <Button
+                            variant="outlined"
+                            onClick={cancelDeleteFile}
+                            disabled={isDeleting}
+                            sx={{ borderRadius: 2, textTransform: 'none' }}
+                        >
+                            {t('tests.cancelRemoval') || t('common.cancel') || 'Cancel'}
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={confirmDeleteFile}
+                            disabled={isDeleting}
+                            startIcon={isDeleting ? <CircularProgress size={16} color="inherit" /> : <DeleteOutlineIcon />}
+                            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                        >
+                            {isDeleting ? (t('common.loading') || 'Removing...') : (t('tests.removeDocument') || 'Remove Document')}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Standard Unified CustomSnackbar */}
+                <CustomSnackbar
+                    open={snackbar.open}
+                    message={snackbar.message}
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
+                />
             </Box>
         </AdminLayout>
     );

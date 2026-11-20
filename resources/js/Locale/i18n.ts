@@ -4,8 +4,31 @@ import { L10n, setCulture } from "@syncfusion/ej2-base";
 import enJSON from "./en/en.json";
 import arJSON from "./ar/ar.json";
 
-const savedLng = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
-const initialLng = savedLng === 'ar' ? 'ar' : 'en';
+const getInitialLanguage = (): 'ar' | 'en' => {
+    if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path.startsWith('/ar/') || path === '/ar') {
+            return 'ar';
+        }
+        if (path.startsWith('/en/') || path === '/en') {
+            return 'en';
+        }
+        const cookieMatch = document.cookie.match(/(^|;)\s*locale\s*=\s*([^;]+)/);
+        if (cookieMatch && (cookieMatch[2] === 'ar' || cookieMatch[2] === 'en')) {
+            return cookieMatch[2] as 'ar' | 'en';
+        }
+        const stored = localStorage.getItem('i18nextLng');
+        if (stored === 'ar' || stored === 'en') {
+            return stored;
+        }
+        if (document.documentElement.lang === 'ar' || document.documentElement.dir === 'rtl') {
+            return 'ar';
+        }
+    }
+    return 'en';
+};
+
+const initialLng = getInitialLanguage();
 
 // Syncfusion EJ2 Grid & Pager Localization
 L10n.load({
@@ -114,10 +137,18 @@ i18n.use(initReactI18next).init({
     },
 });
 
-// Synchronize Syncfusion culture dynamically on language change
+// Synchronize Syncfusion culture and persistence dynamically on language change
 i18n.on('languageChanged', (lng: string) => {
     const culture = lng.startsWith('ar') ? 'ar' : 'en';
     setCulture(culture);
+    if (typeof window !== 'undefined') {
+        try {
+            localStorage.setItem('i18nextLng', culture);
+            document.cookie = `locale=${culture}; path=/; max-age=31536000; SameSite=Lax`;
+        } catch {
+            // Ignore storage quota/permission errors
+        }
+    }
 });
 
 export default i18n;

@@ -229,7 +229,8 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                 openRejectModal,
                 closeRejectModal,
                 handleConfirmSubmit,
-                handleRejectSubmit
+                handleRejectSubmit,
+                setSnackbar,
             }}
         >
             <Box className="p-6">

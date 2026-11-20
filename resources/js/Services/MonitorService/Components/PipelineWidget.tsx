@@ -3,36 +3,41 @@ import { Box, Card, CardContent, Typography, Grid, LinearProgress } from '@mui/m
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useMonitorContext } from "@/Services/MonitorService/State/MonitorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const PipelineWidget: React.FC = () => {
+    const { t, i18n } = useTranslation();
     const { data } = useMonitorContext();
     const summary = data.summary;
     const total = summary.total || 1;
     const dark = useAppSelector(state => state.theme.dark);
+    const direction = useAppSelector(state => state.languages.direction);
+    const currentLang = useAppSelector(state => state.languages.language);
+    const isRtl = direction === 'rtl' || currentLang === 'ar' || (i18n.language && i18n.language.startsWith('ar'));
 
     const stages = [
         {
-            title: '1. Received',
+            title: t('monitor.pipeline.received') || '1. Received',
             count: summary.Imported || 0,
-            subtext: 'Ingested from device',
+            subtext: t('monitor.pipeline.receivedSubtext') || 'Ingested from device',
             color: dark ? '#38bdf8' : '#0288d1',
         },
         {
-            title: '2. Inspection Stage',
+            title: t('monitor.pipeline.inspection') || '2. Inspection Stage',
             count: (summary['Awaiting Inspection'] || 0) + (summary['Inspector Accepted'] || 0) + (summary['Inspector Rejected'] || 0),
-            subtext: `${summary['Awaiting Inspection'] || 0} pending`,
+            subtext: `${summary['Awaiting Inspection'] || 0} ${t('monitor.pipeline.pending') || 'pending'}`,
             color: dark ? '#fb923c' : '#ed6c02',
         },
         {
-            title: '3. Supervisor Review',
+            title: t('monitor.pipeline.supervisor') || '3. Supervisor Review',
             count: (summary['Awaiting Supervisor'] || 0) + (summary['Confirmed'] || 0) + (summary['Supervisor Rejected'] || 0),
-            subtext: `${summary['Awaiting Supervisor'] || 0} pending`,
+            subtext: `${summary['Awaiting Supervisor'] || 0} ${t('monitor.pipeline.pending') || 'pending'}`,
             color: dark ? '#c084fc' : '#9c27b0',
         },
         {
-            title: '4. Final Result / HIS',
+            title: t('monitor.pipeline.finalResult') || '4. Final Result / HIS',
             count: (summary.SentToHIS || 0) + (summary.FailedToSend || 0) + (summary.Blocked || 0),
-            subtext: `${summary.SentToHIS || 0} sent to HIS`,
+            subtext: `${summary.SentToHIS || 0} ${t('monitor.pipeline.sentToHis') || 'sent to HIS'}`,
             color: dark ? '#4ade80' : '#2e7d32',
         },
     ];
@@ -50,7 +55,7 @@ const PipelineWidget: React.FC = () => {
         >
             <CardContent>
                 <Typography variant="h6" sx={{ color: dark ? '#f8fafc' : '#0f172a', mb: 2, fontWeight: 600 }}>
-                    Test Operations Pipeline
+                    {t('monitor.pipeline.title') || 'Test Operations Pipeline'}
                 </Typography>
                 <Grid container spacing={2} alignItems="center" justifyContent="center">
                     {stages.map((stage, idx) => (
@@ -89,7 +94,13 @@ const PipelineWidget: React.FC = () => {
                             </Grid>
                             {idx < stages.length - 1 && (
                                 <Grid item xs={12} md={0.5} className="hidden md:flex justify-center">
-                                    <ArrowForwardIosIcon sx={{ color: dark ? '#94a3b8' : '#64748b' }} fontSize="small" />
+                                    <ArrowForwardIosIcon
+                                        sx={{
+                                            color: dark ? '#94a3b8' : '#64748b',
+                                            transform: isRtl ? 'rotate(180deg)' : 'none'
+                                        }}
+                                        fontSize="small"
+                                    />
                                 </Grid>
                             )}
                         </React.Fragment>

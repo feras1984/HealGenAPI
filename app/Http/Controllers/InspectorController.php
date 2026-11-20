@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Facades\DeviceService\DeviceService;
 use App\Facades\InspectorService\InspectorService;
-use App\Facades\LocationService\LocationService;
-use App\Models\Device;
-use App\Models\Location;
+use App\Factories\LocationAccess\LocationAccessStrategyFactory;
 use App\Models\PatientHeader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,33 +18,11 @@ class InspectorController extends Controller
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
 
-        $role = InspectorService::getUserRole($user);
-        $assignedLocationId = $user->getAssignedLocationId();
+        $strategy = app(LocationAccessStrategyFactory::class)->make($user);
+        $strategy->applyFilters($filters);
 
-        if ($role === 'inspector') {
-            // Strictly enforce assigned location on backend
-            $filters['locationId'] = $assignedLocationId;
-
-            $assignedLocation = $assignedLocationId ? Location::find($assignedLocationId) : null;
-            $locations = $assignedLocation ? [LocationService::getLocation($assignedLocation)] : [];
-
-            $devices = $assignedLocationId
-                ? Device::where('location_id', $assignedLocationId)
-                    ->where('is_active', true)
-                    ->get()
-                    ->map(fn($dev) => [
-                        'id' => $dev->id,
-                        'name' => $dev->name,
-                        'device_code' => $dev->device_code,
-                        'location_id' => $dev->location_id,
-                    ])->toArray()
-                : [];
-        } else {
-            // Admin sees all locations and devices
-            $locations = LocationService::getLocations();
-            $devices = DeviceService::getDevices();
-        }
-
+        $locations = $strategy->getLocations();
+        $devices = $strategy->getDevices();
         $dashboardData = InspectorService::getInspectorDashboardData($user, $filters);
 
         return Inertia::render('Admin/Inspector/InspectorDashboard', [
@@ -62,11 +37,9 @@ class InspectorController extends Controller
     {
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
-        $role = InspectorService::getUserRole($user);
 
-        if ($role === 'inspector') {
-            $filters['locationId'] = $user->getAssignedLocationId();
-        }
+        $strategy = app(LocationAccessStrategyFactory::class)->make($user);
+        $strategy->applyFilters($filters);
 
         $data = InspectorService::getInspectorDashboardData($user, $filters);
 

@@ -8,14 +8,26 @@ import LanguageDropdown from "@/Layouts/Admin/Partials/LanguageDropdown";
 import { IconButton, Box } from "@mui/material";
 import Icon from "@/Components/Icon/Icon";
 import { useTranslation } from "react-i18next";
+import { usePage } from "@inertiajs/react";
 
 const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
     const dispatch = useAppDispatch();
+    const pageProps = usePage()?.props as any;
     const dark = useAppSelector(state => state.theme.dark);
     const direction = useAppSelector(state => state.languages.direction);
     const currentReduxLang = useAppSelector(state => state.languages.language);
     const { i18n } = useTranslation();
-    const isRtl = direction === 'rtl' || currentReduxLang === 'ar' || (i18n.language && i18n.language.startsWith('ar'));
+    const isRtl =
+        pageProps?.lang === 'ar' ||
+        direction === 'rtl' ||
+        currentReduxLang === 'ar' ||
+        (i18n?.language && i18n.language.startsWith('ar')) ||
+        (typeof window !== 'undefined' && (
+            window.location.pathname.startsWith('/ar/') ||
+            window.location.pathname === '/ar' ||
+            document.documentElement.dir === 'rtl' ||
+            document.documentElement.lang === 'ar'
+        ));
 
     const handleTheme = () => {
         dark ? dispatch(setMode(false)) : dispatch(setMode(true));
@@ -27,9 +39,10 @@ const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
 
     return (
         <Box
+            dir={isRtl ? 'rtl' : 'ltr'}
             style={{
                 display: 'flex',
-                flexDirection: isRtl ? 'row-reverse' : 'row',
+                flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 height: '100%',
@@ -42,7 +55,7 @@ const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
             <Box
                 style={{
                     display: 'flex',
-                    flexDirection: isRtl ? 'row-reverse' : 'row',
+                    flexDirection: 'row',
                     alignItems: 'center',
                     gap: '12px',
                 }}
@@ -53,7 +66,7 @@ const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
                 <Box
                     style={{
                         display: 'flex',
-                        flexDirection: isRtl ? 'row-reverse' : 'row',
+                        flexDirection: 'row',
                         alignItems: 'center',
                         gap: '12px',
                     }}
@@ -75,7 +88,7 @@ const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
             <Box
                 style={{
                     display: 'flex',
-                    flexDirection: isRtl ? 'row-reverse' : 'row',
+                    flexDirection: 'row',
                     alignItems: 'center',
                     gap: '8px',
                 }}
@@ -90,7 +103,7 @@ const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
                     <Icon name="mail-mui" />
                 </IconButton>
                 <LanguageDropdown />
-                <Box style={{ margin: isRtl ? '0 12px 0 0' : '0 0 0 12px' }}>
+                <Box style={{ marginInlineStart: '12px' }}>
                     <Account />
                 </Box>
             </Box>

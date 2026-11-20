@@ -8,14 +8,22 @@ const AuthAdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>
     const dark = useAppSelector(state => state.theme.dark);
     const direction = useAppSelector(state => state.languages.direction);
     const currentLang = useAppSelector(state => state.languages.language);
-    const isRtl = direction === 'rtl' || currentLang === 'ar';
+    const isRtl =
+        direction === 'rtl' ||
+        currentLang === 'ar' ||
+        (typeof window !== 'undefined' && (
+            window.location.pathname.startsWith('/ar/') ||
+            window.location.pathname === '/ar' ||
+            document.documentElement.dir === 'rtl' ||
+            document.documentElement.lang === 'ar'
+        ));
 
     return (
         <AppRoot>
             <Box
+                dir={isRtl ? 'rtl' : 'ltr'}
                 className={`min-h-screen flex flex-col justify-center items-center relative ${dark ? 'dark' : 'light'}`}
                 sx={{
-                    direction: isRtl ? 'rtl' : 'ltr',
                     backgroundColor: dark ? '#0f172a' : '#f1f5f9',
                     p: 2,
                 }}

@@ -17,6 +17,20 @@ use App\Facades\InspectorService\InspectorService;
 use App\Facades\LocationInspectorService\LocationInspectorService;
 use App\Facades\PatientService\PatientHeaderService;
 use App\Facades\SupervisorService\SupervisorService;
+use App\Factories\PatientQuery\PatientQueryStrategyFactory;
+use App\Strategies\PatientQuery\AdminPatientQueryStrategy;
+use App\Strategies\PatientQuery\DenyPatientQueryStrategy;
+use App\Strategies\PatientQuery\EmployeePatientQueryStrategy;
+use App\Strategies\PatientQuery\InspectorPatientQueryStrategy;
+use App\Factories\MonitorScope\MonitorScopeStrategyFactory;
+use App\Strategies\MonitorScope\AdminMonitorScopeStrategy;
+use App\Strategies\MonitorScope\InspectorMonitorScopeStrategy;
+use App\Strategies\MonitorScope\DenyMonitorScopeStrategy;
+use App\Factories\LocationAccess\LocationAccessStrategyFactory;
+use App\Strategies\LocationAccess\AdminLocationAccessStrategy;
+use App\Strategies\LocationAccess\DenyLocationAccessStrategy;
+use App\Strategies\LocationAccess\EmployeeLocationAccessStrategy;
+use App\Strategies\LocationAccess\InspectorLocationAccessStrategy;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -40,9 +54,15 @@ class LocationInspectorAuthorizationTest extends TestCase
     {
         parent::setUp();
 
-        config(['database.default' => 'sqlite']);
-        config(['database.connections.sqlite.database' => ':memory:']);
+        config([
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.database' => ':memory:',
+            'cache.default' => 'array',
+            'session.driver' => 'array',
+        ]);
         DB::purge();
+
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
         $this->createSchema();
         $this->seedTestData();
@@ -50,6 +70,15 @@ class LocationInspectorAuthorizationTest extends TestCase
 
     protected function createSchema(): void
     {
+        Schema::create('languages', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 50);
+            $table->string('code', 10)->unique();
+            $table->string('direction', 10)->default('ltr');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
             $table->string('name', 150);
@@ -585,5 +614,197 @@ class LocationInspectorAuthorizationTest extends TestCase
         $this->assertEquals('INSPECTOR_ACCEPT', $actionAfter->action);
         $this->assertEquals($this->inspector1->id, $actionAfter->user_id);
         $this->assertEquals($this->location1->id, (int) $actionAfter->location_id);
+    }
+
+    public function test_patient_query_strategy_factory_resolves_correct_strategies_per_role(): void
+    {
+        $factory = app(PatientQueryStrategyFactory::class);
+
+        $this->assertInstanceOf(AdminPatientQueryStrategy::class, $factory->make($this->adminUser));
+        $this->assertInstanceOf(AdminPatientQueryStrategy::class, $factory->make($this->supervisorUser));
+        $this->assertInstanceOf(InspectorPatientQueryStrategy::class, $factory->make($this->inspector1));
+        $this->assertInstanceOf(EmployeePatientQueryStrategy::class, $factory->make($this->employeeUser));
+        $this->assertInstanceOf(DenyPatientQueryStrategy::class, $factory->make(null));
+
+        $guestRef = Admin::create(['first_name' => 'Guest', 'last_name' => 'User', 'role' => 'Guest']);
+        $guestUser = User::create(['email' => 'guest_strat@test.local', 'reference_id' => $guestRef->id, 'reference_type' => Admin::class]);
+        $this->assertInstanceOf(DenyPatientQueryStrategy::class, $factory->make($guestUser));
+    }
+
+    public function test_inspector_patient_query_strategy_scopes_strictly_to_assigned_location(): void
+    {
+        PatientHeader::create([
+            'PatientId' => 'PID-STRAT-L1',
+            'Status' => 'Imported',
+            'DeviceId' => $this->device1->id,
+            'DeviceCode' => $this->device1->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        PatientHeader::create([
+            'PatientId' => 'PID-STRAT-L2',
+            'Status' => 'Imported',
+            'DeviceId' => $this->device2->id,
+            'DeviceCode' => $this->device2->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        // Inspector 1 is assigned to Location 1
+        $patients = PatientHeaderService::getPatients($this->inspector1);
+
+        $this->assertCount(1, $patients);
+        $this->assertEquals('PID-STRAT-L1', $patients[0]['patientId']);
+
+        // When inspector is unassigned, 0 records must be returned (fail-closed)
+        LocationInspector::where('user_id', $this->inspector1->id)->update(['is_active' => false]);
+        $this->inspector1->refresh();
+
+        $unassignedPatients = PatientHeaderService::getPatients($this->inspector1);
+        $this->assertCount(0, $unassignedPatients);
+    }
+
+    public function test_monitor_scope_strategy_factory_resolves_correct_strategies(): void
+    {
+        $factory = app(MonitorScopeStrategyFactory::class);
+
+        $this->assertInstanceOf(AdminMonitorScopeStrategy::class, $factory->make($this->adminUser));
+        $this->assertInstanceOf(AdminMonitorScopeStrategy::class, $factory->make($this->supervisorUser));
+        $this->assertInstanceOf(InspectorMonitorScopeStrategy::class, $factory->make($this->inspector1));
+        $this->assertInstanceOf(DenyMonitorScopeStrategy::class, $factory->make($this->employeeUser));
+        $this->assertInstanceOf(DenyMonitorScopeStrategy::class, $factory->make(null));
+    }
+
+    public function test_inspector_monitor_scope_strategy_restricts_locations_devices_and_tests(): void
+    {
+        PatientHeader::create([
+            'PatientId' => 'PID-MON-L1',
+            'Status' => 'Imported',
+            'DeviceId' => $this->device1->id,
+            'DeviceCode' => $this->device1->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        PatientHeader::create([
+            'PatientId' => 'PID-MON-L2',
+            'Status' => 'Imported',
+            'DeviceId' => $this->device2->id,
+            'DeviceCode' => $this->device2->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        $factory = app(MonitorScopeStrategyFactory::class);
+        $strategy = $factory->make($this->inspector1);
+
+        // Filters cannot be overridden to another location
+        $scopedFilters = $strategy->scopeFilters(['locationId' => $this->location2->id]);
+        $this->assertEquals($this->location1->id, $scopedFilters['locationId']);
+
+        // Locations list only contains the Inspector's assigned location
+        $locations = $strategy->getLocations();
+        $this->assertCount(1, $locations);
+        $this->assertEquals($this->location1->id, $locations[0]['id']);
+
+        // Devices list only contains devices at the Inspector's assigned location
+        $devices = $strategy->getDevices();
+        $this->assertCount(1, $devices);
+        $this->assertEquals($this->device1->id, $devices[0]['id']);
+
+        // Monitor data test operations only include Location 1 tests
+        $data = $strategy->getMonitorData($scopedFilters);
+        $this->assertCount(1, $data['testOperations']);
+        $this->assertEquals('PID-MON-L1', $data['testOperations'][0]['patientId']);
+
+        // Device operations only include Device 1
+        $this->assertCount(1, $data['deviceOperations']);
+        $this->assertEquals($this->device1->id, $data['deviceOperations'][0]['id']);
+    }
+
+    public function test_unassigned_inspector_monitor_scope_strategy_returns_empty_payload(): void
+    {
+        LocationInspector::where('user_id', $this->inspector1->id)->update(['is_active' => false]);
+        $this->inspector1->refresh();
+
+        $factory = app(MonitorScopeStrategyFactory::class);
+        $strategy = $factory->make($this->inspector1);
+
+        $this->assertEmpty($strategy->getLocations());
+        $this->assertEmpty($strategy->getDevices());
+
+        $data = $strategy->getMonitorData([]);
+        $this->assertEquals(0, $data['summary']['total']);
+        $this->assertEmpty($data['testOperations']);
+        $this->assertEmpty($data['deviceOperations']);
+    }
+
+    public function test_inspector_accessing_supervisor_routes_denied(): void
+    {
+        $response = $this->actingAs($this->inspector1)->get('/supervisor/data');
+        $response->assertStatus(403);
+    }
+
+    public function test_inspector_accessing_admin_dashboard_data_denied(): void
+    {
+        $response = $this->actingAs($this->inspector1)->get('/admin/dashboard/data');
+        $response->assertStatus(403);
+    }
+
+    public function test_location_access_strategy_factory_resolves_correct_strategies(): void
+    {
+        $factory = app(LocationAccessStrategyFactory::class);
+
+        $this->assertInstanceOf(AdminLocationAccessStrategy::class, $factory->make($this->adminUser));
+        $this->assertInstanceOf(AdminLocationAccessStrategy::class, $factory->make($this->supervisorUser));
+        $this->assertInstanceOf(InspectorLocationAccessStrategy::class, $factory->make($this->inspector1));
+        $this->assertInstanceOf(EmployeeLocationAccessStrategy::class, $factory->make($this->employeeUser));
+        $this->assertInstanceOf(DenyLocationAccessStrategy::class, $factory->make(null));
+    }
+
+    public function test_inspector_location_access_strategy_locks_filters_locations_and_devices(): void
+    {
+        $factory = app(LocationAccessStrategyFactory::class);
+        $strategy = $factory->make($this->inspector1);
+
+        $filters = ['locationId' => $this->location2->id];
+        $strategy->applyFilters($filters);
+        $this->assertEquals($this->location1->id, $filters['locationId']);
+
+        $locations = $strategy->getLocations();
+        $this->assertCount(1, $locations);
+        $this->assertEquals($this->location1->id, $locations[0]['id']);
+
+        $devices = $strategy->getDevices();
+        $this->assertCount(1, $devices);
+        $this->assertEquals($this->device1->id, $devices[0]['id']);
+    }
+
+    public function test_inspector_dashboard_data_endpoint_uses_strategy_and_locks_assigned_location(): void
+    {
+        PatientHeader::create([
+            'PatientId' => 'PID-INSP-DASH-L1',
+            'Status' => 'Imported',
+            'DeviceId' => $this->device1->id,
+            'DeviceCode' => $this->device1->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        PatientHeader::create([
+            'PatientId' => 'PID-INSP-DASH-L2',
+            'Status' => 'Imported',
+            'DeviceId' => $this->device2->id,
+            'DeviceCode' => $this->device2->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        // Attempt to pass other location ID
+        $response = $this->actingAs($this->inspector1)->get('/inspector/data?locationId=' . $this->location2->id);
+        $response->assertStatus(200);
+
+        $responseData = $response->json('data');
+        $this->assertEquals($this->location1->id, $responseData['assignedLocation']['id']);
+
+        // Pending queue must only contain Location 1 test
+        $queueIds = array_column($responseData['pendingQueue'], 'patientId');
+        $this->assertContains('PID-INSP-DASH-L1', $queueIds);
+        $this->assertNotContains('PID-INSP-DASH-L2', $queueIds);
     }
 }

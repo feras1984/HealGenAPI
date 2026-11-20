@@ -68,6 +68,7 @@ const AssignedDevicesGrid: React.FC = () => {
                 ) : (
                     <Box className="w-full overflow-x-auto">
                         <GridComponent
+                            key={`assigned-devices-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                             ref={gridRef}
                             dataSource={devices}
                             allowPaging={true}

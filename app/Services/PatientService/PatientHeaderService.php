@@ -3,6 +3,7 @@
 namespace App\Services\PatientService;
 
 use App\Facades\DeviceService\DeviceService;
+use App\Factories\PatientQuery\PatientQueryStrategyFactory;
 use App\Models\Device;
 use App\Models\PatientHeader;
 use App\Facades\PatientService\PatientTestService;
@@ -60,7 +61,7 @@ class PatientHeaderService
             $attachment = [
                 'id' => $file->id,
                 'name' => $file->name,
-                'url' => \Illuminate\Support\Facades\Storage::disk('public')->url($file->url),
+                'url' => route('admin.tests.file.view', $patientHeader->Id),
                 'downloadUrl' => route('admin.tests.file.download', $patientHeader->Id),
                 'isImage' => (bool) $file->is_image,
                 'description' => $file->description,
@@ -87,27 +88,8 @@ class PatientHeaderService
     {
         $query = PatientHeader::query()->with(['device.location', 'device.deviceType', 'file']);
 
-        if ($user) {
-            $adminRef = $user->reference()->first();
-            $role = strtolower($adminRef && isset($adminRef->role) ? $adminRef->role : '');
-            if ($role === 'employee') {
-                $assignedDeviceIds = \App\Models\DeviceUser::query()
-                    ->where('user_id', $user->id)
-                    ->where('is_active', true)
-                    ->pluck('device_id')
-                    ->toArray();
-
-                $query->whereIn('DeviceId', $assignedDeviceIds);
-            } elseif ($role === 'inspector') {
-                $assignedLocationId = $user->getAssignedLocationId();
-                if ($assignedLocationId === null) {
-                    return [];
-                }
-                $query->whereHas('device', function ($q) use ($assignedLocationId) {
-                    $q->where('location_id', $assignedLocationId);
-                });
-            }
-        }
+        $strategy = app(PatientQueryStrategyFactory::class)->make($user);
+        $query = $strategy->apply($query);
 
         $patients = $query->orderBy('Id', 'desc')->get();
         $patientsModel = [];

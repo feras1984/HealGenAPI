@@ -62,7 +62,7 @@
     },
     "nav": {
         "home": "Home",
-        "monitor": "Live Monitor",
+        "monitor": "Operational Monitor",
         "inspectorQueue": "Inspector Queue",
         "supervisorQueue": "Supervisor Queue",
         "tests": "Clinical Tests",
@@ -161,7 +161,38 @@
         "uploadFileSizeExceeded": "File size must not exceed 20MB.",
         "uploadSuccess": "Test file uploaded successfully!",
         "deleteConfirm": "Are you sure you want to remove this attached file?",
-        "deleteSuccess": "Attachment removed successfully."
+        "deleteSuccess": "Attachment removed successfully.",
+        "confirmRemovalTitle": "Confirm Document Removal",
+        "confirmRemovalDescription": "Are you sure you want to remove this attached file? This action cannot be undone.",
+        "cancelRemoval": "Cancel",
+        "deleting": "Removing attachment...",
+        "removalCancelled": "Document removal cancelled.",
+        "fileStaged": "Document selected. Review preview before confirming upload.",
+        "uploading": "Uploading document, please wait...",
+        "openingPreview": "Opening document preview...",
+        "downloadStarted": "Starting document download...",
+        "exportExcelStarted": "Exporting test details to Excel...",
+        "exportPdfStarted": "Generating PDF summary report...",
+        "attachment": "Attachment",
+        "hasAttachment": "Attached",
+        "noAttachment": "No Attachment",
+        "viewAttachment": "View Attachment"
+    },
+    "documentViewer": {
+        "title": "Document Viewer",
+        "loadingPdf": "Loading PDF document...",
+        "pdfFallback": "Your browser does not support inline PDF rendering, or the document is protected. You can open it in a new window or download it.",
+        "openNewTab": "Open in New Tab",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "rotateRight": "Rotate Right 90°",
+        "rotateLeft": "Rotate Left 90°",
+        "resetView": "Reset View",
+        "previewBeforeUpload": "Preview Before Upload",
+        "confirmUpload": "Confirm & Upload",
+        "viewDocument": "View Document",
+        "previewPdf": "Preview PDF",
+        "previewImage": "Preview Image"
     },
     "dashboard": {
         "kpiOverview": "System Overview KPIs",
@@ -297,6 +328,7 @@
         "role": "Role",
         "chooseRole": "Choose Role",
         "isActive": "Is Active",
+        "location": "Location",
         "locationName": "Location Name",
         "locationCode": "Location Code",
         "city": "City",
@@ -399,7 +431,25 @@
         "reset": "Reset",
         "autoRefresh": "Auto-refresh (10s)",
         "refreshNow": "Refresh Now",
-        "lastUpdated": "Updated: "
+        "lastUpdated": "Updated: ",
+        "clearFilters": "Clear Filters",
+        "noAssignedDevice": "No Assigned Devices"
+    },
+    "charts": {
+        "noData": "No chart data available for the selected filters."
+    },
+    "users": {
+        "michaelBennett": "Michael Bennett",
+        "michael@email.com": "Michael Bennett",
+        "Michael Bennett": "Michael Bennett",
+        "james@email.com": "James Anderson",
+        "James Anderson": "James Anderson",
+        "daniel@email.com": "Daniel Mitchell",
+        "Daniel Mitchell": "Daniel Mitchell",
+        "ryan@email.com": "Ryan Thompson",
+        "Ryan Thompson": "Ryan Thompson",
+        "david@email.com": "David Parker",
+        "David Parker": "David Parker"
     },
     "dialogs": {
         "confirmTestTitle": "Confirm Test #{{id}}?",
@@ -434,5 +484,44 @@
         "deletedSuccess": "Deleted successfully!",
         "errorOccurred": "An error occurred while saving data!",
         "assignedSuccess": "Device assigned to user successfully!"
+    },
+    "monitor": {
+        "title": "Operational Monitor",
+        "workflowSummary": "Test Workflow Summary",
+        "inspection": "Inspection",
+        "supervisor": "Supervisor",
+        "totalOperations": "Total Operations",
+        "deviceOperations": "Device Operations",
+        "lastResult": "Last Result",
+        "resultsToday": "Results Today",
+        "roleOperations": "Role & User Operational State",
+        "totalUsers": "Total System Users",
+        "activeUsers": "Active Account Users",
+        "assignedDeviceUsers": "Assigned to Devices",
+        "roleName": "Role Name",
+        "userCount": "User Count",
+        "metricOrRole": "Metric / Role",
+        "count": "Count",
+        "fetchError": "Failed to update monitor operational data.",
+        "charts": {
+            "volumeOverTime": "Processing Volume Over Time",
+            "volumeOverTimeSubtitle": "Real-time test volume progression",
+            "statusDistribution": "Status Distribution",
+            "statusDistributionSubtitle": "Workflow test state breakdown",
+            "volumeByLocation": "Test Volume by Location",
+            "volumeByLocationSubtitle": "Location-level result throughput",
+            "deviceThroughput": "Top Device Throughput",
+            "deviceThroughputSubtitle": "Device-level result throughput"
+        },
+        "pipeline": {
+            "title": "Test Operations Pipeline",
+            "received": "1. Received",
+            "receivedSubtext": "Ingested from device",
+            "inspection": "2. Inspection Stage",
+            "pending": "pending",
+            "supervisor": "3. Supervisor Review",
+            "finalResult": "4. Final Result / HIS",
+            "sentToHis": "sent to HIS"
+        }
     }
 }

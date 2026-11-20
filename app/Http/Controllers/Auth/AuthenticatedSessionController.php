@@ -48,7 +48,21 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        $locale = $request->route('locale')
+            ?? $request->cookie('locale')
+            ?? ($request->hasSession() ? $request->session()->get('locale') : null)
+            ?? 'en';
+
+        if (!in_array($locale, ['en', 'ar'], true)) {
+            $locale = 'en';
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->put('locale', $locale);
+        }
+        cookie()->queue(cookie()->forever('locale', $locale));
+
+        return redirect()->intended("/{$locale}");
     }
 
     /**

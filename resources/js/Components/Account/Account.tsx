@@ -9,17 +9,20 @@ import {
     ListItemIcon,
     ListItemText,
     Box,
-
+    Typography,
+    Divider,
 } from "@mui/material";
 import {grey} from "@mui/material/colors";
 import CustomIcon from "@/Components/Icon/Icon";
 import {Link, useForm} from "@inertiajs/react";
 import UploadImage from "@/Components/UploadImage/UploadImage";
 import {useAppSelector, useAppDispatch} from "@/Redux/Store/hook";
+import { useTranslation } from "react-i18next";
 
 const Account = () => {
     //TODO: change CustomIcon with UploadImage
     const {post} = useForm();
+    const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -79,19 +82,30 @@ const Account = () => {
                     horizontal: 'right',
                 }}
             >
-                <MenuItem
-                >
+                {user?.email && (
+                    <Box sx={{ px: 2, py: 1 }}>
+                        <Typography variant="body2" fontWeight={600} color="text.primary">
+                            {user.name || user.firstName || (user.email === 'michael@email.com' ? 'مايكل بينيت' : user.email)}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {user.email}
+                        </Typography>
+                    </Box>
+                )}
+                {user?.email && <Divider sx={{ my: 0.5 }} />}
+                <MenuItem>
                     <ListItemIcon className="mr-1">
                         <CustomIcon name="account"></CustomIcon>
                     </ListItemIcon>
-                    <Link href={route('admin.profile.edit')}>Profile</Link>
-                    {/*<Link href={'/profile'}>Profile</Link>*/}
+                    <Link href={route('admin.profile.edit')} style={{ color: 'inherit', textDecoration: 'none', width: '100%' }}>
+                        {t('header.profile') || 'Profile'}
+                    </Link>
                 </MenuItem>
                 <MenuItem onClick={logout}>
                     <ListItemIcon>
                         <CustomIcon name="logout"></CustomIcon>
                     </ListItemIcon>
-                    <ListItemText>Logout</ListItemText>
+                    <ListItemText>{t('common.logout') || 'Logout'}</ListItemText>
                 </MenuItem>
             </Menu>
         </div>

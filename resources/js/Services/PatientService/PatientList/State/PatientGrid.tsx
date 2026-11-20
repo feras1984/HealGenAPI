@@ -26,12 +26,42 @@ import CommonService from "@/Services/CommonService/CommonService";
 import PatientService from "@/Services/PatientService/PatientService";
 import { usePatientContext } from "@/Services/PatientService/PatientList/State/PatientsCotext";
 import { GridActionEventArgs, SearchEventArgs } from "@syncfusion/ej2-grids/src/grid/base/interface";
-import { Box } from "@mui/material";
+import { Box, Chip } from "@mui/material";
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ImageIcon from '@mui/icons-material/Image';
 import EditButton from "@/Services/PatientService/PatientList/Components/EditButton";
 import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useTranslation } from "react-i18next";
 import { useAppSelector } from "@/Redux/Store/hook";
+
+const AttachmentTemplate = (props: any) => {
+    const { t } = useTranslation();
+    const attachment = props.attachment;
+
+    if (!attachment) {
+        return <span style={{ color: '#94a3b8' }}>-</span>;
+    }
+
+    return (
+        <a
+            href={attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none' }}
+        >
+            <Chip
+                size="small"
+                icon={attachment.isImage ? <ImageIcon sx={{ fontSize: '14px !important' }} /> : <PictureAsPdfIcon sx={{ fontSize: '14px !important' }} />}
+                label={attachment.isImage ? (t('tests.imageDocument') || 'Image') : (t('tests.pdfDocument') || 'PDF')}
+                color={attachment.isImage ? 'primary' : 'error'}
+                variant="outlined"
+                clickable
+                sx={{ fontWeight: 600, fontSize: '0.7rem', cursor: 'pointer' }}
+            />
+        </a>
+    );
+};
 
 const PatientGrid = () => {
     const patientService = ServiceContainer.get(PatientService);
@@ -64,6 +94,7 @@ const PatientGrid = () => {
         { field: 'collectionSite', headerText: t('tests.collectionSite') || 'Collection Site', width: '200', textAlign: 'Center' },
         { field: 'cupLotNumber', headerText: t('tests.cupLotNumber') || 'Cup Lot Number', width: '200', textAlign: 'Center' },
         { field: 'status', headerText: t('common.status') || 'Status', width: '200', textAlign: 'Center' },
+        { field: 'attachment', headerText: t('tests.attachment') || 'Attachment', width: '160', textAlign: 'Center', template: AttachmentTemplate },
         { field: 'Edit', headerText: t('common.details') || 'Details', width: '180', textAlign: 'Center', template: EditButton },
         { field: 'createdAt', headerText: t('common.createdAt') || 'Created At', width: '200', textAlign: 'Center' },
     ], [i18n.language]);
@@ -97,6 +128,7 @@ const PatientGrid = () => {
     return (
         <Box>
             <GridComponent
+                key={`patient-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                 ref={g => grid = g}
                 rowHeight={50}
                 id="blockComp"

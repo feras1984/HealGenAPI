@@ -1,29 +1,3 @@
-import React from "react";
-import {
-    ColumnDirective,
-    ColumnsDirective, ExcelExport, Filter,
-    FilterSettingsModel,
-    GridColumnModel,
-    GridComponent, Inject, Page,
-    PageSettingsModel, PdfExport, RowDD, RowDragEventArgs, Search, Selection,
-    SelectionSettingsModel, Sort, Toolbar
-} from "@syncfusion/ej2-react-grids";
-import {GridColumnDirTypecast} from "@syncfusion/ej2-react-grids/src/grid/columns-directive";
-import {Container as ServiceContainer} from "typedi";
-import CommonService from "@/Services/CommonService/CommonService";
-import AdminService from "@/Services/UserService/AdminService";
-import {GridActionEventArgs, SearchEventArgs} from "@syncfusion/ej2-grids/src/grid/base/interface";
-import {Box} from "@mui/material";
-import EditButton from "@/Services/UserService/Components/EditButton";
-import {AdminGridProps} from "@/Services/UserService/Interfaces/AdminProps";
-import adminService from "@/Services/UserService/AdminService";
-import {useAdminContext} from "@/Services/UserService/State/AdminsContext";
-import ActiveForm from "@/Services/UserService/Components/ActiveForm";
-import ImageTemplate from "@/Services/UserService/Components/ImageTemplate";
-import { ClickEventArgs } from "@syncfusion/ej2-navigations";
-import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
-
-
 import React, { useMemo } from "react";
 import {
     ColumnDirective,
@@ -144,6 +118,7 @@ const AdminGrid = () => {
     return (
         <Box>
             <GridComponent
+                key={`admin-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                 ref={g => grid = g}
                 rowHeight={50}
                 id="blockComp"
