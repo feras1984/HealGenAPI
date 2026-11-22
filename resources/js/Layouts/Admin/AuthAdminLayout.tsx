@@ -24,7 +24,14 @@ const AuthAdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>
                 dir={isRtl ? 'rtl' : 'ltr'}
                 className={`min-h-screen flex flex-col justify-center items-center relative ${dark ? 'dark' : 'light'}`}
                 sx={{
-                    backgroundColor: dark ? '#0f172a' : '#f1f5f9',
+                    ...(dark
+                        ? {
+                              backgroundColor: '#02140E',
+                              backgroundImage: 'linear-gradient(135deg, #02140E 0%, #005C3D 52%, #042419 100%)',
+                          }
+                        : {
+                              backgroundColor: '#f1f5f9',
+                          }),
                     p: 2,
                 }}
             >

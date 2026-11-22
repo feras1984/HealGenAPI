@@ -8,16 +8,16 @@
 
 
 :root {
-    --clr-bg-dark: #1f2937; /* gray-800 */
+    --clr-bg-dark: #071B14; /* Dubai Police deep emerald base */
     --clr-bg-light: #d4d4d4; /* zinc-50 */
 
     --clr-text-dark: #374151; /* gray-200 */
     --clr-text-light: #fafafa; /* zinc-50 */
 
-    --clr-bg-content-dark: #334155;
+    --clr-bg-content-dark: #102B22; /* Dark forest-emerald surface */
     --clr-bg-content-light: #fafaf9;
 
-    --clr-bg-grid-dark: #0f172a;
+    --clr-bg-grid-dark: #061510; /* Deep emerald-charcoal input/active cell */
     --clr-bg-grid-light: #e2e8f0;
     //--ring: 262, 83%, 58%;
 
@@ -53,7 +53,8 @@ body {
     background-color: var(--clr-bg-dark);
     color: var(--clr-text-light);
     .content {
-        background-color: var(--clr-bg-content-dark);
+        background-color: transparent;
+        background-image: linear-gradient(180deg, #061A13 0%, #0B251C 55%, #071D15 100%);
     }
 }
 
@@ -363,10 +364,10 @@ All colors MUST be HSL.
 
 /* ---------- Dark Theme ---------- */
 .dark {
-    --input-bg: var(--clr-text-dark);
+    --input-bg: #081F17;
     --input-color: #f5f5f5;
-    --border-color: #444;
-    --dropdown-bg: var(--clr-text-dark);
+    --border-color: #1E4639;
+    --dropdown-bg: #0E261E;
     --dropdown-color: #fff;
 }
 

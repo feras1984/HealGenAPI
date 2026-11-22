@@ -77,14 +77,30 @@ const AppRoot = ({ children }: PropsWithChildren) => {
             mode: themeMode,
             ...(dark ? {
                 primary: {
-                    main: '#3d5afe',
+                    main: '#00A86B',
+                    dark: '#008658',
+                    light: '#34D399',
+                    contrastText: '#ffffff',
                 },
                 secondary: {
-                    main: '#009688',
+                    main: '#94A3B8',
+                },
+                success: {
+                    main: '#16A34A',
+                    dark: '#15803D',
+                    light: '#4ADE80',
+                    contrastText: '#ffffff',
                 },
                 info: {
-                    main: green[900],
+                    main: '#0EA5E9',
                 },
+                warning: {
+                    main: '#F59E0B',
+                },
+                error: {
+                    main: '#EF4444',
+                },
+                divider: 'rgba(16, 185, 129, 0.18)',
                 text: {
                     primary: '#fafafa',
                 },
@@ -92,8 +108,8 @@ const AppRoot = ({ children }: PropsWithChildren) => {
                     active: '#fafafa',
                 },
                 background: {
-                    default: '#1f2937',
-                    paper: '#1f2937',
+                    default: '#061A13',
+                    paper: '#0E261E',
                 },
                 activate: {
                     main: lightGreen["A400"],

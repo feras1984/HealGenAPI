@@ -86,7 +86,7 @@ const QuickActionCards: React.FC = () => {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',
-                                backgroundColor: dark ? '#1e293b' : '#ffffff',
+                                backgroundColor: dark ? 'var(--clr-bg-content-dark, #102B22)' : '#ffffff',
                                 border: '1px solid',
                                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                                 borderRadius: 2,

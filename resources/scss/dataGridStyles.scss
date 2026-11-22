@@ -29,12 +29,12 @@
     .e-grid.e-gridhover tr[role=row]:not(.e-detailrow):hover .e-detailrowcollapse:not(.e-cellselectionbackground):not(.e-active):not(.e-updatedtd):not(.e-indentcell),
     .e-grid.e-gridhover tr[role=row]:hover .e-rowdragdrop:not(.e-cellselectionbackground):not(.e-active):not(.e-updatedtd):not(.e-indentcell), .e-grid.e-rtl .e-gridhover tr[role=row]:hover .e-rowdragdrop:not(.e-cellselectionbackground):not(.e-active):not(.e-updatedtd):not(.e-indentcell),
     .e-grid.e-gridhover tr[role=row]:not(.e-detailrow):hover .e-detailrowexpand:not(.e-cellselectionbackground):not(.e-active):not(.e-updatedtd):not(.e-indentcell) {
-        background-color: var(--clr-text-dark) !important;
-        opacity: 0.87;
+        background-color: #173B2E !important;
+        opacity: 0.95;
     }
 
     .e-pager .e-currentitem, .e-pager .e-currentitem:hover {
-        background-color: $theme !important;
+        background-color: #008658 !important;
     }
 
     .e-control input.e-input,
@@ -95,7 +95,7 @@
 
     .e-checkbox-wrapper .e-frame.e-check, .e-css.e-checkbox-wrapper .e-frame.e-check,
     .e-btn.e-flat.e-primary, .e-css.e-btn.e-flat.e-primary {
-        background-color: $theme !important;
+        background-color: #008658 !important;
         color: var(--clr-text-light);
     }
 
@@ -105,7 +105,7 @@
     }
 
     .e-grid .e-filtered::before {
-        color: $theme;
+        color: #00A86B;
     }
 
     .e-contextmenu-wrapper {
@@ -258,18 +258,7 @@
         .e-input-group.e-control-wrapper:not(.e-float-icon-left):not(.e-float-input)::after,
         .e-input-group.e-control-wrapper.e-float-icon-left:not(.e-float-input) .e-input-in-wrap::before,
         .e-input-group.e-control-wrapper.e-float-icon-left:not(.e-float-input) .e-input-in-wrap::after {
-            background-color: $theme !important;
-        }
-
-        .e-input-group:not(.e-float-icon-left):not(.e-float-input)::before,
-        .e-input-group:not(.e-float-icon-left):not(.e-float-input)::after,
-        .e-input-group.e-float-icon-left:not(.e-float-input) .e-input-in-wrap::before,
-        .e-input-group.e-float-icon-left:not(.e-float-input) .e-input-in-wrap::after,
-        .e-input-group.e-control-wrapper:not(.e-float-icon-left):not(.e-float-input)::before,
-        .e-input-group.e-control-wrapper:not(.e-float-icon-left):not(.e-float-input)::after,
-        .e-input-group.e-control-wrapper.e-float-icon-left:not(.e-float-input) .e-input-in-wrap::before,
-        .e-input-group.e-control-wrapper.e-float-icon-left:not(.e-float-input) .e-input-in-wrap::after {
-            background-color: $theme !important;
+            background-color: #00A86B !important;
         }
     }
 }
