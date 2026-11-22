@@ -26,6 +26,19 @@ export interface SupervisorFilterParams {
     search?: string;
 }
 
+export interface BulkSkippedTest {
+    id: number;
+    reason: string;
+}
+
+export interface BulkConfirmResult {
+    confirmedIds: number[];
+    confirmedCount: number;
+    skipped: BulkSkippedTest[];
+    skippedCount: number;
+    kpis: SupervisorKPIs;
+}
+
 export interface SupervisorDashboardData {
     kpis: SupervisorKPIs;
     pendingQueue: PatientHeader[];

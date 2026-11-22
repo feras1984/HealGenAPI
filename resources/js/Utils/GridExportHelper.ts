@@ -22,7 +22,7 @@ const getExportableColumns = (grid: GridComponent): any[] | undefined => {
         const field = String(col.field || '').toLowerCase();
         const header = String(col.headerText || '').toLowerCase();
         const type = String(col.type || '').toLowerCase();
-        if (type === 'checkbox') return false;
+        if (type === 'checkbox' || field === 'bulkselect') return false;
         if (
             field === 'edit' ||
             header === 'edit' ||

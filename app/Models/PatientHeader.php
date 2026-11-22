@@ -16,6 +16,7 @@ class PatientHeader extends Model
     const UPDATED_AT = 'UpdatedAt';
 
     protected $fillable = [
+        'TestOperator',
         'DeviceId',
         'DeviceCode',
         'device_id',
@@ -24,6 +25,8 @@ class PatientHeader extends Model
         'DonorId',
         'CollectionSite',
         'CupLotNumber',
+        'DateTime',
+        'ProcessedAt',
         'Status',
         'CreatedAt',
         'UpdatedAt',
@@ -57,8 +60,17 @@ class PatientHeader extends Model
     public function latestInspectorAction(): HasOne
     {
         return $this->hasOne(PatientTestAction::class, 'patient_header_id', 'Id')
-            ->whereIn('action', ['INSPECTOR_ACCEPT', 'INSPECTOR_REJECT'])
-            ->latestOfMany('id');
+            ->ofMany(['id' => 'max'], function ($query) {
+                $query->whereIn('action', ['INSPECTOR_ACCEPT', 'INSPECTOR_REJECT']);
+            });
+    }
+
+    public function latestSupervisorAction(): HasOne
+    {
+        return $this->hasOne(PatientTestAction::class, 'patient_header_id', 'Id')
+            ->ofMany(['id' => 'max'], function ($query) {
+                $query->whereIn('action', ['SUPERVISOR_CONFIRM', 'SUPERVISOR_REJECT']);
+            });
     }
 
     public function getDeviceIdAttribute()

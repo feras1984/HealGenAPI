@@ -37,8 +37,10 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::get('/monitor/data', [MonitorController::class, 'data'])->name('admin.monitor.data');
 
     // Workflow Actions (Supervisor & Inspector)
+    Route::post('/supervisor/tests/bulk-confirm', [SupervisorController::class, 'bulkConfirm'])->name('admin.supervisor.bulk-confirm');
     Route::post('/supervisor/tests/{patientHeader}/confirm', [SupervisorController::class, 'confirm'])->name('admin.supervisor.confirm');
     Route::post('/supervisor/tests/{patientHeader}/reject', [SupervisorController::class, 'reject'])->name('admin.supervisor.reject');
+    Route::post('/inspector/tests/bulk-accept', [InspectorController::class, 'bulkAccept'])->name('admin.inspector.bulk-accept');
     Route::post('/inspector/tests/{patientHeader}/accept', [InspectorController::class, 'accept'])->name('admin.inspector.accept');
     Route::post('/inspector/tests/{patientHeader}/reject', [InspectorController::class, 'reject'])->name('admin.inspector.reject');
 

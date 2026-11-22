@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Box, Card, CardContent, Typography, Button, Chip } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -21,6 +21,21 @@ import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useInspectorContext } from "@/Services/InspectorService/State/InspectorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 import { useTranslation } from "react-i18next";
+import DelayFlagChip, { applyDelayedRowAccent, getDelayStatusLabel } from "@/Components/Timeline/DelayFlagChip";
+import QueueDelayBanner from "@/Components/Timeline/QueueDelayBanner";
+
+const DelayFlagTemplate = (props: any) => {
+    const { openTestDetails } = useInspectorContext();
+    return (
+        <DelayFlagChip
+            delaySummary={props.delaySummary || props.rawPatient?.delaySummary}
+            onClick={(e) => {
+                e.stopPropagation();
+                openTestDetails(props.rawPatient);
+            }}
+        />
+    );
+};
 
 const ActionTemplate = (props: any) => {
     const { openTestDetails } = useInspectorContext();
@@ -89,19 +104,32 @@ const PendingQueueGrid: React.FC = () => {
     const currentLang = useAppSelector(state => state.languages.language);
     const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
     const gridRef = useRef<GridComponent | null>(null);
+    const [showDelayedOnly, setShowDelayedOnly] = useState<boolean>(false);
 
-    const mappedGridData = queue.map(pt => ({
-        id: pt.id,
-        patientId: pt.patientId,
-        donorId: pt.donorId,
-        deviceCode: pt.device?.deviceCode || pt.deviceCode || '-',
-        deviceName: pt.device?.name || pt.deviceName || '-',
-        locationName: pt.device?.locationName || pt.locationName || '-',
-        status: pt.status,
-        attachment: pt.attachment || null,
-        createdAt: pt.createdAt,
-        rawPatient: pt,
-    }));
+    const delayedCount = useMemo(
+        () => queue.filter(pt => pt.delaySummary?.hasDelay).length,
+        [queue]
+    );
+    const thresholdHours = queue[0]?.delaySummary?.thresholdHours ?? 48;
+
+    const mappedGridData = useMemo(() => {
+        const filteredQueue = showDelayedOnly ? queue.filter(pt => pt.delaySummary?.hasDelay) : queue;
+        return filteredQueue.map(pt => ({
+            id: pt.id,
+            patientId: pt.patientId,
+            donorId: pt.donorId,
+            deviceCode: pt.device?.deviceCode || pt.deviceCode || '-',
+            deviceName: pt.device?.name || pt.deviceName || '-',
+            locationName: pt.device?.locationName || pt.locationName || '-',
+            delaySummary: pt.delaySummary || null,
+            delayStatusLabel: getDelayStatusLabel(pt.delaySummary, t),
+            status: pt.status,
+            attachment: pt.attachment || null,
+            capturedAt: pt.capturedAt || pt.createdAt || '-',
+            receivedAt: pt.receivedAt || pt.createdAt || '-',
+            rawPatient: pt,
+        }));
+    }, [queue, showDelayedOnly, t]);
 
     return (
         <Card
@@ -120,6 +148,13 @@ const PendingQueueGrid: React.FC = () => {
                         {t('inspector.pendingQueue') || 'Pending Inspection Queue'} ({mappedGridData.length})
                     </Typography>
                 </Box>
+
+                <QueueDelayBanner
+                    delayedCount={delayedCount}
+                    thresholdHours={thresholdHours}
+                    showDelayedOnly={showDelayedOnly}
+                    onToggleDelayedOnly={() => setShowDelayedOnly(prev => !prev)}
+                />
                 {mappedGridData.length === 0 ? (
                     <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
@@ -148,17 +183,20 @@ const PendingQueueGrid: React.FC = () => {
                             }
                             pageSettings={{ pageSize: 10 }}
                             rowHeight={50}
+                            rowDataBound={(args: any) => applyDelayedRowAccent(args, isRtl, dark)}
                         >
                             <ColumnsDirective>
                                 <ColumnDirective field="id" headerText={t('tests.testId') || 'Id'} width="80" textAlign="Center" />
                                 <ColumnDirective field="patientId" headerText={t('tests.patientCode') || 'Patient Code'} width="180" textAlign="Center" />
                                 <ColumnDirective field="donorId" headerText={t('tests.donorName') || 'Donor Name'} width="200" textAlign="Center" />
+                                <ColumnDirective field="delayStatusLabel" headerText={t('delay.columnHeader') || 'SLA / Delay'} width="150" textAlign="Center" template={DelayFlagTemplate} />
                                 <ColumnDirective field="deviceCode" headerText={t('tests.deviceCode') || 'Device Code'} width="160" textAlign="Center" />
                                 <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="180" textAlign="Center" />
                                 <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="160" textAlign="Center" />
                                 <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="160" textAlign="Center" template={StatusTemplate} />
                                 <ColumnDirective field="attachment" headerText={t('tests.attachment') || 'Attachment'} width="130" textAlign="Center" template={AttachmentTemplate} />
-                                <ColumnDirective field="createdAt" headerText={t('tests.receivedTime') || 'Received Time'} width="160" textAlign="Center" />
+                                <ColumnDirective field="capturedAt" headerText={t('tests.capturedTime') || 'Captured Time'} width="190" textAlign="Center" />
+                                <ColumnDirective field="receivedAt" headerText={t('tests.receivedTime') || 'Received Time'} width="190" textAlign="Center" />
                                 <ColumnDirective headerText={t('inspector.inspect') || 'Inspect'} width="140" textAlign="Center" template={ActionTemplate} />
                             </ColumnsDirective>
                             <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />

@@ -21,8 +21,18 @@ export interface SupervisorContextType {
     selectedTest: PatientHeader | null;
     isDrawerOpen: boolean;
     isConfirmDialogOpen: boolean;
+    isBulkConfirmDialogOpen: boolean;
     isRejectModalOpen: boolean;
     actionLoading: boolean;
+    selectedTestIds: number[];
+    selectedTests: PatientHeader[];
+    isTestSelected: (id: number) => boolean;
+    toggleTestSelection: (id: number) => void;
+    toggleAllTestsSelection: (visibleIds: number[]) => void;
+    isAllTestsSelected: (visibleIds: number[]) => boolean;
+    isSomeTestsSelected: (visibleIds: number[]) => boolean;
+    removeSelectedTestIds: (ids: number[]) => void;
+    clearSelectedTests: () => void;
     setFilters: (filters: SupervisorFilterParams) => void;
     updateFilter: (key: keyof SupervisorFilterParams, value: any) => void;
     clearFilters: () => void;
@@ -32,9 +42,12 @@ export interface SupervisorContextType {
     closeTestDetails: () => void;
     openConfirmDialog: () => void;
     closeConfirmDialog: () => void;
+    openBulkConfirmDialog: () => void;
+    closeBulkConfirmDialog: () => void;
     openRejectModal: () => void;
     closeRejectModal: () => void;
     handleConfirmSubmit: (note?: string) => Promise<void>;
+    handleBulkConfirmSubmit: (note?: string) => Promise<void>;
     handleRejectSubmit: (reason: string) => Promise<void>;
     setSnackbar?: (params: { open: boolean; message: string; severity?: any }) => void;
 }

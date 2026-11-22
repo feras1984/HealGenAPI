@@ -13,6 +13,8 @@ import TestDetailDrawer from "@/Services/SupervisorService/Components/TestDetail
 import ConfirmDialog from "@/Services/SupervisorService/Components/ConfirmDialog";
 import RejectModal from "@/Services/SupervisorService/Components/RejectModal";
 import MyRecentActivity from "@/Services/SupervisorService/Components/MyRecentActivity";
+import BulkActionConfirmDialog from "@/Components/BulkAction/BulkActionConfirmDialog";
+import useBulkSelection from "@/Hooks/useBulkSelection";
 import useSnackbarHook from "@/Hooks/SnackbarHook";
 import CustomSnackbar from "@/Components/Snackbar/CustomSnackbar";
 import {
@@ -52,8 +54,21 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
     const [selectedTest, setSelectedTest] = useState<PatientHeader | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
     const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState<boolean>(false);
+    const [isBulkConfirmDialogOpen, setIsBulkConfirmDialogOpen] = useState<boolean>(false);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState<boolean>(false);
     const [actionLoading, setActionLoading] = useState<boolean>(false);
+
+    const {
+        selectedIds: selectedTestIds,
+        selectedItems: selectedTests,
+        isSelected: isTestSelected,
+        toggleOne: toggleTestSelection,
+        toggleAll: toggleAllTestsSelection,
+        isAllSelected: isAllTestsSelected,
+        isIndeterminate: isSomeTestsSelected,
+        removeIds: removeSelectedTestIds,
+        clearSelection: clearSelectedTests,
+    } = useBulkSelection<PatientHeader>(data.pendingQueue || []);
 
     const supervisorService = ServiceContainer.get(SupervisorService);
     const dark = useAppSelector(state => state.theme.dark);
@@ -83,9 +98,9 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
             });
     }, [supervisorService, setSnackbar]);
 
-    // 10-second polling
+    // 10-second polling (paused while bulk confirmation dialog or action mutation is active)
     useEffect(() => {
-        if (!autoRefresh) return;
+        if (!autoRefresh || isBulkConfirmDialogOpen || actionLoading) return;
 
         const intervalId = setInterval(() => {
             fetchLatest(filters, false);
@@ -94,9 +109,10 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
         return () => {
             clearInterval(intervalId);
         };
-    }, [autoRefresh, filters, fetchLatest]);
+    }, [autoRefresh, isBulkConfirmDialogOpen, actionLoading, filters, fetchLatest]);
 
     const setFilters = (newFilters: SupervisorFilterParams) => {
+        clearSelectedTests();
         setFiltersState(newFilters);
         fetchLatest(newFilters, true);
     };
@@ -138,6 +154,15 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
         setIsConfirmDialogOpen(false);
     };
 
+    const openBulkConfirmDialog = () => {
+        if (selectedTestIds.length === 0) return;
+        setIsBulkConfirmDialogOpen(true);
+    };
+
+    const closeBulkConfirmDialog = () => {
+        setIsBulkConfirmDialogOpen(false);
+    };
+
     const openRejectModal = () => {
         setIsRejectModalOpen(true);
     };
@@ -169,6 +194,68 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                 message: errMsg,
                 severity: "error"
             });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleBulkConfirmSubmit = async (note?: string) => {
+        if (selectedTestIds.length === 0) return;
+        setActionLoading(true);
+
+        try {
+            const res = await supervisorService.bulkConfirmTests(selectedTestIds, note);
+            const result = res.data?.data;
+
+            if (res.data.status && result) {
+                if (result.skippedCount > 0) {
+                    const skippedSummary = result.skipped
+                        .slice(0, 3)
+                        .map(item => `#${item.id}`)
+                        .join(', ');
+                    const moreSuffix = result.skipped.length > 3 ? ` (+${result.skipped.length - 3})` : '';
+                    setSnackbar({
+                        open: true,
+                        message:
+                            t('bulk.partialConfirmSuccess', {
+                                confirmed: result.confirmedCount,
+                                skipped: result.skippedCount,
+                                ids: `${skippedSummary}${moreSuffix}`,
+                            }) ||
+                            `${result.confirmedCount} test(s) confirmed & sent to HIS. ${result.skippedCount} skipped (${skippedSummary}${moreSuffix}).`,
+                        severity: "warning",
+                    });
+                } else {
+                    setSnackbar({
+                        open: true,
+                        message:
+                            t('bulk.confirmSuccess', { count: result.confirmedCount }) ||
+                            res.data.message ||
+                            `${result.confirmedCount} test(s) confirmed & sent to HIS!`,
+                        severity: "success",
+                    });
+                }
+
+                setIsBulkConfirmDialogOpen(false);
+                clearSelectedTests();
+                fetchLatest(filters, false);
+            }
+        } catch (err: any) {
+            const errMsg =
+                err.response?.data?.message ||
+                t('bulk.confirmError') ||
+                "Failed to confirm selected tests. Please try again.";
+            setSnackbar({
+                open: true,
+                message: errMsg,
+                severity: "error",
+            });
+            // Refresh queue if conflict (tests may have been processed by another supervisor)
+            if (err.response?.status === 409) {
+                setIsBulkConfirmDialogOpen(false);
+                clearSelectedTests();
+                fetchLatest(filters, false);
+            }
         } finally {
             setActionLoading(false);
         }
@@ -215,8 +302,18 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                 selectedTest,
                 isDrawerOpen,
                 isConfirmDialogOpen,
+                isBulkConfirmDialogOpen,
                 isRejectModalOpen,
                 actionLoading,
+                selectedTestIds,
+                selectedTests,
+                isTestSelected,
+                toggleTestSelection,
+                toggleAllTestsSelection,
+                isAllTestsSelected,
+                isSomeTestsSelected,
+                removeSelectedTestIds,
+                clearSelectedTests,
                 setFilters,
                 updateFilter,
                 clearFilters,
@@ -226,9 +323,12 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                 closeTestDetails,
                 openConfirmDialog,
                 closeConfirmDialog,
+                openBulkConfirmDialog,
+                closeBulkConfirmDialog,
                 openRejectModal,
                 closeRejectModal,
                 handleConfirmSubmit,
+                handleBulkConfirmSubmit,
                 handleRejectSubmit,
                 setSnackbar,
             }}
@@ -374,6 +474,30 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                 {/* Detail View & Action Modals */}
                 <TestDetailDrawer />
                 <ConfirmDialog />
+                <BulkActionConfirmDialog
+                    open={isBulkConfirmDialogOpen}
+                    onClose={closeBulkConfirmDialog}
+                    onConfirm={handleBulkConfirmSubmit}
+                    onRemoveItem={(id) => removeSelectedTestIds([id])}
+                    onRemoveFlagged={(flaggedIds) => removeSelectedTestIds(flaggedIds)}
+                    selectedTests={selectedTests}
+                    loading={actionLoading}
+                    title={
+                        t('dialogs.bulkConfirmTitle', { count: selectedTests.length }) ||
+                        `Confirm ${selectedTests.length} Selected Test(s)?`
+                    }
+                    description={
+                        t('dialogs.bulkConfirmDesc', { count: selectedTests.length }) ||
+                        `Are you sure you want to confirm ${selectedTests.length} selected test(s)? All eligible tests will be marked as Confirmed and dispatched to the HIS integration pipeline.`
+                    }
+                    confirmLabel={
+                        t('dialogs.bulkConfirmAndSendAction', { count: selectedTests.length }) ||
+                        `Confirm ${selectedTests.length} Test(s) & Send to HIS`
+                    }
+                    loadingLabel={t('dialogs.confirming') || 'Confirming...'}
+                    confirmColor="success"
+                    showNoteField={true}
+                />
                 <RejectModal />
             </Box>
 

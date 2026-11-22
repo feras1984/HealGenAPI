@@ -127,6 +127,15 @@ class PatientController extends Controller
     {
         $this->authorizePatientAccess($request, $patient, false);
 
+        $patient->load([
+            'device.location',
+            'device.deviceType',
+            'tests',
+            'file',
+            'latestInspectorAction.user.reference',
+            'latestSupervisorAction.user.reference',
+        ]);
+
         return Inertia::render('Admin/Patient/PatientDetails', [
             'patient' => PatientHeaderService::mapPatientModel($patient),
         ]);
@@ -188,7 +197,7 @@ class PatientController extends Controller
                     'downloadUrl' => route('admin.tests.file.download', $patient->Id),
                     'isImage' => (bool) $file->is_image,
                     'description' => $file->description,
-                    'createdAt' => Carbon::make($file->created_at)->format('M d, Y H:i'),
+                    'createdAt' => Carbon::make($file->created_at)->format('M d, Y H:i:s'),
                 ],
             ], HTTPResponse::HTTP_CREATED);
         } catch (\Exception $e) {

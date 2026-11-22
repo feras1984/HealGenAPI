@@ -72,7 +72,14 @@ export const exportTestDetailsToExcel = (patient: PatientHeader): void => {
         ['Collection Site', patient.collectionSite || '-'],
         ['Cup Lot Number', patient.cupLotNumber || '-'],
         ['Test Status', patient.status || 'Imported'],
-        ['Created Timestamp', patient.createdAt || '-'],
+        ['Captured Time (Employee / Device)', patient.capturedAt || patient.createdAt || '-'],
+        ['Server Received Time', patient.receivedAt || patient.createdAt || '-'],
+        [
+            'SLA / Delay Status',
+            patient.delaySummary?.hasDelay
+                ? `Delayed (Max: ${patient.delaySummary.maxDelayFormatted || ''}, Threshold: ${patient.delaySummary.thresholdHours}h)`
+                : `On Time (Threshold: ${patient.delaySummary?.thresholdHours ?? 48}h)`,
+        ],
     ];
 
     patientInfo.forEach(([label, val]) => {
@@ -118,7 +125,8 @@ export const exportTestDetailsToExcel = (patient: PatientHeader): void => {
     });
 
     // 4. Inspector Review Section (if present)
-    if (patient.reviewedBy) {
+    const inspectedInfo = patient.inspectedBy || patient.reviewedBy;
+    if (inspectedInfo) {
         currentRowIndex++; // Empty row
         rows.push({
             index: currentRowIndex++,
@@ -126,20 +134,55 @@ export const exportTestDetailsToExcel = (patient: PatientHeader): void => {
                 {
                     index: 1,
                     colSpan: 4,
-                    value: '3. INSPECTION & REVIEW ATTRIBUTION',
+                    value: '3. INSPECTION ATTRIBUTION (INSPECTOR / ADMIN)',
                     style: { bold: true, backColor: '#e2e8f0', fontSize: 11 }
                 }
             ]
         });
 
         const reviewInfo = [
-            ['Inspector', patient.reviewedBy.name || patient.reviewedBy.email || '-'],
-            ['Action Taken', patient.reviewedBy.action || '-'],
-            ['Review Timestamp', patient.reviewedBy.reviewedAt || '-'],
-            ['Notes / Reason', patient.reviewedBy.reason || '-'],
+            ['Inspector', inspectedInfo.name || inspectedInfo.email || '-'],
+            ['Role', inspectedInfo.role || '-'],
+            ['Action Taken', inspectedInfo.action || '-'],
+            ['Inspection Time', inspectedInfo.at || inspectedInfo.reviewedAt || '-'],
+            ['Notes / Reason', inspectedInfo.reason || '-'],
         ];
 
         reviewInfo.forEach(([label, val]) => {
+            rows.push({
+                index: currentRowIndex++,
+                cells: [
+                    { index: 1, value: label, style: { bold: true, backColor: '#f8fafc' } },
+                    { index: 2, colSpan: 3, value: val }
+                ]
+            });
+        });
+    }
+
+    // 4b. Supervisor Confirmation Section (if present)
+    if (patient.confirmedBy) {
+        currentRowIndex++; // Empty row
+        rows.push({
+            index: currentRowIndex++,
+            cells: [
+                {
+                    index: 1,
+                    colSpan: 4,
+                    value: '4. CONFIRMATION ATTRIBUTION (SUPERVISOR / ADMIN)',
+                    style: { bold: true, backColor: '#e2e8f0', fontSize: 11 }
+                }
+            ]
+        });
+
+        const confirmInfo = [
+            ['Supervisor', patient.confirmedBy.name || patient.confirmedBy.email || '-'],
+            ['Role', patient.confirmedBy.role || '-'],
+            ['Action Taken', patient.confirmedBy.action || '-'],
+            ['Confirm Time', patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'],
+            ['Notes / Reason', patient.confirmedBy.reason || '-'],
+        ];
+
+        confirmInfo.forEach(([label, val]) => {
             rows.push({
                 index: currentRowIndex++,
                 cells: [
@@ -297,7 +340,11 @@ export const exportTestDetailsToPdf = (patient: PatientHeader): void => {
 
         const pRow3 = patientGrid.rows.addRow();
         pRow3.cells.getCell(0).value = `Current Status: ${patient.status || 'Imported'}`;
-        pRow3.cells.getCell(1).value = `Received Date: ${patient.createdAt || '-'}`;
+        pRow3.cells.getCell(1).value = `Captured Time: ${patient.capturedAt || patient.createdAt || '-'}`;
+
+        const pRow4 = patientGrid.rows.addRow();
+        pRow4.cells.getCell(0).value = `Server Received Time: ${patient.receivedAt || patient.createdAt || '-'}`;
+        pRow4.cells.getCell(1).value = `Confirm Time: ${patient.confirmedAt || patient.confirmedBy?.at || '-'}`;
 
         const pRes = patientGrid.draw(page, 0, currentY);
         currentY = pRes.bounds.y + pRes.bounds.height + 12;
@@ -323,25 +370,48 @@ export const exportTestDetailsToPdf = (patient: PatientHeader): void => {
         currentY = dRes.bounds.y + dRes.bounds.height + 12;
 
         // 4. Inspector Review Attribution (if present)
-        if (patient.reviewedBy) {
+        const inspectedInfoPdf = patient.inspectedBy || patient.reviewedBy;
+        if (inspectedInfoPdf) {
             const reviewGrid = new PdfGrid();
             reviewGrid.columns.add(2);
 
             const rHeaderRow = reviewGrid.headers.add(1)[0];
-            rHeaderRow.cells.getCell(0).value = 'INSPECTION & REVIEW ATTRIBUTION';
+            rHeaderRow.cells.getCell(0).value = 'INSPECTION ATTRIBUTION (INSPECTOR / ADMIN)';
             rHeaderRow.cells.getCell(0).columnSpan = 2;
             rHeaderRow.cells.getCell(0).style.font = boldHeaderFont;
 
             const rRow1 = reviewGrid.rows.addRow();
-            rRow1.cells.getCell(0).value = `Inspector: ${patient.reviewedBy.name || patient.reviewedBy.email || '-'}`;
-            rRow1.cells.getCell(1).value = `Decision: ${patient.reviewedBy.action || '-'}`;
+            rRow1.cells.getCell(0).value = `Inspector: ${inspectedInfoPdf.name || inspectedInfoPdf.email || '-'} (${inspectedInfoPdf.role || '-'})`;
+            rRow1.cells.getCell(1).value = `Decision: ${inspectedInfoPdf.action || '-'}`;
 
             const rRow2 = reviewGrid.rows.addRow();
-            rRow2.cells.getCell(0).value = `Reviewed At: ${patient.reviewedBy.reviewedAt || '-'}`;
-            rRow2.cells.getCell(1).value = `Reason: ${patient.reviewedBy.reason || '-'}`;
+            rRow2.cells.getCell(0).value = `Inspection Time: ${inspectedInfoPdf.at || inspectedInfoPdf.reviewedAt || '-'}`;
+            rRow2.cells.getCell(1).value = `Reason: ${inspectedInfoPdf.reason || '-'}`;
 
             const rRes = reviewGrid.draw(page, 0, currentY);
             currentY = rRes.bounds.y + rRes.bounds.height + 12;
+        }
+
+        // 4b. Supervisor Confirmation Attribution (if present)
+        if (patient.confirmedBy) {
+            const confirmGrid = new PdfGrid();
+            confirmGrid.columns.add(2);
+
+            const cHeaderRow = confirmGrid.headers.add(1)[0];
+            cHeaderRow.cells.getCell(0).value = 'CONFIRMATION ATTRIBUTION (SUPERVISOR / ADMIN)';
+            cHeaderRow.cells.getCell(0).columnSpan = 2;
+            cHeaderRow.cells.getCell(0).style.font = boldHeaderFont;
+
+            const cRow1 = confirmGrid.rows.addRow();
+            cRow1.cells.getCell(0).value = `Supervisor: ${patient.confirmedBy.name || patient.confirmedBy.email || '-'} (${patient.confirmedBy.role || '-'})`;
+            cRow1.cells.getCell(1).value = `Decision: ${patient.confirmedBy.action || '-'}`;
+
+            const cRow2 = confirmGrid.rows.addRow();
+            cRow2.cells.getCell(0).value = `Confirm Time: ${patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'}`;
+            cRow2.cells.getCell(1).value = `Notes: ${patient.confirmedBy.reason || '-'}`;
+
+            const cRes = confirmGrid.draw(page, 0, currentY);
+            currentY = cRes.bounds.y + cRes.bounds.height + 12;
         }
 
         // 5. Attached Document info (if present)

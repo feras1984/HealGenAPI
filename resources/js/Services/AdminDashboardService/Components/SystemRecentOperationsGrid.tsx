@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Box, Card, CardContent, Typography, Chip } from '@mui/material';
 import {
     ColumnDirective,
@@ -18,6 +18,12 @@ import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useAdminDashboardContext } from "@/Services/AdminDashboardService/State/AdminDashboardContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 import { useTranslation } from "react-i18next";
+import DelayFlagChip, { applyDelayedRowAccent, getDelayStatusLabel } from "@/Components/Timeline/DelayFlagChip";
+import QueueDelayBanner from "@/Components/Timeline/QueueDelayBanner";
+
+const DelayFlagTemplate = (props: any) => (
+    <DelayFlagChip delaySummary={props.delaySummary} />
+);
 
 const statusColorMap: Record<string, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
     'Imported': 'info',
@@ -59,17 +65,32 @@ const SystemRecentOperationsGrid: React.FC = () => {
     const currentLang = useAppSelector(state => state.languages.language);
     const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
     const gridRef = useRef<GridComponent | null>(null);
+    const [showDelayedOnly, setShowDelayedOnly] = useState<boolean>(false);
 
-    const mappedGridData = tests.map(pt => ({
-        id: pt.id,
-        patientId: pt.patientId,
-        donorId: pt.donorId,
-        deviceCode: pt.device?.deviceCode || pt.deviceCode || '-',
-        deviceName: pt.device?.name || pt.deviceName || '-',
-        locationName: pt.device?.locationName || pt.locationName || '-',
-        status: pt.status,
-        createdAt: pt.createdAt,
-    }));
+    const delayedCount = useMemo(
+        () => tests.filter(pt => pt.delaySummary?.hasDelay).length,
+        [tests]
+    );
+    const thresholdHours = tests[0]?.delaySummary?.thresholdHours ?? 48;
+
+    const mappedGridData = useMemo(() => {
+        const filteredTests = showDelayedOnly ? tests.filter(pt => pt.delaySummary?.hasDelay) : tests;
+        return filteredTests.map(pt => ({
+            id: pt.id,
+            patientId: pt.patientId,
+            donorId: pt.donorId,
+            deviceCode: pt.device?.deviceCode || pt.deviceCode || '-',
+            deviceName: pt.device?.name || pt.deviceName || '-',
+            locationName: pt.device?.locationName || pt.locationName || '-',
+            status: pt.status,
+            delaySummary: pt.delaySummary || null,
+            delayStatusLabel: getDelayStatusLabel(pt.delaySummary, t),
+            capturedAt: pt.capturedAt || pt.createdAt || '-',
+            receivedAt: pt.receivedAt || pt.createdAt || '-',
+            inspectedAt: pt.inspectedAt || pt.inspectedBy?.at || pt.reviewedBy?.reviewedAt || '-',
+            confirmedAt: pt.confirmedAt || pt.confirmedBy?.at || '-',
+        }));
+    }, [tests, showDelayedOnly, t]);
 
     return (
         <Card
@@ -88,6 +109,12 @@ const SystemRecentOperationsGrid: React.FC = () => {
                         {t('dashboard.recentOperations') || 'Recent System Test Operations'} ({mappedGridData.length})
                     </Typography>
                 </Box>
+                <QueueDelayBanner
+                    delayedCount={delayedCount}
+                    thresholdHours={thresholdHours}
+                    showDelayedOnly={showDelayedOnly}
+                    onToggleDelayedOnly={() => setShowDelayedOnly(prev => !prev)}
+                />
                 {mappedGridData.length === 0 ? (
                     <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
@@ -116,16 +143,21 @@ const SystemRecentOperationsGrid: React.FC = () => {
                             }
                             pageSettings={{ pageSize: 10 }}
                             rowHeight={45}
+                            rowDataBound={(args: any) => applyDelayedRowAccent(args, isRtl, dark)}
                         >
                             <ColumnsDirective>
                                 <ColumnDirective field="id" headerText={t('tests.testId') || 'Id'} width="80" textAlign="Center" />
                                 <ColumnDirective field="patientId" headerText={t('tests.patientCode') || 'Patient Code'} width="180" textAlign="Center" />
                                 <ColumnDirective field="donorId" headerText={t('tests.donorName') || 'Donor Name'} width="200" textAlign="Center" />
+                                <ColumnDirective field="delayStatusLabel" headerText={t('delay.columnHeader') || 'SLA / Delay'} width="150" textAlign="Center" template={DelayFlagTemplate} />
                                 <ColumnDirective field="deviceCode" headerText={t('tests.deviceCode') || 'Device Code'} width="160" textAlign="Center" />
                                 <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="180" textAlign="Center" />
                                 <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="160" textAlign="Center" />
                                 <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="180" textAlign="Center" template={StatusTemplate} />
-                                <ColumnDirective field="createdAt" headerText={t('tests.receivedTime') || 'Received Time'} width="160" textAlign="Center" />
+                                <ColumnDirective field="capturedAt" headerText={t('tests.capturedTime') || 'Captured Time'} width="190" textAlign="Center" />
+                                <ColumnDirective field="receivedAt" headerText={t('tests.receivedTime') || 'Received Time'} width="190" textAlign="Center" />
+                                <ColumnDirective field="inspectedAt" headerText={t('tests.inspectedTime') || 'Inspection Time'} width="190" textAlign="Center" />
+                                <ColumnDirective field="confirmedAt" headerText={t('tests.confirmedTime') || 'Confirm Time'} width="190" textAlign="Center" />
                             </ColumnsDirective>
                             <Inject services={[Page, Sort, Filter, Toolbar, Search, ExcelExport, PdfExport]} />
                         </GridComponent>

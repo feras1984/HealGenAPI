@@ -5,6 +5,7 @@ import AdminLayout from "@/Layouts/Admin/AdminLayout";
 import axios from 'axios';
 import DocumentViewerModal from '@/Components/DocumentViewer/DocumentViewerModal';
 import { DocumentItem } from '@/Components/DocumentViewer/Interfaces/DocumentViewerTypes';
+import TestWorkflowTimeline from '@/Components/Timeline/TestWorkflowTimeline';
 import useSnackbarHook from "@/Hooks/SnackbarHook";
 import CustomSnackbar from "@/Components/Snackbar/CustomSnackbar";
 import {
@@ -392,15 +393,28 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                     sx={{ fontWeight: 600 }}
                                 />
                             </Box>
-                            <Box sx={{ textAlign: isRtl ? 'left' : 'right' }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, textAlign: isRtl ? 'left' : 'right' }}>
-                                    {t('tests.createdDate') || 'Created Date'}
-                                </Typography>
-                                <Typography variant="body2" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'left' : 'right' }}>
-                                    {patient.createdAt || '-'}
-                                </Typography>
+                            <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', textAlign: isRtl ? 'left' : 'right' }}>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, textAlign: isRtl ? 'left' : 'right' }}>
+                                        {t('tests.capturedTime') || 'Captured Time'}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'left' : 'right' }}>
+                                        {patient.capturedAt || patient.createdAt || '-'}
+                                    </Typography>
+                                </Box>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, textAlign: isRtl ? 'left' : 'right' }}>
+                                        {t('tests.receivedTime') || 'Received Time'}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'left' : 'right' }}>
+                                        {patient.receivedAt || patient.createdAt || '-'}
+                                    </Typography>
+                                </Box>
                             </Box>
                         </Paper>
+
+                        {/* 3-Stage Workflow Timing Timeline */}
+                        <TestWorkflowTimeline patient={patient} />
 
                         {/* Patient & Sample Details */}
                         <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
@@ -451,42 +465,117 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         </Grid>
 
                         {/* Inspector Review Information (if present) */}
-                        {patient.reviewedBy && (
+                        {(patient.inspectedBy || patient.reviewedBy) && (() => {
+                            const inspectorInfo = patient.inspectedBy || patient.reviewedBy!;
+                            return (
+                                <>
+                                    <Divider className="mb-6" />
+                                    <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        {t('tests.inspectorAttribution') || 'Inspector Review Attribution'}
+                                    </Typography>
+                                    <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.inspector') || 'Inspector'}</Typography>
+                                            <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                {(inspectorInfo.name && t(`users.${inspectorInfo.name}`)) || (inspectorInfo.email && t(`users.${inspectorInfo.email}`)) || inspectorInfo.name || inspectorInfo.email || '-'}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('common.role') || 'Role'}</Typography>
+                                            <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Chip
+                                                    label={inspectorInfo.role ? (t(`roles.${inspectorInfo.role}`) || inspectorInfo.role) : '-'}
+                                                    color="primary"
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ fontWeight: 600 }}
+                                                />
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.action') || 'Action'}</Typography>
+                                            <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Chip
+                                                    label={t(`status.${inspectorInfo.action}`) || inspectorInfo.action}
+                                                    color={inspectorInfo.action === 'INSPECTOR_ACCEPT' ? 'success' : 'error'}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ fontWeight: 600 }}
+                                                />
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.inspectedTime') || 'Inspection Time'}</Typography>
+                                            <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                {inspectorInfo.at || inspectorInfo.reviewedAt || '-'}
+                                            </Typography>
+                                        </Grid>
+                                        {inspectorInfo.reason && (
+                                            <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Inspector Reason / Notes'}</Typography>
+                                                <Typography variant="body2" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                    {inspectorInfo.reason}
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                </>
+                            );
+                        })()}
+
+                        {/* Supervisor Confirmation Information (if present) */}
+                        {patient.confirmedBy && (
                             <>
                                 <Divider className="mb-6" />
                                 <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                    {t('tests.inspectorAttribution') || 'Inspector Review Attribution'}
+                                    {t('tests.supervisorAttribution') || 'Supervisor Confirmation Attribution'}
                                 </Typography>
                                 <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-                                    <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.inspector') || 'Inspector'}</Typography>
+                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.supervisor') || 'Supervisor'}</Typography>
                                         <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            {(patient.reviewedBy.name && t(`users.${patient.reviewedBy.name}`)) || (patient.reviewedBy.email && t(`users.${patient.reviewedBy.email}`)) || patient.reviewedBy.name || patient.reviewedBy.email || '-'}
+                                            {(patient.confirmedBy.name && t(`users.${patient.confirmedBy.name}`)) || (patient.confirmedBy.email && t(`users.${patient.confirmedBy.email}`)) || patient.confirmedBy.name || patient.confirmedBy.email || '-'}
                                         </Typography>
                                     </Grid>
-                                    <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.action') || 'Action'}</Typography>
+                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('common.role') || 'Role'}</Typography>
                                         <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
                                             <Chip
-                                                label={t(`status.${patient.reviewedBy.action}`) || patient.reviewedBy.action}
-                                                color={patient.reviewedBy.action === 'INSPECTOR_ACCEPT' ? 'success' : 'error'}
+                                                label={patient.confirmedBy.role ? (t(`roles.${patient.confirmedBy.role}`) || patient.confirmedBy.role) : '-'}
+                                                color="secondary"
                                                 size="small"
                                                 variant="outlined"
                                                 sx={{ fontWeight: 600 }}
                                             />
                                         </Box>
                                     </Grid>
-                                    <Grid item xs={12} sm={6} md={4} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reviewTimestamp') || 'Review Timestamp'}</Typography>
+                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.action') || 'Action'}</Typography>
+                                        <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Chip
+                                                label={
+                                                    patient.confirmedBy.action === 'SUPERVISOR_CONFIRM'
+                                                        ? (t('status.Confirmed') || 'Confirmed')
+                                                        : (t('status.Supervisor Rejected') || 'Supervisor Rejected')
+                                                }
+                                                color={patient.confirmedBy.action === 'SUPERVISOR_CONFIRM' ? 'success' : 'error'}
+                                                size="small"
+                                                variant="outlined"
+                                                sx={{ fontWeight: 600 }}
+                                            />
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.confirmedTime') || 'Confirm Time'}</Typography>
                                         <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            {patient.reviewedBy.reviewedAt || '-'}
+                                            {patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'}
                                         </Typography>
                                     </Grid>
-                                    {patient.reviewedBy.reason && (
+                                    {patient.confirmedBy.reason && (
                                         <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Inspector Reason / Notes'}</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Supervisor Notes / Reason'}</Typography>
                                             <Typography variant="body2" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                                {patient.reviewedBy.reason}
+                                                {patient.confirmedBy.reason}
                                             </Typography>
                                         </Grid>
                                     )}
