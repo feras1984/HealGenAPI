@@ -6,12 +6,218 @@ use App\Facades\DeviceService\DeviceService;
 use App\Factories\PatientQuery\PatientQueryStrategyFactory;
 use App\Models\Device;
 use App\Models\PatientHeader;
+use App\Models\PatientTestAction;
 use App\Facades\PatientService\PatientTestService;
-use App\Services\PatientService;
 use Carbon\Carbon;
 
 class PatientHeaderService
 {
+    public const DATETIME_FORMAT = 'M d, Y H:i:s';
+
+    private function parseCarbon(mixed $value): ?Carbon
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::make($value);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function formatTimestamp(mixed $value): ?string
+    {
+        $carbon = $this->parseCarbon($value);
+        return $carbon ? $carbon->format(self::DATETIME_FORMAT) : null;
+    }
+
+    private function formatTimestampIso(mixed $value): ?string
+    {
+        $carbon = $this->parseCarbon($value);
+        return $carbon ? $carbon->toIso8601String() : null;
+    }
+
+    private function formatElapsedDuration(int $seconds): string
+    {
+        if ($seconds < 60) {
+            return "{$seconds}s";
+        }
+
+        $days = intdiv($seconds, 86400);
+        $hours = intdiv($seconds % 86400, 3600);
+        $mins = intdiv($seconds % 3600, 60);
+
+        if ($days > 0) {
+            return $hours > 0 ? "{$days}d {$hours}h" : "{$days}d";
+        }
+
+        if ($hours > 0) {
+            return $mins > 0 ? "{$hours}h {$mins}m" : "{$hours}h";
+        }
+
+        return "{$mins}m";
+    }
+
+    private function buildStageDelay(
+        string $key,
+        ?Carbon $start,
+        ?Carbon $end,
+        bool $isOngoing,
+        int $thresholdSeconds
+    ): ?array {
+        if (!$start || !$end) {
+            return null;
+        }
+
+        $diffSeconds = (int) $start->diffInSeconds($end, false);
+        if ($diffSeconds < 0) {
+            $diffSeconds = 0;
+        }
+
+        return [
+            'key' => $key,
+            'seconds' => $diffSeconds,
+            'hours' => round($diffSeconds / 3600, 1),
+            'formatted' => $this->formatElapsedDuration($diffSeconds),
+            'isDelayed' => $diffSeconds >= $thresholdSeconds,
+            'isOngoing' => $isOngoing,
+        ];
+    }
+
+    private function buildDelaySummary(
+        PatientHeader $patientHeader,
+        ?PatientTestAction $inspectorAction,
+        ?PatientTestAction $supervisorAction
+    ): array {
+        $thresholdHours = max(1, (int) config('healgen.delay_threshold_hours', 48));
+        $thresholdSeconds = $thresholdHours * 3600;
+        $now = Carbon::now();
+
+        $deviceCapturedCarbon = $this->parseCarbon($patientHeader->DateTime);
+        $receivedCarbon = $this->parseCarbon($patientHeader->CreatedAt);
+        $inspectorCarbon = $inspectorAction ? $this->parseCarbon($inspectorAction->created_at) : null;
+        $supervisorCarbon = $supervisorAction ? $this->parseCarbon($supervisorAction->created_at) : null;
+
+        // Stage 1 -> 2: Captured -> Received
+        $captureToReceive = $this->buildStageDelay(
+            'capture_to_receive',
+            $deviceCapturedCarbon,
+            $receivedCarbon,
+            false,
+            $thresholdSeconds
+        );
+
+        // Stage 2 -> 3: Received -> Inspection
+        $receiveToInspection = null;
+        if ($inspectorCarbon) {
+            $receiveToInspection = $this->buildStageDelay(
+                'receive_to_inspection',
+                $receivedCarbon,
+                $inspectorCarbon,
+                false,
+                $thresholdSeconds
+            );
+        } elseif (in_array($patientHeader->Status, ['Imported', 'Awaiting Inspection'], true)) {
+            $receiveToInspection = $this->buildStageDelay(
+                'receive_to_inspection',
+                $receivedCarbon,
+                $now,
+                true,
+                $thresholdSeconds
+            );
+        }
+
+        // Stage 3 -> 4: Inspection -> Supervision (Confirmation)
+        $inspectionToSupervision = null;
+        $supervisionStart = $inspectorCarbon ?? $receivedCarbon;
+        if ($supervisorCarbon) {
+            $inspectionToSupervision = $this->buildStageDelay(
+                'inspection_to_supervision',
+                $supervisionStart,
+                $supervisorCarbon,
+                false,
+                $thresholdSeconds
+            );
+        } elseif (in_array($patientHeader->Status, ['Inspector Accepted', 'Awaiting Supervisor'], true)) {
+            $inspectionToSupervision = $this->buildStageDelay(
+                'inspection_to_supervision',
+                $supervisionStart,
+                $now,
+                true,
+                $thresholdSeconds
+            );
+        }
+
+        $stages = [
+            'captureToReceive' => $captureToReceive,
+            'receiveToInspection' => $receiveToInspection,
+            'inspectionToSupervision' => $inspectionToSupervision,
+        ];
+
+        $delayedStages = [];
+        $maxDelaySeconds = 0;
+
+        foreach ($stages as $stage) {
+            if ($stage && $stage['isDelayed']) {
+                $delayedStages[] = $stage['key'];
+                if ($stage['seconds'] > $maxDelaySeconds) {
+                    $maxDelaySeconds = $stage['seconds'];
+                }
+            }
+        }
+
+        return [
+            'thresholdHours' => $thresholdHours,
+            'hasDelay' => count($delayedStages) > 0,
+            'delayedCount' => count($delayedStages),
+            'maxDelayHours' => $maxDelaySeconds > 0 ? round($maxDelaySeconds / 3600, 1) : 0,
+            'maxDelayFormatted' => $maxDelaySeconds > 0 ? $this->formatElapsedDuration($maxDelaySeconds) : null,
+            'delayedStages' => $delayedStages,
+            'stages' => $stages,
+        ];
+    }
+
+    private function mapActionAttribution(?PatientTestAction $action): ?array
+    {
+        if (!$action) {
+            return null;
+        }
+
+        $actionUser = $action->relationLoaded('user')
+            ? $action->user
+            : $action->user()->with('reference')->first();
+
+        $displayName = $actionUser?->email ?? '';
+        $role = $action->role ?? '';
+
+        if ($actionUser && $actionUser->reference) {
+            $ref = $actionUser->reference;
+            $name = trim(($ref->first_name ?? '') . ' ' . ($ref->last_name ?? ''));
+            if (!empty($name)) {
+                $displayName = $name;
+            }
+            if (empty($role) && !empty($ref->role)) {
+                $role = $ref->role;
+            }
+        }
+
+        $formattedAt = $this->formatTimestamp($action->created_at) ?? '';
+
+        return [
+            'id' => $actionUser?->id,
+            'name' => $displayName,
+            'email' => $actionUser?->email ?? '',
+            'role' => $role,
+            'action' => $action->action,
+            'at' => $formattedAt,
+            'reviewedAt' => $formattedAt,
+            'atIso' => $this->formatTimestampIso($action->created_at),
+            'reason' => $action->reason ?? '',
+        ];
+    }
+
     public function mapPatientModel(PatientHeader $patientHeader): array
     {
         $device = $patientHeader->relationLoaded('device')
@@ -23,34 +229,19 @@ class PatientHeaderService
             ? $patientHeader->tests
             : $patientHeader->tests()->get();
         $testsModel = [];
-        foreach ($tests as $test){
+        foreach ($tests as $test) {
             $testsModel[] = PatientTestService::mapTestModel($test);
         }
 
         $inspectorAction = $patientHeader->relationLoaded('latestInspectorAction')
             ? $patientHeader->latestInspectorAction
             : $patientHeader->latestInspectorAction()->with('user.reference')->first();
+        $inspectorData = $this->mapActionAttribution($inspectorAction);
 
-        $inspectorData = null;
-        if ($inspectorAction) {
-            $inspUser = $inspectorAction->user;
-            $inspName = $inspUser?->email ?? '';
-            if ($inspUser && $inspUser->reference) {
-                $ref = $inspUser->reference;
-                $name = trim(($ref->first_name ?? '') . ' ' . ($ref->last_name ?? ''));
-                if (!empty($name)) {
-                    $inspName = $name;
-                }
-            }
-            $inspectorData = [
-                'id' => $inspUser?->id,
-                'name' => $inspName,
-                'email' => $inspUser?->email ?? '',
-                'action' => $inspectorAction->action,
-                'reviewedAt' => $inspectorAction->created_at ? Carbon::make($inspectorAction->created_at)->format('M d, Y H:i') : '',
-                'reason' => $inspectorAction->reason ?? '',
-            ];
-        }
+        $supervisorAction = $patientHeader->relationLoaded('latestSupervisorAction')
+            ? $patientHeader->latestSupervisorAction
+            : $patientHeader->latestSupervisorAction()->with('user.reference')->first();
+        $supervisorData = $this->mapActionAttribution($supervisorAction);
 
         $file = $patientHeader->relationLoaded('file')
             ? $patientHeader->file
@@ -65,9 +256,17 @@ class PatientHeaderService
                 'downloadUrl' => route('admin.tests.file.download', $patientHeader->Id),
                 'isImage' => (bool) $file->is_image,
                 'description' => $file->description,
-                'createdAt' => $file->created_at ? Carbon::make($file->created_at)->format('M d, Y H:i') : '',
+                'createdAt' => $this->formatTimestamp($file->created_at) ?? '',
             ];
         }
+
+        $deviceCapturedAt = $this->formatTimestamp($patientHeader->DateTime);
+        $receivedAt = $this->formatTimestamp($patientHeader->CreatedAt) ?? '';
+        $capturedAt = $deviceCapturedAt ?? $receivedAt;
+        $capturedAtIso = $this->formatTimestampIso($patientHeader->DateTime)
+            ?? $this->formatTimestampIso($patientHeader->CreatedAt);
+
+        $delaySummary = $this->buildDelaySummary($patientHeader, $inspectorAction, $supervisorAction);
 
         return [
             'id' => $patientHeader->Id,
@@ -79,21 +278,38 @@ class PatientHeaderService
             'device' => $deviceModel,
             'tests' => $testsModel,
             'reviewedBy' => $inspectorData,
+            'inspectedBy' => $inspectorData,
+            'confirmedBy' => $supervisorData,
             'attachment' => $attachment,
-            'createdAt' => Carbon::make($patientHeader->CreatedAt)->format('M d, Y'),
+            'deviceCapturedAt' => $deviceCapturedAt,
+            'capturedAt' => $capturedAt,
+            'capturedAtIso' => $capturedAtIso,
+            'receivedAt' => $receivedAt,
+            'receivedAtIso' => $this->formatTimestampIso($patientHeader->CreatedAt),
+            'inspectedAt' => $inspectorData ? $inspectorData['at'] : null,
+            'confirmedAt' => $supervisorData ? $supervisorData['at'] : null,
+            'createdAt' => $receivedAt,
+            'delaySummary' => $delaySummary,
         ];
     }
 
     public function getPatients(?\App\Models\User $user = null): array
     {
-        $query = PatientHeader::query()->with(['device.location', 'device.deviceType', 'file']);
+        $query = PatientHeader::query()->with([
+            'device.location',
+            'device.deviceType',
+            'tests',
+            'file',
+            'latestInspectorAction.user.reference',
+            'latestSupervisorAction.user.reference',
+        ]);
 
         $strategy = app(PatientQueryStrategyFactory::class)->make($user);
         $query = $strategy->apply($query);
 
         $patients = $query->orderBy('Id', 'desc')->get();
         $patientsModel = [];
-        foreach ($patients as $patient){
+        foreach ($patients as $patient) {
             $patientsModel[] = $this->mapPatientModel($patient);
         }
 

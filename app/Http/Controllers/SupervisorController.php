@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Facades\DeviceService\DeviceService;
 use App\Facades\LocationService\LocationService;
 use App\Facades\SupervisorService\SupervisorService;
+use App\Http\Requests\BulkConfirmSupervisorTestsRequest;
 use App\Models\PatientHeader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -84,6 +85,48 @@ class SupervisorController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Error while confirming test.',
+                'details' => $exception->getMessage(),
+            ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function bulkConfirm(BulkConfirmSupervisorTestsRequest $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $ids = $request->validated('ids');
+            $note = $request->validated('note');
+            $result = SupervisorService::bulkConfirmTests($ids, $user, $note);
+
+            $confirmedCount = $result['confirmedCount'];
+            $skippedCount = $result['skippedCount'];
+
+            if ($confirmedCount === 0) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'None of the selected tests could be confirmed because they are no longer pending supervisor review.',
+                    'data' => $result,
+                ], HTTPResponse::HTTP_CONFLICT);
+            }
+
+            $message = $skippedCount > 0
+                ? "{$confirmedCount} test(s) confirmed and dispatched to HIS. {$skippedCount} test(s) were skipped."
+                : "{$confirmedCount} test(s) confirmed and dispatched to HIS successfully!";
+
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'data' => $result,
+            ], HTTPResponse::HTTP_OK);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $exception) {
+            return response()->json([
+                'status' => false,
+                'message' => $exception->getMessage(),
+            ], HTTPResponse::HTTP_FORBIDDEN);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error while bulk confirming tests.',
                 'details' => $exception->getMessage(),
             ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
         }

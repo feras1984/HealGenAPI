@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { PatientGridProps } from "@/Services/PatientService/PatientList/Interfaces/PatientProps";
 import {
     ColumnDirective,
@@ -34,6 +34,12 @@ import { ClickEventArgs } from "@syncfusion/ej2-navigations";
 import { handleGridToolbarClick } from "@/Utils/GridExportHelper";
 import { useTranslation } from "react-i18next";
 import { useAppSelector } from "@/Redux/Store/hook";
+import DelayFlagChip, { applyDelayedRowAccent, getDelayStatusLabel } from "@/Components/Timeline/DelayFlagChip";
+import QueueDelayBanner from "@/Components/Timeline/QueueDelayBanner";
+
+const DelayFlagTemplate = (props: any) => (
+    <DelayFlagChip delaySummary={props.delaySummary} />
+);
 
 const AttachmentTemplate = (props: any) => {
     const { t } = useTranslation();
@@ -67,9 +73,25 @@ const PatientGrid = () => {
     const patientService = ServiceContainer.get(PatientService);
     const { patients, onSearch } = usePatientContext();
     const { t, i18n } = useTranslation();
+    const dark = useAppSelector(state => state.theme.dark);
     const direction = useAppSelector(state => state.languages.direction);
     const currentLang = useAppSelector(state => state.languages.language);
     const isRtl = direction === 'rtl' || currentLang === 'ar' || i18n.language === 'ar';
+    const [showDelayedOnly, setShowDelayedOnly] = useState<boolean>(false);
+
+    const delayedCount = useMemo(
+        () => patients.filter(pt => pt.delaySummary?.hasDelay).length,
+        [patients]
+    );
+    const thresholdHours = patients[0]?.delaySummary?.thresholdHours ?? 48;
+
+    const gridData = useMemo(() => {
+        const filtered = showDelayedOnly ? patients.filter(pt => pt.delaySummary?.hasDelay) : patients;
+        return patientService.mapBlocksGrid(filtered).map(row => ({
+            ...row,
+            delayStatusLabel: getDelayStatusLabel(row.delaySummary, t),
+        }));
+    }, [patients, showDelayedOnly, patientService, t]);
 
     let grid: GridComponent | null = null;
     const selectionSettings: SelectionSettingsModel = { type: 'Multiple' };
@@ -94,9 +116,13 @@ const PatientGrid = () => {
         { field: 'collectionSite', headerText: t('tests.collectionSite') || 'Collection Site', width: '200', textAlign: 'Center' },
         { field: 'cupLotNumber', headerText: t('tests.cupLotNumber') || 'Cup Lot Number', width: '200', textAlign: 'Center' },
         { field: 'status', headerText: t('common.status') || 'Status', width: '200', textAlign: 'Center' },
+        { field: 'delayStatusLabel', headerText: t('delay.columnHeader') || 'SLA / Delay', width: '160', textAlign: 'Center', template: DelayFlagTemplate },
         { field: 'attachment', headerText: t('tests.attachment') || 'Attachment', width: '160', textAlign: 'Center', template: AttachmentTemplate },
+        { field: 'capturedAt', headerText: t('tests.capturedTime') || 'Captured Time', width: '200', textAlign: 'Center' },
+        { field: 'receivedAt', headerText: t('tests.receivedTime') || 'Received Time', width: '200', textAlign: 'Center' },
+        { field: 'inspectedAt', headerText: t('tests.inspectedTime') || 'Inspection Time', width: '200', textAlign: 'Center' },
+        { field: 'confirmedAt', headerText: t('tests.confirmedTime') || 'Confirm Time', width: '200', textAlign: 'Center' },
         { field: 'Edit', headerText: t('common.details') || 'Details', width: '180', textAlign: 'Center', template: EditButton },
-        { field: 'createdAt', headerText: t('common.createdAt') || 'Created At', width: '200', textAlign: 'Center' },
     ], [i18n.language]);
 
     const actionComplete = (args: GridActionEventArgs) => {
@@ -127,12 +153,19 @@ const PatientGrid = () => {
 
     return (
         <Box>
+            <QueueDelayBanner
+                delayedCount={delayedCount}
+                thresholdHours={thresholdHours}
+                showDelayedOnly={showDelayedOnly}
+                onToggleDelayedOnly={() => setShowDelayedOnly(prev => !prev)}
+            />
             <GridComponent
                 key={`patient-grid-${currentLang || i18n.language}-${isRtl ? 'rtl' : 'ltr'}`}
                 ref={g => grid = g}
                 rowHeight={50}
                 id="blockComp"
-                dataSource={patientService.mapBlocksGrid(patients)}
+                dataSource={gridData}
+                rowDataBound={(args: any) => applyDelayedRowAccent(args, isRtl, dark)}
                 allowPaging
                 allowSorting
                 allowFiltering

@@ -21,5 +21,12 @@ export interface PatientGridProps {
     locationName?: string | null;
     deviceTypeName?: string | null;
     tests: PatientTest[];
+    attachment?: any;
+    delaySummary?: any;
+    delayStatusLabel?: string;
+    capturedAt: string;
+    receivedAt: string;
+    inspectedAt: string;
+    confirmedAt: string;
     createdAt: string;
 }

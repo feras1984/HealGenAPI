@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getPendingQueue(array $filters = [], ?User $user = null, ?int $locationId = null, int $limit = 50)
  * @method static array getRecentActivity(int $userId, ?int $locationId = null, int $limit = 10)
  * @method static array acceptTest(PatientHeader $patientHeader, User $user)
+ * @method static array bulkAcceptTests(array $ids, User $user)
  * @method static array rejectTest(PatientHeader $patientHeader, User $user, string $reason)
  * @method static array getActivityChart(int $userId, ?int $locationId = null)
  * @method static array getInspectorDashboardData(User $user, array $filters = [])

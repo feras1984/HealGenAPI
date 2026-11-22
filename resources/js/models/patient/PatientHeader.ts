@@ -1,6 +1,41 @@
 import PatientTest from "@/models/patient/PatientTest";
 import Device from "@/models/device/Device";
 
+export interface PatientActionAttribution {
+    id?: number;
+    name?: string;
+    email?: string;
+    role?: string;
+    action?: string;
+    at?: string;
+    reviewedAt?: string;
+    atIso?: string | null;
+    reason?: string;
+}
+
+export interface WorkflowStageDelay {
+    key: 'capture_to_receive' | 'receive_to_inspection' | 'inspection_to_supervision';
+    seconds: number;
+    hours: number;
+    formatted: string;
+    isDelayed: boolean;
+    isOngoing: boolean;
+}
+
+export interface WorkflowDelaySummary {
+    thresholdHours: number;
+    hasDelay: boolean;
+    delayedCount: number;
+    maxDelayHours: number;
+    maxDelayFormatted: string | null;
+    delayedStages: Array<'capture_to_receive' | 'receive_to_inspection' | 'inspection_to_supervision'>;
+    stages: {
+        captureToReceive: WorkflowStageDelay | null;
+        receiveToInspection: WorkflowStageDelay | null;
+        inspectionToSupervision: WorkflowStageDelay | null;
+    };
+}
+
 class PatientHeader {
     id: number;
     patientId: string;
@@ -10,14 +45,9 @@ class PatientHeader {
     status: string;
     device?: Device | null;
     tests: PatientTest[];
-    reviewedBy?: {
-        id?: number;
-        name?: string;
-        email?: string;
-        action?: string;
-        reviewedAt?: string;
-        reason?: string;
-    } | null;
+    reviewedBy?: PatientActionAttribution | null;
+    inspectedBy?: PatientActionAttribution | null;
+    confirmedBy?: PatientActionAttribution | null;
     attachment?: {
         id: number;
         name: string;
@@ -27,9 +57,17 @@ class PatientHeader {
         description?: string;
         createdAt: string;
     } | null;
+    deviceCapturedAt?: string | null;
+    capturedAt?: string;
+    capturedAtIso?: string | null;
+    receivedAt?: string;
+    receivedAtIso?: string | null;
+    inspectedAt?: string | null;
+    confirmedAt?: string | null;
     createdAt: string;
+    delaySummary?: WorkflowDelaySummary | null;
 
-    constructor( {
+    constructor({
         id = -1,
         patientId = '',
         donorId = '',
@@ -38,10 +76,20 @@ class PatientHeader {
         status = '',
         device = null as Device | null,
         tests = [] as PatientTest[],
-        reviewedBy = null,
+        reviewedBy = null as PatientActionAttribution | null,
+        inspectedBy = null as PatientActionAttribution | null,
+        confirmedBy = null as PatientActionAttribution | null,
         attachment = null,
+        deviceCapturedAt = null,
+        capturedAt = '',
+        capturedAtIso = null,
+        receivedAt = '',
+        receivedAtIso = null,
+        inspectedAt = null,
+        confirmedAt = null,
         createdAt = '',
-                 } = {}) {
+        delaySummary = null as WorkflowDelaySummary | null,
+    } = {}) {
         this.id = id;
         this.patientId = patientId;
         this.donorId = donorId;
@@ -50,9 +98,19 @@ class PatientHeader {
         this.status = status;
         this.device = device ? new Device(device) : null;
         this.tests = [...tests];
-        this.reviewedBy = reviewedBy;
+        this.reviewedBy = reviewedBy || inspectedBy;
+        this.inspectedBy = inspectedBy || reviewedBy;
+        this.confirmedBy = confirmedBy;
         this.attachment = attachment;
+        this.deviceCapturedAt = deviceCapturedAt;
+        this.capturedAt = capturedAt || createdAt;
+        this.capturedAtIso = capturedAtIso;
+        this.receivedAt = receivedAt || createdAt;
+        this.receivedAtIso = receivedAtIso;
+        this.inspectedAt = inspectedAt;
+        this.confirmedAt = confirmedAt;
         this.createdAt = createdAt;
+        this.delaySummary = delaySummary;
     }
 }
 

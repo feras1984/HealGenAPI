@@ -35,7 +35,7 @@ const SidebarList: CustomTab [] = [
         name: 'Inspector Queue',
         icon: 'assignment',
         link: '/inspector/dashboard',
-        roles: ['administrator', 'inspector'],
+        roles: ['administrator', 'supervisor', 'inspector'],
         children: [],
     },
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getPendingQueue(array $filters = [], int $limit = 50)
  * @method static array getRecentActivity(int $userId, int $limit = 10)
  * @method static array confirmTest(PatientHeader $patientHeader, User $user, ?string $note = null)
+ * @method static array bulkConfirmTests(array $ids, User $user, ?string $note = null)
  * @method static array rejectTest(PatientHeader $patientHeader, User $user, string $reason)
  * @method static array getSupervisorDashboardData(User $user, array $filters = [])
  */

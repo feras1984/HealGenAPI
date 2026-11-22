@@ -807,4 +807,68 @@ class LocationInspectorAuthorizationTest extends TestCase
         $this->assertContains('PID-INSP-DASH-L1', $queueIds);
         $this->assertNotContains('PID-INSP-DASH-L2', $queueIds);
     }
+
+    public function test_supervisor_can_access_inspector_queue_filter_by_location_and_inspect_tests(): void
+    {
+        $testLoc1 = PatientHeader::create([
+            'PatientId' => 'PID-SUP-INSP-L1',
+            'Status' => 'Imported',
+            'DeviceId' => $this->device1->id,
+            'DeviceCode' => $this->device1->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        $testLoc2 = PatientHeader::create([
+            'PatientId' => 'PID-SUP-INSP-L2',
+            'Status' => 'Awaiting Inspection',
+            'DeviceId' => $this->device2->id,
+            'DeviceCode' => $this->device2->device_code,
+            'CreatedAt' => now(),
+        ]);
+
+        // 1. Supervisor views all locations in Inspector Queue
+        $allResponse = $this->actingAs($this->supervisorUser)->get('/inspector/data');
+        $allResponse->assertOk();
+        $allIds = array_column($allResponse->json('data.pendingQueue'), 'patientId');
+        $this->assertContains('PID-SUP-INSP-L1', $allIds);
+        $this->assertContains('PID-SUP-INSP-L2', $allIds);
+        $this->assertEquals('supervisor', $allResponse->json('data.userRole'));
+        $this->assertNull($allResponse->json('data.assignedLocation'));
+
+        // 2. Supervisor filters Inspector Queue by Location 2
+        $filteredResponse = $this->actingAs($this->supervisorUser)
+            ->get('/inspector/data?locationId=' . $this->location2->id);
+        $filteredResponse->assertOk();
+        $filteredIds = array_column($filteredResponse->json('data.pendingQueue'), 'patientId');
+        $this->assertNotContains('PID-SUP-INSP-L1', $filteredIds);
+        $this->assertContains('PID-SUP-INSP-L2', $filteredIds);
+        $this->assertEquals($this->location2->id, $filteredResponse->json('data.assignedLocation.id'));
+
+        // 3. Supervisor forwards (accepts) test in Location 1 and requests retest (rejects) test in Location 2
+        $this->actingAs($this->supervisorUser)
+            ->postJson("/inspector/tests/{$testLoc1->Id}/accept")
+            ->assertOk();
+        $this->assertEquals('Inspector Accepted', $testLoc1->fresh()->Status);
+
+        $this->actingAs($this->supervisorUser)
+            ->postJson("/inspector/tests/{$testLoc2->Id}/reject", ['reason' => 'Blurred visual line'])
+            ->assertOk();
+        $this->assertEquals('Inspector Rejected', $testLoc2->fresh()->Status);
+
+        // 4. Supervisor then confirms testLoc1 in Supervisor Queue; Inspector Queue recentActivity must NOT show SUPERVISOR_CONFIRM
+        SupervisorService::confirmTest($testLoc1->fresh(), $this->supervisorUser);
+        $afterResponse = $this->actingAs($this->supervisorUser)->get('/inspector/data');
+        $afterResponse->assertOk();
+        $recentActions = array_column($afterResponse->json('data.recentActivity'), 'action');
+        $this->assertContains('INSPECTOR_ACCEPT', $recentActions);
+        $this->assertContains('INSPECTOR_REJECT', $recentActions);
+        $this->assertNotContains('SUPERVISOR_CONFIRM', $recentActions);
+    }
+
+    public function test_employee_accessing_inspector_queue_data_denied(): void
+    {
+        $this->actingAs($this->employeeUser)
+            ->get('/inspector/data')
+            ->assertStatus(403);
+    }
 }

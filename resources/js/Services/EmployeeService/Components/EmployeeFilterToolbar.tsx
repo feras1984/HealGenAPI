@@ -75,7 +75,7 @@ const EmployeeFilterToolbar: React.FC = () => {
             className="mb-6"
             sx={{
                 borderRadius: 2,
-                backgroundColor: dark ? '#1e293b' : '#ffffff',
+                backgroundColor: dark ? 'var(--clr-bg-content-dark, #102B22)' : '#ffffff',
                 border: '1px solid',
                 borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                 boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 4px rgba(0,0,0,0.05)',
@@ -132,7 +132,7 @@ const EmployeeFilterToolbar: React.FC = () => {
                                 MenuProps={{
                                     PaperProps: {
                                         sx: {
-                                            backgroundColor: dark ? '#1e293b' : '#ffffff',
+                                            backgroundColor: dark ? 'var(--clr-bg-content-dark, #102B22)' : '#ffffff',
                                             color: dark ? '#f8fafc' : '#0f172a',
                                         }
                                     }
@@ -159,7 +159,7 @@ const EmployeeFilterToolbar: React.FC = () => {
                                 MenuProps={{
                                     PaperProps: {
                                         sx: {
-                                            backgroundColor: dark ? '#1e293b' : '#ffffff',
+                                            backgroundColor: dark ? 'var(--clr-bg-content-dark, #102B22)' : '#ffffff',
                                             color: dark ? '#f8fafc' : '#0f172a',
                                         }
                                     }

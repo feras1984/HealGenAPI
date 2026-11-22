@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { usePage } from "@inertiajs/react";
 import { Container as ServiceContainer } from "typedi";
 import "typedi";
@@ -69,6 +69,15 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
     const currentUser = pageProps?.auth?.user || pageProps?.user;
     const role = String(data.userRole || currentUser?.role || '').toLowerCase();
     const isAdmin = role === 'administrator' || role === 'admin';
+    const isSupervisor = role === 'supervisor';
+    const hasAllLocationsAccess = isAdmin || isSupervisor;
+
+    const filteredDevices = useMemo(() => {
+        if (!filters.locationId || filters.locationId === '-1' || filters.locationId === '') {
+            return devices;
+        }
+        return devices.filter(dev => String(dev.locationId) === String(filters.locationId));
+    }, [devices, filters.locationId]);
 
     const fetchLatest = useCallback((currentFilters: InspectorFilterParams, showLoading: boolean = false) => {
         if (showLoading) setLoading(true);
@@ -112,7 +121,16 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
     };
 
     const updateFilter = (key: keyof InspectorFilterParams, value: any) => {
-        const nextFilters = { ...filters, [key]: value };
+        const nextFilters: InspectorFilterParams = { ...filters, [key]: value };
+        // When changing Location, clear Device filter if the selected device does not belong to the new Location
+        if (key === 'locationId' && nextFilters.deviceId) {
+            const matchesLocation = !value || devices.some(
+                dev => String(dev.id) === String(nextFilters.deviceId) && String(dev.locationId) === String(value)
+            );
+            if (!matchesLocation) {
+                nextFilters.deviceId = '';
+            }
+        }
         setFilters(nextFilters);
     };
 
@@ -252,7 +270,11 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                     {data.assignedLocation ? (
                         <Chip
                             icon={<LocationOnIcon />}
-                            label={`${t('inspector.assignedLocation') || 'Assigned Location'}: ${data.assignedLocation.name} (${data.assignedLocation.code})`}
+                            label={`${
+                                hasAllLocationsAccess
+                                    ? (t('inspector.filteredLocation') || 'Filtered Location')
+                                    : (t('inspector.assignedLocation') || 'Assigned Location')
+                            }: ${data.assignedLocation.name} (${data.assignedLocation.code})`}
                             color="primary"
                             variant="outlined"
                             sx={{
@@ -264,10 +286,14 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                 backgroundColor: dark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
                             }}
                         />
-                    ) : isAdmin ? (
+                    ) : hasAllLocationsAccess ? (
                         <Chip
                             icon={<LocationOnIcon />}
-                            label={t('inspector.allLocationsAdmin') || 'All Locations (Administrator)'}
+                            label={
+                                isSupervisor
+                                    ? (t('inspector.allLocationsSupervisor') || 'All Locations (Supervisor)')
+                                    : (t('inspector.allLocationsAdmin') || 'All Locations (Administrator)')
+                            }
                             color="info"
                             variant="outlined"
                             sx={{
@@ -293,7 +319,7 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                     )}
                 </Box>
 
-                {!isAdmin && !data.assignedLocation && (
+                {!hasAllLocationsAccess && !data.assignedLocation && (
                     <Alert
                         severity="warning"
                         sx={{
@@ -387,16 +413,16 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                                     <Select
                                         value={filters.deviceId || ''}
                                         label={t('filters.device') || 'Device'}
-                                        disabled={devices.length === 0}
+                                        disabled={filteredDevices.length === 0}
                                         onChange={(e) => updateFilter('deviceId', e.target.value)}
                                     >
                                         <MenuItem value="">{t('filters.allDevices') || 'All Devices'}</MenuItem>
-                                        {devices.map((dev) => (
+                                        {filteredDevices.map((dev) => (
                                             <MenuItem key={dev.id} value={dev.id}>
                                                 {dev.name} ({dev.deviceCode})
                                             </MenuItem>
                                         ))}
-                                        {devices.length === 0 && (
+                                        {filteredDevices.length === 0 && (
                                             <MenuItem value="" disabled>{t('filters.noDevicesAvailable') || 'No Devices Available'}</MenuItem>
                                         )}
                                     </Select>

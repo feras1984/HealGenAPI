@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Facades\InspectorService\InspectorService;
 use App\Factories\LocationAccess\LocationAccessStrategyFactory;
+use App\Http\Requests\BulkAcceptInspectorTestsRequest;
 use App\Models\PatientHeader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,8 +14,21 @@ use Symfony\Component\HttpFoundation\Response as HTTPResponse;
 
 class InspectorController extends Controller
 {
+    private function authorizeInspectorQueueRole(Request $request): void
+    {
+        $user = $request->user();
+        $adminRef = $user ? $user->reference()->first() : null;
+        $role = strtolower(trim($adminRef?->role ?? ''));
+
+        if (!in_array($role, ['administrator', 'supervisor', 'inspector'], true)) {
+            abort(403, 'Unauthorized access. Only Inspectors, Supervisors, and Administrators can access the inspector queue.');
+        }
+    }
+
     public function index(Request $request): Response
     {
+        $this->authorizeInspectorQueueRole($request);
+
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
 
@@ -35,6 +49,8 @@ class InspectorController extends Controller
 
     public function data(Request $request): JsonResponse
     {
+        $this->authorizeInspectorQueueRole($request);
+
         $user = $request->user();
         $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
 
@@ -75,6 +91,51 @@ class InspectorController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Error while forwarding test.',
+                'details' => $exception->getMessage(),
+            ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function bulkAccept(BulkAcceptInspectorTestsRequest $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $ids = $request->validated('ids');
+            $result = InspectorService::bulkAcceptTests($ids, $user);
+
+            $acceptedCount = $result['acceptedCount'];
+            $skippedCount = $result['skippedCount'];
+            $unauthorizedCount = $result['unauthorizedCount'] ?? 0;
+
+            if ($acceptedCount === 0) {
+                $isAllUnauthorized = $skippedCount > 0 && $unauthorizedCount === $skippedCount;
+                return response()->json([
+                    'status' => false,
+                    'message' => $isAllUnauthorized
+                        ? 'Unauthorized action. You are not authorized to forward the selected test(s).'
+                        : 'None of the selected tests could be forwarded because they are no longer pending inspection.',
+                    'data' => $result,
+                ], $isAllUnauthorized ? HTTPResponse::HTTP_FORBIDDEN : HTTPResponse::HTTP_CONFLICT);
+            }
+
+            $message = $skippedCount > 0
+                ? "{$acceptedCount} test(s) forwarded successfully. {$skippedCount} test(s) were skipped."
+                : "{$acceptedCount} test(s) forwarded successfully!";
+
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'data' => $result,
+            ], HTTPResponse::HTTP_OK);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $exception) {
+            return response()->json([
+                'status' => false,
+                'message' => $exception->getMessage(),
+            ], HTTPResponse::HTTP_FORBIDDEN);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error while bulk forwarding tests.',
                 'details' => $exception->getMessage(),
             ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
         }

@@ -1,6 +1,6 @@
 import { Service } from "typedi";
 import axios, { AxiosResponse } from "axios";
-import { SupervisorDashboardData, SupervisorFilterParams, SupervisorKPIs } from "@/models/supervisor/SupervisorData";
+import { BulkConfirmResult, SupervisorDashboardData, SupervisorFilterParams, SupervisorKPIs } from "@/models/supervisor/SupervisorData";
 import PatientHeader from "@/models/patient/PatientHeader";
 
 @Service()
@@ -31,6 +31,10 @@ class SupervisorService {
 
     confirmTest = (patientHeaderId: number, note?: string): Promise<AxiosResponse<{ status: boolean; message: string; data: { test: PatientHeader; kpis: SupervisorKPIs } }>> => {
         return axios.post(`/supervisor/tests/${patientHeaderId}/confirm`, { note });
+    };
+
+    bulkConfirmTests = (ids: number[], note?: string): Promise<AxiosResponse<{ status: boolean; message: string; data: BulkConfirmResult }>> => {
+        return axios.post('/supervisor/tests/bulk-confirm', { ids, note });
     };
 
     rejectTest = (patientHeaderId: number, reason: string): Promise<AxiosResponse<{ status: boolean; message: string; data: { test: PatientHeader; kpis: SupervisorKPIs } }>> => {

@@ -32,6 +32,7 @@ const tabKeyMap: Record<string, string> = {
 const Sidebar: React.FC<{ expand: boolean }> = ({ expand }) => {
     const appName = import.meta.env.VITE_APP_NAME || 'HealGen Diagnostics';
     const { t, i18n } = useTranslation();
+    const dark = useAppSelector(state => state.theme.dark);
     const currentReduxLang = useAppSelector(state => state.languages.language);
     const direction = useAppSelector(state => state.languages.direction);
     const activeLang = (i18n.language || currentReduxLang || 'en').startsWith('ar') ? 'ar' : 'en';
@@ -93,6 +94,14 @@ const Sidebar: React.FC<{ expand: boolean }> = ({ expand }) => {
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 textAlign: isRtl ? 'right' : 'left',
+                ...(dark
+                    ? {
+                          color: 'rgba(240, 253, 248, 0.92)',
+                          '&:hover': {
+                              backgroundColor: 'rgba(0, 168, 107, 0.18)',
+                          },
+                      }
+                    : {}),
             };
 
             return (
@@ -187,7 +196,7 @@ const Sidebar: React.FC<{ expand: boolean }> = ({ expand }) => {
         <List
             sx={{
                 width: '100%',
-                bgcolor: 'background.paper',
+                bgcolor: dark ? 'transparent' : 'background.paper',
                 direction: isRtl ? 'rtl' : 'ltr',
                 textAlign: isRtl ? 'right' : 'left',
                 p: 0,
@@ -203,6 +212,7 @@ const Sidebar: React.FC<{ expand: boolean }> = ({ expand }) => {
                             height: '44px',
                             display: 'flex',
                             alignItems: 'center',
+                            bgcolor: dark ? 'transparent' : undefined,
                             direction: isRtl ? 'rtl' : 'ltr',
                             textAlign: isRtl ? 'right' : 'left',
                             justifyContent: isRtl ? 'flex-start' : 'flex-start',

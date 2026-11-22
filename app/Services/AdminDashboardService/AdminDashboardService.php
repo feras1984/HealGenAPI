@@ -45,7 +45,14 @@ class AdminDashboardService
      */
     public function getRecentSystemOperations(array $filters = [], int $limit = 50): array
     {
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests']);
+        $query = PatientHeader::with([
+            'device.location',
+            'device.deviceType',
+            'tests',
+            'file',
+            'latestInspectorAction.user.reference',
+            'latestSupervisorAction.user.reference',
+        ]);
 
         if (!empty($filters['locationId'])) {
             $query->whereHas('device', function ($q) use ($filters) {

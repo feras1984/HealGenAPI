@@ -16,6 +16,15 @@ class PatientService {
             deviceName: patient.device?.name ?? '',
             locationName: patient.device?.locationName ?? '',
             tests : [...patient.tests],
+            attachment: patient.attachment ?? null,
+            delaySummary: patient.delaySummary ?? null,
+            delayStatusLabel: patient.delaySummary?.hasDelay
+                ? `Delayed (${patient.delaySummary.maxDelayFormatted || ''})`
+                : 'On Time',
+            capturedAt: patient.capturedAt || patient.createdAt || '-',
+            receivedAt: patient.receivedAt || patient.createdAt || '-',
+            inspectedAt: patient.inspectedAt || patient.inspectedBy?.at || patient.reviewedBy?.reviewedAt || '-',
+            confirmedAt: patient.confirmedAt || patient.confirmedBy?.at || '-',
             createdAt : patient.createdAt,
         }))
     }

@@ -72,7 +72,14 @@ class MonitorService
      */
     public function getTestOperations(array $filters = [], int $limit = 25): array
     {
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests', 'file']);
+        $query = PatientHeader::with([
+            'device.location',
+            'device.deviceType',
+            'tests',
+            'file',
+            'latestInspectorAction.user.reference',
+            'latestSupervisorAction.user.reference',
+        ]);
 
         if (!empty($filters['status'])) {
             $query->where('Status', $filters['status']);
@@ -149,7 +156,7 @@ class MonitorService
 
         $list = [];
         foreach ($devices as $dev) {
-            $lastResTime = isset($lastResults[$dev->id]) ? Carbon::make($lastResults[$dev->id])->format('M d, Y H:i') : '';
+            $lastResTime = isset($lastResults[$dev->id]) ? Carbon::make($lastResults[$dev->id])->format('M d, Y H:i:s') : '';
             $list[] = [
                 'id' => $dev->id,
                 'name' => $dev->name,
@@ -157,7 +164,7 @@ class MonitorService
                 'deviceTypeName' => $dev->deviceType ? $dev->deviceType->name : '',
                 'locationName' => $dev->location ? $dev->location->name : '',
                 'isActive' => (bool) $dev->is_active,
-                'lastSeenAt' => $dev->last_seen_at ? Carbon::make($dev->last_seen_at)->format('M d, Y H:i') : '',
+                'lastSeenAt' => $dev->last_seen_at ? Carbon::make($dev->last_seen_at)->format('M d, Y H:i:s') : '',
                 'lastResultAt' => $lastResTime,
                 'resultsTodayCount' => (int) ($resultsToday[$dev->id] ?? 0),
             ];

@@ -121,7 +121,14 @@ class InspectorService
             return [];
         }
 
-        $query = PatientHeader::with(['device.location', 'device.deviceType', 'tests', 'file'])
+        $query = PatientHeader::with([
+            'device.location',
+            'device.deviceType',
+            'tests',
+            'file',
+            'latestInspectorAction.user.reference',
+            'latestSupervisorAction.user.reference',
+        ])
             ->whereIn('Status', self::PENDING_STATUSES);
 
         // Security rule: Inspector is strictly scoped to their assigned Location
@@ -175,7 +182,8 @@ class InspectorService
     public function getRecentActivity(int $userId, ?int $locationId = null, int $limit = 10): array
     {
         $query = PatientTestAction::with(['patientHeader.device'])
-            ->where('user_id', $userId);
+            ->where('user_id', $userId)
+            ->whereIn('action', ['INSPECTOR_ACCEPT', 'INSPECTOR_REJECT']);
 
         if ($locationId !== null) {
             $query->where(function ($q) use ($locationId) {
@@ -202,7 +210,7 @@ class InspectorService
                 'previousStatus' => $act->previous_status,
                 'newStatus' => $act->new_status,
                 'reason' => $act->reason ?? '',
-                'createdAt' => Carbon::make($act->created_at)->format('M d, Y H:i'),
+                'createdAt' => Carbon::make($act->created_at)->format('M d, Y H:i:s'),
             ];
         }
 
@@ -212,8 +220,8 @@ class InspectorService
     public function checkInspectorAuthorization(User $user): void
     {
         $role = $this->getUserRole($user);
-        if (!in_array($role, ['inspector', 'administrator'], true)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors or Administrators can accept or reject tests.");
+        if (!in_array($role, ['inspector', 'supervisor', 'administrator'], true)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Supervisors, or Administrators can accept or reject tests.");
         }
     }
 
@@ -225,8 +233,8 @@ class InspectorService
     public function verifyInspectorTestAuthorization(User $user, PatientHeader $patientHeader): int
     {
         $role = $this->getUserRole($user);
-        if (!in_array($role, ['inspector', 'administrator'], true)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors or Administrators can accept or reject tests.");
+        if (!in_array($role, ['inspector', 'supervisor', 'administrator'], true)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Supervisors, or Administrators can accept or reject tests.");
         }
 
         $patientHeader->loadMissing('device');
@@ -305,6 +313,123 @@ class InspectorService
                 'kpis' => $this->getDashboardKPIs($user, $user->getAssignedLocationId()),
             ];
         });
+    }
+
+    /**
+     * Inspector Bulk Accept (Forward) Action with strict per-test location authorization,
+     * per-test atomic transactions, and partial-success reporting.
+     */
+    public function bulkAcceptTests(array $ids, User $user): array
+    {
+        $this->checkInspectorAuthorization($user);
+
+        $role = $this->getUserRole($user);
+        if ($role === 'inspector' && $user->getAssignedLocationId() === null) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("You are not currently assigned to any location.");
+        }
+
+        $uniqueIds = array_values(array_unique(array_map('intval', $ids)));
+
+        $adminRef = $user->reference()->first();
+        $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Inspector';
+
+        $headers = PatientHeader::with('device')
+            ->whereIn('Id', $uniqueIds)
+            ->get()
+            ->keyBy('Id');
+
+        $acceptedIds = [];
+        $skipped = [];
+        $unauthorizedCount = 0;
+
+        foreach ($uniqueIds as $id) {
+            /** @var PatientHeader|null $patientHeader */
+            $patientHeader = $headers->get($id);
+
+            if (!$patientHeader) {
+                $skipped[] = [
+                    'id' => $id,
+                    'reason' => "Test #{$id} was not found.",
+                    'code' => 'not_found',
+                ];
+                continue;
+            }
+
+            try {
+                $outcome = DB::transaction(function () use ($patientHeader, $user, $roleName) {
+                    $patientHeader->refresh();
+                    $testLocationId = $this->verifyInspectorTestAuthorization($user, $patientHeader);
+
+                    if (!in_array($patientHeader->Status, self::PENDING_STATUSES, true)) {
+                        return [
+                            'accepted' => false,
+                            'code' => 'invalid_status',
+                            'reason' => "Test #{$patientHeader->Id} is no longer pending inspection (Current status: {$patientHeader->Status}).",
+                        ];
+                    }
+
+                    $previousStatus = $patientHeader->Status;
+                    $newStatus = 'Inspector Accepted';
+
+                    $patientHeader->Status = $newStatus;
+                    $patientHeader->save();
+
+                    PatientTestAction::create([
+                        'patient_header_id' => $patientHeader->Id,
+                        'location_id' => $testLocationId,
+                        'user_id' => $user->id,
+                        'role' => $roleName,
+                        'action' => 'INSPECTOR_ACCEPT',
+                        'previous_status' => $previousStatus,
+                        'new_status' => $newStatus,
+                        'reason' => null,
+                    ]);
+
+                    \App\Facades\SystemAuditLogService\SystemAuditLogService::logAction(
+                        $user,
+                        'INSPECTOR_ACCEPT',
+                        'PatientHeader',
+                        (string) $patientHeader->Id,
+                        "Bulk accepted test #{$patientHeader->Id}. Status changed from {$previousStatus} to {$newStatus}."
+                    );
+
+                    return ['accepted' => true];
+                });
+
+                if ($outcome['accepted']) {
+                    $acceptedIds[] = $patientHeader->Id;
+                } else {
+                    $skipped[] = [
+                        'id' => $patientHeader->Id,
+                        'reason' => $outcome['reason'],
+                        'code' => $outcome['code'],
+                    ];
+                }
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $unauthorizedCount++;
+                $skipped[] = [
+                    'id' => $patientHeader->Id,
+                    'reason' => $e->getMessage(),
+                    'code' => 'unauthorized',
+                ];
+            } catch (\Throwable $e) {
+                logger()->error("Error bulk accepting test #{$id}: " . $e->getMessage());
+                $skipped[] = [
+                    'id' => $id,
+                    'reason' => "Unexpected error forwarding test #{$id}.",
+                    'code' => 'error',
+                ];
+            }
+        }
+
+        return [
+            'acceptedIds' => $acceptedIds,
+            'acceptedCount' => count($acceptedIds),
+            'skipped' => $skipped,
+            'skippedCount' => count($skipped),
+            'unauthorizedCount' => $unauthorizedCount,
+            'kpis' => $this->getDashboardKPIs($user, $user->getAssignedLocationId()),
+        ];
     }
 
     /**

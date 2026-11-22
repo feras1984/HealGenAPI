@@ -57,6 +57,7 @@ class SupervisorService
             'device.deviceType',
             'tests',
             'latestInspectorAction.user.reference',
+            'latestSupervisorAction.user.reference',
             'file',
         ])->whereIn('Status', self::PENDING_STATUSES);
 
@@ -118,7 +119,7 @@ class SupervisorService
                 'previousStatus' => $act->previous_status,
                 'newStatus' => $act->new_status,
                 'reason' => $act->reason ?? '',
-                'createdAt' => Carbon::make($act->created_at)->format('M d, Y H:i'),
+                'createdAt' => Carbon::make($act->created_at)->format('M d, Y H:i:s'),
             ];
         }
 
@@ -196,6 +197,113 @@ class SupervisorService
     }
 
     /**
+     * Supervisor Bulk Confirm Action with per-test atomic transactions, partial-success reporting, and HIS dispatch.
+     */
+    public function bulkConfirmTests(array $ids, User $user, ?string $note = null): array
+    {
+        $this->checkSupervisorAuthorization($user);
+
+        $uniqueIds = array_values(array_unique(array_map('intval', $ids)));
+        $trimmedNote = $note !== null && trim($note) !== '' ? trim($note) : null;
+
+        $adminRef = $user->reference()->first();
+        $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Supervisor';
+
+        $headers = PatientHeader::with('device')
+            ->whereIn('Id', $uniqueIds)
+            ->get()
+            ->keyBy('Id');
+
+        $confirmedIds = [];
+        $skipped = [];
+
+        foreach ($uniqueIds as $id) {
+            /** @var PatientHeader|null $patientHeader */
+            $patientHeader = $headers->get($id);
+
+            if (!$patientHeader) {
+                $skipped[] = [
+                    'id' => $id,
+                    'reason' => "Test #{$id} was not found.",
+                ];
+                continue;
+            }
+
+            try {
+                $outcome = DB::transaction(function () use ($patientHeader, $user, $roleName, $trimmedNote) {
+                    $patientHeader->refresh();
+                    $patientHeader->loadMissing('device');
+
+                    if (!in_array($patientHeader->Status, self::PENDING_STATUSES, true)) {
+                        return [
+                            'confirmed' => false,
+                            'reason' => "Test #{$patientHeader->Id} is no longer pending supervisor review (Current status: {$patientHeader->Status}).",
+                        ];
+                    }
+
+                    $previousStatus = $patientHeader->Status;
+                    $newStatus = 'Confirmed';
+
+                    $patientHeader->Status = $newStatus;
+                    $patientHeader->save();
+
+                    $testLocationId = $patientHeader->device?->location_id;
+
+                    PatientTestAction::create([
+                        'patient_header_id' => $patientHeader->Id,
+                        'location_id' => $testLocationId,
+                        'user_id' => $user->id,
+                        'role' => $roleName,
+                        'action' => 'SUPERVISOR_CONFIRM',
+                        'previous_status' => $previousStatus,
+                        'new_status' => $newStatus,
+                        'reason' => $trimmedNote,
+                    ]);
+
+                    \App\Facades\SystemAuditLogService\SystemAuditLogService::logAction(
+                        $user,
+                        'SUPERVISOR_CONFIRM',
+                        'PatientHeader',
+                        (string) $patientHeader->Id,
+                        "Bulk confirmed test #{$patientHeader->Id} & dispatched to HIS. Status changed from {$previousStatus} to {$newStatus}."
+                    );
+
+                    return ['confirmed' => true];
+                });
+
+                if ($outcome['confirmed']) {
+                    $confirmedIds[] = $patientHeader->Id;
+
+                    try {
+                        SendPatientToHISJob::dispatch($patientHeader->Id);
+                    } catch (\Throwable $e) {
+                        logger()->error("Failed to dispatch SendPatientToHISJob for bulk-confirmed test #{$patientHeader->Id}: " . $e->getMessage());
+                    }
+                } else {
+                    $skipped[] = [
+                        'id' => $patientHeader->Id,
+                        'reason' => $outcome['reason'],
+                    ];
+                }
+            } catch (\Throwable $e) {
+                logger()->error("Error bulk confirming test #{$id}: " . $e->getMessage());
+                $skipped[] = [
+                    'id' => $id,
+                    'reason' => "Unexpected error confirming test #{$id}.",
+                ];
+            }
+        }
+
+        return [
+            'confirmedIds' => $confirmedIds,
+            'confirmedCount' => count($confirmedIds),
+            'skipped' => $skipped,
+            'skippedCount' => count($skipped),
+            'kpis' => $this->getDashboardKPIs(),
+        ];
+    }
+
+    /**
      * Supervisor Reject Action with mandatory reason validation, status validation & DB transaction.
      */
     public function rejectTest(PatientHeader $patientHeader, User $user, string $reason): array
@@ -268,17 +376,20 @@ class SupervisorService
             ->whereDate('created_at', $today)
             ->count();
 
-        // Hourly actions today
+        // Hourly actions today (cross-database compatible)
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $hourExpr = $isSqlite ? "strftime('%H', created_at)" : 'DATEPART(hour, created_at)';
+
         $raw = PatientTestAction::query()
             ->where('user_id', $userId)
             ->whereIn('action', ['SUPERVISOR_CONFIRM', 'SUPERVISOR_REJECT'])
             ->whereDate('created_at', $today)
             ->select(
                 'action',
-                DB::raw('DATEPART(hour, created_at) as hr'),
+                DB::raw("{$hourExpr} as hr"),
                 DB::raw('COUNT(*) as count')
             )
-            ->groupBy('action', DB::raw('DATEPART(hour, created_at)'))
+            ->groupBy('action', DB::raw($hourExpr))
             ->get();
 
         $hourlyConfirm = [];

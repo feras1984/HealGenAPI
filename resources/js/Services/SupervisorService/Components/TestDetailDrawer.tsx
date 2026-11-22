@@ -28,6 +28,7 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DocumentViewerModal from '@/Components/DocumentViewer/DocumentViewerModal';
+import DelayFlagChip from '@/Components/Timeline/DelayFlagChip';
 import { useSupervisorContext } from "@/Services/SupervisorService/State/SupervisorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 import { exportTestDetailsToExcel, exportTestDetailsToPdf } from "@/Utils/TestDetailsExportHelper";
@@ -171,7 +172,10 @@ const TestDetailDrawer: React.FC = () => {
                             <Typography variant="caption" color="text.secondary" className="block">
                                 {t('common.status') || 'Current Status'}
                             </Typography>
-                            <Chip label={t(`status.${activeTest.status}`) || activeTest.status || 'Imported'} color="warning" size="small" sx={{ fontWeight: 600 }} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mt: 0.25 }}>
+                                <Chip label={t(`status.${activeTest.status}`) || activeTest.status || 'Imported'} color="warning" size="small" sx={{ fontWeight: 600 }} />
+                                <DelayFlagChip delaySummary={activeTest.delaySummary} hideWhenOnTime />
+                            </Box>
                         </Box>
                         <Box className="flex gap-2" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
                             {canReview ? (
@@ -253,11 +257,23 @@ const TestDetailDrawer: React.FC = () => {
                                                     />
                                                 </Box>
                                             </Grid>
-                                            <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                                <Typography variant="caption" color="text.secondary">{t('tests.reviewTimestamp') || 'Reviewed At'}</Typography>
+                                            <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Typography variant="caption" color="text.secondary">{t('tests.inspectedTime') || 'Inspection Time'}</Typography>
                                                 <Typography variant="body2" color="text.primary">
-                                                    {activeTest.reviewedBy.reviewedAt || '-'}
+                                                    {activeTest.inspectedBy?.at || activeTest.reviewedBy.reviewedAt || '-'}
                                                 </Typography>
+                                            </Grid>
+                                            <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Typography variant="caption" color="text.secondary">{t('common.role') || 'Role'}</Typography>
+                                                <Box sx={{ mt: 0.5 }}>
+                                                    <Chip
+                                                        label={activeTest.reviewedBy.role ? (t(`roles.${activeTest.reviewedBy.role}`) || activeTest.reviewedBy.role) : '-'}
+                                                        color="primary"
+                                                        size="small"
+                                                        variant="outlined"
+                                                        sx={{ fontWeight: 600 }}
+                                                    />
+                                                </Box>
                                             </Grid>
                                             {activeTest.reviewedBy.reason && (
                                                 <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
@@ -302,9 +318,13 @@ const TestDetailDrawer: React.FC = () => {
                                             <Typography variant="caption" color="text.secondary">{t('tests.cupLotNumber') || 'Cup Lot Number'}</Typography>
                                             <Typography variant="body2" color="text.primary">{activeTest.cupLotNumber || '-'}</Typography>
                                         </Grid>
-                                        <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            <Typography variant="caption" color="text.secondary">{t('tests.receivedTime') || 'Received Timestamp'}</Typography>
-                                            <Typography variant="body2" color="text.primary">{activeTest.createdAt || '-'}</Typography>
+                                        <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary">{t('tests.capturedTime') || 'Captured Time'}</Typography>
+                                            <Typography variant="body2" color="text.primary">{activeTest.capturedAt || activeTest.createdAt || '-'}</Typography>
+                                        </Grid>
+                                        <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary">{t('tests.receivedTime') || 'Received Time'}</Typography>
+                                            <Typography variant="body2" color="text.primary">{activeTest.receivedAt || activeTest.createdAt || '-'}</Typography>
                                         </Grid>
                                     </Grid>
                                 </Paper>
