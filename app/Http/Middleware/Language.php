@@ -11,8 +11,15 @@ class Language
 {
     public function handle(Request $request, Closure $next): Response
     {
+        $resolvedLocale = $request->attributes->get('resolved_locale');
         $routeLocale = $request->route('locale');
-        $locale = $routeLocale
+        $segmentLocale = in_array($request->segment(1), ['en', 'ar'], true)
+            ? $request->segment(1)
+            : null;
+
+        $locale = $resolvedLocale
+            ?? $routeLocale
+            ?? $segmentLocale
             ?? $request->cookie('locale')
             ?? ($request->hasSession() ? $request->session()->get('locale') : null)
             ?? $request->getPreferredLanguage(['en', 'ar'])
@@ -21,6 +28,8 @@ class Language
         if (!in_array($locale, ['en', 'ar'], true)) {
             $locale = 'en';
         }
+
+        $request->attributes->set('resolved_locale', $locale);
 
         app()->setLocale($locale);
         URL::defaults(['locale' => $locale]);

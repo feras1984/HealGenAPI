@@ -253,4 +253,46 @@ class LocaleAuthenticationTest extends TestCase
                  ->where('direction', 'rtl')
         );
     }
+
+    public function test_route_locale_wins_over_stale_opposite_cookie_on_login_page(): void
+    {
+        // Visiting /ar/login with a stale locale=en cookie must stay Arabic (not flip back to en)
+        $arResponse = $this->withUnencryptedCookie('locale', 'en')->get('/ar/login');
+        $arResponse->assertOk();
+        $this->assertEquals('ar', app()->getLocale());
+        $arResponse->assertSessionHas('locale', 'ar');
+        $arResponse->assertPlainCookie('locale', 'ar');
+        $arResponse->assertInertia(fn ($page) =>
+            $page->component('Admin/Auth/Login')
+                 ->where('lang', 'ar')
+                 ->where('direction', 'rtl')
+        );
+
+        // Visiting /en/login with a stale locale=ar cookie must stay English (not flip back to ar)
+        $enResponse = $this->withUnencryptedCookie('locale', 'ar')->get('/en/login');
+        $enResponse->assertOk();
+        $this->assertEquals('en', app()->getLocale());
+        $enResponse->assertSessionHas('locale', 'en');
+        $enResponse->assertPlainCookie('locale', 'en');
+        $enResponse->assertInertia(fn ($page) =>
+            $page->component('Admin/Auth/Login')
+                 ->where('lang', 'en')
+                 ->where('direction', 'ltr')
+        );
+    }
+
+    public function test_guest_can_switch_locale_from_login_page(): void
+    {
+        $responseAr = $this->postJson('/locale/ar');
+        $responseAr->assertOk()
+            ->assertJson(['success' => true, 'locale' => 'ar', 'direction' => 'rtl'])
+            ->assertSessionHas('locale', 'ar')
+            ->assertPlainCookie('locale', 'ar');
+
+        $responseEn = $this->postJson('/locale/en');
+        $responseEn->assertOk()
+            ->assertJson(['success' => true, 'locale' => 'en', 'direction' => 'ltr'])
+            ->assertSessionHas('locale', 'en')
+            ->assertPlainCookie('locale', 'en');
+    }
 }

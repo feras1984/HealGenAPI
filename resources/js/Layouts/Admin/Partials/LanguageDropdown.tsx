@@ -68,7 +68,17 @@ const LanguageDropdown: React.FC = () => {
     const currentReduxLang = useAppSelector(state => state.languages.language);
     const dark = useAppSelector(state => state.theme.dark);
 
-    const activeCode = (i18n.language || currentReduxLang || 'en').startsWith('ar') ? 'ar' : 'en';
+    const pageProps = usePage()?.props as any;
+    const urlLang =
+        typeof window !== 'undefined'
+            ? (window.location.pathname.startsWith('/ar/') || window.location.pathname === '/ar'
+                ? 'ar'
+                : (window.location.pathname.startsWith('/en/') || window.location.pathname === '/en' ? 'en' : null))
+            : null;
+    const resolvedLang = pageProps?.lang === 'ar' || pageProps?.lang === 'en'
+        ? pageProps.lang
+        : (urlLang || i18n.language || currentReduxLang || 'en');
+    const activeCode = String(resolvedLang).startsWith('ar') ? 'ar' : 'en';
     const currentLangObj = languagesConfig.find(l => l.code === activeCode) || languagesConfig[0];
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -89,7 +99,14 @@ const LanguageDropdown: React.FC = () => {
         const isRtl = newCode === 'ar';
         const newDirection = isRtl ? 'rtl' : 'ltr';
 
-        // 1. Update i18next & localStorage
+        // 1. Persist locale on backend session & cookie first (works for guests & authenticated users)
+        try {
+            await axios.post(`/locale/${newCode}`);
+        } catch {
+            // Safe fallback if network is offline
+        }
+
+        // 2. Update i18next, localStorage, cookie & document direction
         await i18n.changeLanguage(newCode);
         if (typeof window !== 'undefined') {
             localStorage.setItem('i18nextLng', newCode);
@@ -98,16 +115,9 @@ const LanguageDropdown: React.FC = () => {
             document.documentElement.lang = newCode;
         }
 
-        // 2. Update Redux store
+        // 3. Update Redux store
         dispatch(setLanguage(newCode));
         dispatch(setDirection(newDirection));
-
-        // 3. Post to backend to sync session & cookie
-        try {
-            await axios.post(`/locale/${newCode}`);
-        } catch {
-            // Safe fallback if network is offline
-        }
 
         // 4. Update page URL prefix smoothly
         const currentPath = window.location.pathname;

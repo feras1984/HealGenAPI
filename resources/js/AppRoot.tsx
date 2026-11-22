@@ -35,34 +35,21 @@ const AppRoot = ({ children }: PropsWithChildren) => {
             ? pageProps.lang
             : (typeof window !== 'undefined' && (window.location.pathname.startsWith('/ar/') || window.location.pathname === '/ar'))
                 ? 'ar'
-                : (currentLang === 'ar' ? 'ar' : 'en');
+                : (typeof window !== 'undefined' && (window.location.pathname.startsWith('/en/') || window.location.pathname === '/en'))
+                    ? 'en'
+                    : (currentLang === 'ar' ? 'ar' : 'en');
 
-    // Keep i18next, Redux, and document language strictly synchronized
+    // Synchronize i18next and Redux only when the server/route targetLang changes
+    // (prevents reverting an in-flight manual switch before Inertia finishes navigating)
     useEffect(() => {
         if (i18n && i18n.language !== targetLang) {
             i18n.changeLanguage(targetLang);
         }
-        if (currentLang !== targetLang) {
-            dispatch(setLanguage(targetLang));
-        }
-        const targetDir = targetLang === 'ar' ? 'rtl' : 'ltr';
-        if (direction !== targetDir) {
-            dispatch(setDirection(targetDir));
-        }
-    }, [targetLang, currentLang, direction, i18n, dispatch]);
+        dispatch(setLanguage(targetLang));
+        dispatch(setDirection(targetLang === 'ar' ? 'rtl' : 'ltr'));
+    }, [targetLang, i18n, dispatch]);
 
-    const isRtl =
-        targetLang === 'ar' ||
-        pageProps?.lang === 'ar' ||
-        direction === 'rtl' ||
-        currentLang === 'ar' ||
-        (i18n?.language && i18n.language.startsWith('ar')) ||
-        (typeof window !== 'undefined' && (
-            window.location.pathname.startsWith('/ar/') ||
-            window.location.pathname === '/ar' ||
-            document.documentElement.dir === 'rtl' ||
-            document.documentElement.lang === 'ar'
-        ));
+    const isRtl = targetLang === 'ar';
 
     useEffect(() => {
         if (typeof window !== 'undefined') {

@@ -82,10 +82,12 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::post('/location-inspectors/assign', [LocationInspectorController::class, 'store'])->name('admin.location-inspectors.store');
     Route::patch('/location-inspectors/{locationInspector}/transfer', [LocationInspectorController::class, 'transfer'])->name('admin.location-inspectors.transfer');
     Route::patch('/location-inspectors/{locationInspector}/unassign', [LocationInspectorController::class, 'unassign'])->name('admin.location-inspectors.unassign');
-
-    // Language Switcher Endpoint
-    Route::post('/locale/{locale}', [LanguageController::class, 'switch'])->name('locale.switch');
 });
+
+// Language Switcher Endpoint (available for both guest Login page and authenticated users)
+Route::post('/locale/{locale}', [LanguageController::class, 'switch'])
+    ->where(['locale' => 'en|ar'])
+    ->name('locale.switch');
 
 // Authentication POST actions
 Route::post('login', [AuthenticatedSessionController::class, 'store'])->name('admin.store')->middleware(['language']);

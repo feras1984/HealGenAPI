@@ -18,8 +18,10 @@ import "reflect-metadata";
 import ValidatedInput from "@/Components/ValidatedComponents/ValidatedInput";
 import { useTranslation } from "react-i18next";
 
-const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPassword: boolean}) => {
-    const { t } = useTranslation();
+const LoginForm = ({ status, canResetPassword, lang }: { status?: string, canResetPassword: boolean, lang?: 'en' | 'ar' }) => {
+    const { t, i18n } = useTranslation();
+    const activeLang = lang ?? (i18n.language?.startsWith('ar') ? 'ar' : 'en');
+    const tr = (key: string) => t(key, { lng: activeLang });
     const {data, setData, post, processing, errors, reset} = formHandler({
         email: '',
         password: '',
@@ -52,8 +54,8 @@ const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPass
     // document.addEventListener('change', )
 
     const loginSchema = z.object({
-        email: z.string().email(t('validation.emailInvalid') || 'Please enter a valid email address'),
-        password: z.string().min(8, t('validation.passwordMin') || 'Password must be at least 8 characters'),
+        email: z.string().email(tr('validation.emailInvalid') || 'Please enter a valid email address'),
+        password: z.string().min(8, tr('validation.passwordMin') || 'Password must be at least 8 characters'),
         // remember: z.boolean(),
     });
 
@@ -101,8 +103,8 @@ const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPass
                     type="email"
                     controlName="email"
                     methods={methods}
-                    label={t('auth.email') || "Email"}
-                    placeholder={t('placeholders.email') || "name@example.com"}
+                    label={tr('auth.email') || "Email"}
+                    placeholder={tr('placeholders.email') || "name@example.com"}
                     errors={errors.email}
                 ></ValidatedInput>
 
@@ -112,7 +114,7 @@ const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPass
                     type="password"
                     controlName="password"
                     methods={methods}
-                    label={t('auth.password') || "Password"}
+                    label={tr('auth.password') || "Password"}
                     errors={errors.password}
                 ></ValidatedInput>
 
@@ -126,7 +128,7 @@ const LoginForm = ({ status, canResetPassword }: { status?: string, canResetPass
                         disabled={processing}
                         sx={{ py: 1.25, fontWeight: 700, borderRadius: 2 }}
                     >
-                        {processing ? (t('auth.submitting') || 'Signing In...') : (t('auth.signIn') || 'Sign In')}
+                        {processing ? (tr('auth.submitting') || 'Signing In...') : (tr('auth.signIn') || 'Sign In')}
                     </Button>
                 </div>
             </Box>

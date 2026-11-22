@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import AuthAdminLayout from "@/Layouts/Admin/AuthAdminLayout";
 import { Box, Card, CardContent, Paper, Typography } from "@mui/material";
 import LoginForm from "@/Pages/Admin/Auth/Partials/LoginForm";
@@ -8,12 +8,16 @@ import { useTranslation } from "react-i18next";
 import { useAppSelector } from "@/Redux/Store/hook";
 
 const Login = ({ status, canResetPassword }: PageProps<{ status?: string, canResetPassword: boolean }>) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const pageProps = usePage()?.props as any;
     const dark = useAppSelector(state => state.theme.dark);
+    const activeLang = pageProps?.lang === 'ar' || pageProps?.lang === 'en'
+        ? pageProps.lang
+        : (i18n.language?.startsWith('ar') ? 'ar' : 'en');
 
     return (
         <AuthAdminLayout>
-            <Head title={t('auth.signIn') || "Login"}></Head>
+            <Head title={t('auth.signIn', { lng: activeLang }) || "Login"}></Head>
             <Box className="flex justify-center w-full">
                 <Paper
                     elevation={3}
@@ -61,15 +65,15 @@ const Login = ({ status, canResetPassword }: PageProps<{ status?: string, canRes
                                 />
                             </Box>
                             <Typography variant="h6" sx={{ fontWeight: 700, mt: 1, textAlign: 'center' }}>
-                                {t('auth.signIn') || 'Sign In'}
+                                {t('auth.signIn', { lng: activeLang }) || 'Sign In'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-                                {t('auth.loginSubtitle') || 'Access HealGen Clinical Diagnostic System'}
+                                {t('auth.loginSubtitle', { lng: activeLang }) || 'Access HealGen Clinical Diagnostic System'}
                             </Typography>
                         </Box>
 
                         <CardContent sx={{ p: 4 }}>
-                            <LoginForm status={status} canResetPassword={canResetPassword} />
+                            <LoginForm status={status} canResetPassword={canResetPassword} lang={activeLang} />
                         </CardContent>
                     </Card>
                 </Paper>

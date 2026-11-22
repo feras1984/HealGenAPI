@@ -1,22 +1,24 @@
 import React, { PropsWithChildren, ReactNode } from "react";
 import { Box } from "@mui/material";
+import { usePage } from "@inertiajs/react";
 import { useAppSelector } from "@/Redux/Store/hook";
 import AppRoot from "@/AppRoot";
 import LanguageDropdown from "@/Layouts/Admin/Partials/LanguageDropdown";
 
 const AuthAdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) => {
+    const pageProps = usePage()?.props as any;
     const dark = useAppSelector(state => state.theme.dark);
     const direction = useAppSelector(state => state.languages.direction);
     const currentLang = useAppSelector(state => state.languages.language);
-    const isRtl =
-        direction === 'rtl' ||
-        currentLang === 'ar' ||
-        (typeof window !== 'undefined' && (
-            window.location.pathname.startsWith('/ar/') ||
-            window.location.pathname === '/ar' ||
-            document.documentElement.dir === 'rtl' ||
-            document.documentElement.lang === 'ar'
-        ));
+    const activeLang =
+        pageProps?.lang === 'ar' || pageProps?.lang === 'en'
+            ? pageProps.lang
+            : (typeof window !== 'undefined' && (window.location.pathname.startsWith('/ar/') || window.location.pathname === '/ar'))
+                ? 'ar'
+                : (typeof window !== 'undefined' && (window.location.pathname.startsWith('/en/') || window.location.pathname === '/en'))
+                    ? 'en'
+                    : (currentLang === 'ar' || direction === 'rtl' ? 'ar' : 'en');
+    const isRtl = activeLang === 'ar';
 
     return (
         <AppRoot>
