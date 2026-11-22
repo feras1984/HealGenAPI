@@ -69,6 +69,14 @@ const Header: React.FC<{ handleExpand: () => void }> = ({ handleExpand }) => {
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: '12px',
+                        ...(dark
+                            ? {
+                                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                  padding: '4px 12px',
+                                  borderRadius: '10px',
+                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                              }
+                            : {}),
                     }}
                 >
                     <img

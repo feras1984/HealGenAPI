@@ -61,7 +61,14 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
                 sx={{
                     minHeight: '100vh',
                     position: 'relative',
-                    bgcolor: dark ? '#111827' : '#f9fafb',
+                    ...(dark
+                        ? {
+                              bgcolor: '#04150F',
+                              backgroundImage: 'linear-gradient(160deg, #04150F 0%, #082319 52%, #051A13 100%)',
+                          }
+                        : {
+                              bgcolor: '#f9fafb',
+                          }),
                 }}
             >
                 {/* Single Contextual Sliding Sidebar */}
@@ -75,7 +82,15 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
                             : `${styles.sidebarLtr} ${expand ? styles.sidebarLtrOpen : styles.sidebarLtrClosed}`
                     }`}
                     sx={{
-                        bgcolor: 'background.paper',
+                        ...(dark
+                            ? {
+                                  bgcolor: '#041F16',
+                                  backgroundImage: 'linear-gradient(180deg, #031A12 0%, #063323 55%, #042419 100%)',
+                                  borderInlineEnd: '1px solid rgba(0, 168, 107, 0.22)',
+                              }
+                            : {
+                                  bgcolor: 'background.paper',
+                              }),
                         textAlign: isRtl ? 'right' : 'left',
                     }}
                 >
@@ -104,8 +119,17 @@ const AdminLayout = ({ children }: PropsWithChildren<{ header?: ReactNode }>) =>
                         dir={isRtl ? 'rtl' : 'ltr'}
                         className={`h-[60px] ${styles.boxShadow} ${dark ? 'dark' : 'light'}`}
                         sx={{
-                            bgcolor: dark ? '#1f2937' : '#ffffff',
-                            color: dark ? '#f8fafc' : '#1e293b',
+                            ...(dark
+                                ? {
+                                      bgcolor: '#052218',
+                                      backgroundImage: 'linear-gradient(90deg, #052218 0%, #083324 55%, #06281C 100%)',
+                                      borderBottom: '2px solid #008658',
+                                      color: '#f8fafc',
+                                  }
+                                : {
+                                      bgcolor: '#ffffff',
+                                      color: '#1e293b',
+                                  }),
                             width: '100%',
                         }}
                     >
