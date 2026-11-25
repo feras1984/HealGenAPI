@@ -12,7 +12,7 @@ const SupervisorKpiCards: React.FC = () => {
 
     const cards = [
         {
-            label: t('supervisor.pendingSupervisorReview') || 'Pending Supervisor Review',
+            label: t('supervisor.pendingSupervisorReview') || 'Pending Expert Review',
             count: kpis.pendingCount || 0,
             colorLight: '#ed6c02',
             colorDark: '#fb923c',
@@ -48,7 +48,7 @@ const SupervisorKpiCards: React.FC = () => {
     return (
         <Box className="mb-6">
             <Typography variant="h6" color="text.primary" className="mb-3 font-semibold">
-                {t('supervisor.overview') || 'Supervisor Overview'}
+                {t('supervisor.overview') || 'Expert Overview'}
             </Typography>
             <Grid container spacing={2} justifyContent="center">
                 {cards.map((card, idx) => (

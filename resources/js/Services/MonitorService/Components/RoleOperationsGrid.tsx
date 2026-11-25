@@ -34,7 +34,7 @@ const RoleOperationsGrid: React.FC = () => {
     const isRtl = direction === 'rtl' || currentLang === 'ar' || (i18n.language && i18n.language.startsWith('ar'));
 
     const roleOps = data.roleOperations || {
-        roles: { Administrator: 0, Supervisor: 0, Inspector: 0, Employee: 0 },
+        roles: { Administrator: 0, Expert: 0, Inspector: 0, Employee: 0 },
         totalUsers: 0,
         activeUsers: 0,
         assignedDeviceUsers: 0,
@@ -42,7 +42,7 @@ const RoleOperationsGrid: React.FC = () => {
 
     const roleRows = [
         { role: 'Administrator', count: roleOps.roles.Administrator || 0 },
-        { role: 'Supervisor', count: roleOps.roles.Supervisor || 0 },
+        { role: 'Expert', count: roleOps.roles.Expert || 0 },
         { role: 'Inspector', count: roleOps.roles.Inspector || 0 },
         { role: 'Employee', count: roleOps.roles.Employee || 0 },
     ];

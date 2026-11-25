@@ -23,7 +23,7 @@ class MonitorScopeStrategyFactory
         $role = strtolower(trim($adminRef?->role ?? ''));
 
         return match ($role) {
-            'administrator', 'supervisor' => new AdminMonitorScopeStrategy(),
+            'administrator', 'expert'     => new AdminMonitorScopeStrategy(),
             'inspector'                   => new InspectorMonitorScopeStrategy($user),
             default                       => new DenyMonitorScopeStrategy(),
         };

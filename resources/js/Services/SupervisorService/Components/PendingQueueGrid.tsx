@@ -179,7 +179,7 @@ const PendingQueueGrid: React.FC = () => {
     const pageProps = usePage().props as any;
     const currentUser = pageProps.auth?.user || pageProps.user;
     const userRole = (currentUser?.role || currentUser?.reference?.role || '').toLowerCase();
-    const canReview = ['supervisor', 'administrator'].includes(userRole);
+    const canReview = ['expert', 'administrator'].includes(userRole);
 
     const delayedCount = useMemo(
         () => queue.filter(pt => pt.delaySummary?.hasDelay).length,
@@ -241,7 +241,7 @@ const PendingQueueGrid: React.FC = () => {
             <CardContent>
                 <Box className="flex flex-wrap justify-between items-center gap-2 mb-3">
                     <Typography variant="h6" color="text.primary" className="font-semibold">
-                        {t('supervisor.pendingQueue') || 'Pending Supervisor Review Queue'} ({mappedGridData.length})
+                        {t('supervisor.pendingQueue') || 'Pending Expert Review Queue'} ({mappedGridData.length})
                     </Typography>
                 </Box>
 
@@ -270,7 +270,7 @@ const PendingQueueGrid: React.FC = () => {
                 {mappedGridData.length === 0 ? (
                     <Box className="p-8 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
-                            {t('supervisor.noTestsWaiting') || 'No tests are currently waiting for supervisor review.'}
+                            {t('supervisor.noTestsWaiting') || 'No tests are currently waiting for expert review.'}
                         </Typography>
                     </Box>
                 ) : (
@@ -288,8 +288,8 @@ const PendingQueueGrid: React.FC = () => {
                             toolbar={['ExcelExport', 'PdfExport', 'Search']}
                             toolbarClick={(args: ClickEventArgs) =>
                                 handleGridToolbarClick(gridRef.current, args, {
-                                    fileName: isRtl ? 'قائمة_انتظار_مراجعة_المشرف' : 'Pending_Supervisor_Queue',
-                                    title: t('supervisor.pendingQueue') || 'Pending Supervisor Review Queue',
+                                    fileName: isRtl ? 'قائمة_انتظار_مراجعة_الخبير' : 'Pending_Expert_Queue',
+                                    title: t('supervisor.pendingQueue') || 'Pending Expert Review Queue',
                                     isLandscape: true
                                 })
                             }

@@ -196,7 +196,7 @@ class TestWorkflowTimingTest extends TestCase
         $adminRef = Admin::create(['first_name' => 'Super', 'last_name' => 'Admin', 'role' => 'Administrator']);
         $this->adminUser = User::create(['email' => 'admin@dxb.local', 'reference_id' => $adminRef->id, 'reference_type' => Admin::class]);
 
-        $supRef = Admin::create(['first_name' => 'Sara', 'last_name' => 'Supervisor', 'role' => 'Supervisor']);
+        $supRef = Admin::create(['first_name' => 'Sara', 'last_name' => 'Expert', 'role' => 'Expert']);
         $this->supervisorUser = User::create(['email' => 'supervisor@dxb.local', 'reference_id' => $supRef->id, 'reference_type' => Admin::class]);
 
         $inspRef = Admin::create(['first_name' => 'Omar', 'last_name' => 'Inspector', 'role' => 'Inspector']);
@@ -284,8 +284,8 @@ class TestWorkflowTimingTest extends TestCase
         $this->assertEquals('May 26, 2026 09:15:30', $afterConfirm['receivedAt']);
         $this->assertEquals('May 26, 2026 09:42:18', $afterConfirm['inspectedAt']);
         $this->assertEquals('May 26, 2026 10:05:44', $afterConfirm['confirmedAt']);
-        $this->assertEquals('Supervisor', $afterConfirm['confirmedBy']['role']);
-        $this->assertEquals('Sara Supervisor', $afterConfirm['confirmedBy']['name']);
+        $this->assertEquals('Expert', $afterConfirm['confirmedBy']['role']);
+        $this->assertEquals('Sara Expert', $afterConfirm['confirmedBy']['name']);
         $this->assertEquals('Verified clean', $afterConfirm['confirmedBy']['reason']);
     }
 

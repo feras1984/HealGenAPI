@@ -30,7 +30,7 @@ export interface DeviceOperation {
 export interface RoleOperationsSummary {
     roles: {
         Administrator: number;
-        Supervisor: number;
+        Expert: number;
         Inspector: number;
         Employee: number;
     };

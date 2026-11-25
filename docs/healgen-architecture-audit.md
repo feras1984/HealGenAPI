@@ -49,7 +49,7 @@ SQL Server Database
 4. **Middleware & Authentication / Authorization:**
    - **Authentication:** Dual guard setup (`auth` and custom `admin.auth` via `AdminAuthenticate`).
    - **Authorization:** Polymorphic user architecture (`User` morphs to `Admin` or `Customer`). `UserPolicy` defines the `admin` gate checked by `AdminAuthorization` middleware.
-   - **Roles:** Defined in `App\Enums\AdminRoleEnum` (`Administrator`, `Supervisor`, `Inspector`, `Employee`). `Admin` model contains a `role` column.
+   - **Roles:** Defined in `App\Enums\AdminRoleEnum` (`Administrator`, `Expert`, `Inspector`, `Employee`). `Admin` model contains a `role` column.
 
 5. **Routes (`routes/web.php` & `routes/api.php`):**
    - `routes/web.php`: Protected by `['admin.auth']` or `['admin.auth', 'admin.authorize']`. Serves Inertia views and POST/PATCH CRUD endpoints.

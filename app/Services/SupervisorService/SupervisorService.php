@@ -133,8 +133,8 @@ class SupervisorService
     {
         $adminRef = $user->reference()->first();
         $role = strtolower($adminRef && isset($adminRef->role) ? $adminRef->role : '');
-        if (!in_array($role, ['supervisor', 'administrator'], true)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Supervisors or Administrators can confirm or reject tests.");
+        if (!in_array($role, ['expert', 'administrator'], true)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Experts or Administrators can confirm or reject tests.");
         }
     }
 
@@ -146,7 +146,7 @@ class SupervisorService
         $this->checkSupervisorAuthorization($user);
 
         if (!in_array($patientHeader->Status, self::PENDING_STATUSES, true)) {
-            throw new InvalidArgumentException("Test #{$patientHeader->Id} is no longer pending supervisor review. Current status: {$patientHeader->Status}");
+            throw new InvalidArgumentException("Test #{$patientHeader->Id} is no longer pending expert review. Current status: {$patientHeader->Status}");
         }
 
         $result = DB::transaction(function () use ($patientHeader, $user, $note) {
@@ -157,7 +157,7 @@ class SupervisorService
             $patientHeader->save();
 
             $adminRef = $user->reference()->first();
-            $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Supervisor';
+            $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Expert';
 
             $testLocationId = $patientHeader->device?->location_id;
 
@@ -207,7 +207,7 @@ class SupervisorService
         $trimmedNote = $note !== null && trim($note) !== '' ? trim($note) : null;
 
         $adminRef = $user->reference()->first();
-        $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Supervisor';
+        $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Expert';
 
         $headers = PatientHeader::with('device')
             ->whereIn('Id', $uniqueIds)
@@ -237,7 +237,7 @@ class SupervisorService
                     if (!in_array($patientHeader->Status, self::PENDING_STATUSES, true)) {
                         return [
                             'confirmed' => false,
-                            'reason' => "Test #{$patientHeader->Id} is no longer pending supervisor review (Current status: {$patientHeader->Status}).",
+                            'reason' => "Test #{$patientHeader->Id} is no longer pending expert review (Current status: {$patientHeader->Status}).",
                         ];
                     }
 
@@ -316,7 +316,7 @@ class SupervisorService
         }
 
         if (!in_array($patientHeader->Status, self::PENDING_STATUSES, true)) {
-            throw new InvalidArgumentException("Test #{$patientHeader->Id} is no longer pending supervisor review. Current status: {$patientHeader->Status}");
+            throw new InvalidArgumentException("Test #{$patientHeader->Id} is no longer pending expert review. Current status: {$patientHeader->Status}");
         }
 
         return DB::transaction(function () use ($patientHeader, $user, $trimmedReason) {
@@ -327,7 +327,7 @@ class SupervisorService
             $patientHeader->save();
 
             $adminRef = $user->reference()->first();
-            $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Supervisor';
+            $roleName = $adminRef && isset($adminRef->role) ? $adminRef->role : 'Expert';
 
             $testLocationId = $patientHeader->device?->location_id;
 

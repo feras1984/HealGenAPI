@@ -52,7 +52,7 @@ const ConfirmDialog: React.FC = () => {
                 <TextField
                     fullWidth
                     size="small"
-                    label={`${t('forms.supervisorNote') || 'Supervisor Note'} (${t('forms.optional') || 'Optional'})`}
+                    label={`${t('forms.supervisorNote') || 'Expert Note'} (${t('forms.optional') || 'Optional'})`}
                     placeholder={t('placeholders.supervisorNote') || "Add optional notes..."}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}

@@ -290,7 +290,7 @@ const BulkActionConfirmDialog: React.FC<BulkActionConfirmDialogProps> = ({
                     <TextField
                         fullWidth
                         size="small"
-                        label={noteLabel || `${t('forms.supervisorNote') || 'Supervisor Note'} (${t('forms.optional') || 'Optional'})`}
+                        label={noteLabel || `${t('forms.supervisorNote') || 'Expert Note'} (${t('forms.optional') || 'Optional'})`}
                         placeholder={notePlaceholder || t('placeholders.supervisorNote') || 'Add optional notes for this batch...'}
                         value={note}
                         onChange={(e) => setNote(e.target.value)}

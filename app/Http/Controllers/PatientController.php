@@ -31,8 +31,8 @@ class PatientController extends Controller
     /**
      * Check if a user has access to a patient test record.
      * Rules:
-     * - Test Details can only be opened by authorized roles ('administrator', 'supervisor', 'inspector', 'employee').
-     * - Admin and Supervisor can open any test.
+     * - Test Details can only be opened by authorized roles ('administrator', 'expert', 'inspector', 'employee').
+     * - Admin and Expert can open any test.
      * - Inspector can open test details related to their current assigned location.
      * - Employee can open only tests related to their assigned devices.
      * - Otherwise, 403 is returned.
@@ -49,7 +49,7 @@ class PatientController extends Controller
         $role = strtolower($adminRef && isset($adminRef->role) ? trim($adminRef->role) : '');
 
         // Only authorized roles are allowed
-        $authorizedRoles = ['administrator', 'supervisor', 'inspector', 'employee'];
+        $authorizedRoles = ['administrator', 'expert', 'inspector', 'employee'];
         if (!in_array($role, $authorizedRoles, true)) {
             abort(403, 'Unauthorized role. You do not have permission to access test records.');
         }
@@ -59,8 +59,8 @@ class PatientController extends Controller
             abort(403, 'Unauthorized. Only users with the Employee role can upload or delete test attachments.');
         }
 
-        // Admin and Supervisor can open any test
-        if ($role === 'administrator' || $role === 'supervisor') {
+        // Admin and Expert can open any test
+        if ($role === 'administrator' || $role === 'expert') {
             return;
         }
 

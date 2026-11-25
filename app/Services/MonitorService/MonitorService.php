@@ -180,14 +180,19 @@ class MonitorService
     {
         $roleCountsRaw = Admin::select('role', DB::raw('COUNT(*) as total_count'))
             ->groupBy('role')
-            ->pluck('total_count', 'role')
-            ->toArray();
+            ->get();
+
+        $normalized = [];
+        foreach ($roleCountsRaw as $row) {
+            $key = strtolower(trim((string) $row->role));
+            $normalized[$key] = ($normalized[$key] ?? 0) + (int) $row->total_count;
+        }
 
         $roleCounts = [
-            'Administrator' => (int) ($roleCountsRaw['Administrator'] ?? 0),
-            'Supervisor' => (int) ($roleCountsRaw['Supervisor'] ?? 0),
-            'Inspector' => (int) ($roleCountsRaw['Inspector'] ?? 0),
-            'Employee' => (int) ($roleCountsRaw['Employee'] ?? 0),
+            'Administrator' => (int) ($normalized['administrator'] ?? 0),
+            'Expert' => (int) ($normalized['expert'] ?? 0),
+            'Inspector' => (int) ($normalized['inspector'] ?? 0),
+            'Employee' => (int) ($normalized['employee'] ?? 0),
         ];
 
         $activeUsers = User::where('is_active', true)->count();

@@ -24,7 +24,7 @@ const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({
 
     return (
         <AdminLayout>
-            <Head title={t('supervisor.dashboard') || "Supervisor Dashboard"} />
+            <Head title={t('supervisor.dashboard') || "Expert Dashboard"} />
             <SupervisorContainer
                 initialData={dashboardData}
                 locations={locations}

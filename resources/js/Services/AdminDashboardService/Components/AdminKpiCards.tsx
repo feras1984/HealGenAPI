@@ -52,7 +52,7 @@ const AdminKpiCards: React.FC = () => {
             bgDark: '#1c1917',
         },
         {
-            label: t('dashboard.pendingSupervisor') || 'Pending Supervisor',
+            label: t('dashboard.pendingSupervisor') || 'Pending Expert',
             count: kpis.pendingSupervisorCount || 0,
             colorLight: '#d32f2f',
             colorDark: '#f87171',

@@ -141,7 +141,7 @@ const AuditLogList: React.FC<AuditLogListProps> = ({ logs: initialLogs, initialF
                                     >
                                         <MenuItem value="">{t('common.all') || 'All Roles'}</MenuItem>
                                         <MenuItem value="Administrator">{t('roles.Administrator') || 'Administrator'}</MenuItem>
-                                        <MenuItem value="Supervisor">{t('roles.Supervisor') || 'Supervisor'}</MenuItem>
+                                        <MenuItem value="Expert">{t('roles.Expert') || 'Expert'}</MenuItem>
                                         <MenuItem value="Inspector">{t('roles.Inspector') || 'Inspector'}</MenuItem>
                                         <MenuItem value="Employee">{t('roles.Employee') || 'Employee'}</MenuItem>
                                         <MenuItem value="System">System</MenuItem>

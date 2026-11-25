@@ -523,16 +523,16 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                             );
                         })()}
 
-                        {/* Supervisor Confirmation Information (if present) */}
+                        {/* Expert Confirmation Information (if present) */}
                         {patient.confirmedBy && (
                             <>
                                 <Divider className="mb-6" />
                                 <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                    {t('tests.supervisorAttribution') || 'Supervisor Confirmation Attribution'}
+                                    {t('tests.supervisorAttribution') || 'Expert Confirmation Attribution'}
                                 </Typography>
                                 <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
                                     <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.supervisor') || 'Supervisor'}</Typography>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.supervisor') || 'Expert'}</Typography>
                                         <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                             {(patient.confirmedBy.name && t(`users.${patient.confirmedBy.name}`)) || (patient.confirmedBy.email && t(`users.${patient.confirmedBy.email}`)) || patient.confirmedBy.name || patient.confirmedBy.email || '-'}
                                         </Typography>
@@ -556,7 +556,7 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                                 label={
                                                     patient.confirmedBy.action === 'SUPERVISOR_CONFIRM'
                                                         ? (t('status.Confirmed') || 'Confirmed')
-                                                        : (t('status.Supervisor Rejected') || 'Supervisor Rejected')
+                                                        : (t('status.Supervisor Rejected') || 'Expert Rejected')
                                                 }
                                                 color={patient.confirmedBy.action === 'SUPERVISOR_CONFIRM' ? 'success' : 'error'}
                                                 size="small"
@@ -573,7 +573,7 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                     </Grid>
                                     {patient.confirmedBy.reason && (
                                         <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Supervisor Notes / Reason'}</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Expert Notes / Reason'}</Typography>
                                             <Typography variant="body2" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                                                 {patient.confirmedBy.reason}
                                             </Typography>

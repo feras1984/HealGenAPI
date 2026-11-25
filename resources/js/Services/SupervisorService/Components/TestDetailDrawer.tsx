@@ -56,7 +56,7 @@ const TestDetailDrawer: React.FC = () => {
     const pageProps = usePage().props as any;
     const currentUser = pageProps.auth?.user || pageProps.user;
     const userRole = (currentUser?.role || currentUser?.reference?.role || '').toLowerCase();
-    const canReview = ['supervisor', 'administrator'].includes(userRole);
+    const canReview = ['expert', 'administrator'].includes(userRole);
 
     // Cache the last selected test so the drawer slides & fades smoothly upon closing without instant unmount
     const lastTestRef = useRef<PatientHeader | null>(null);
@@ -99,7 +99,7 @@ const TestDetailDrawer: React.FC = () => {
                     <Box className="flex flex-wrap justify-between items-center mb-3 gap-2" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
                         <Box sx={{ textAlign: isRtl ? 'right' : 'left' }}>
                             <Typography variant="h5" color="text.primary" className="font-bold">
-                                {t('supervisor.queueTitle') || 'Supervisor Test Review'}
+                                {t('supervisor.queueTitle') || 'Expert Test Review'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 {t('tests.testId') || 'Test ID'} #{activeTest.id}
@@ -202,7 +202,7 @@ const TestDetailDrawer: React.FC = () => {
                                     </Button>
                                 </>
                             ) : (
-                                <Tooltip title={t('supervisor.viewOnlyTooltip') || "View Only: Only Supervisors can confirm test decisions."}>
+                                <Tooltip title={t('supervisor.viewOnlyTooltip') || "View Only: Only Experts can confirm test decisions."}>
                                     <span>
                                         <Chip
                                             label={t('supervisor.viewOnlyMode') || "View Only Mode"}

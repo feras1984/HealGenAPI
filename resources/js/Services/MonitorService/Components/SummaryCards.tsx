@@ -28,7 +28,7 @@ const SummaryCards: React.FC = () => {
             bgDark: '#1c1917',
         },
         {
-            label: t('monitor.supervisor') || 'Supervisor',
+            label: t('monitor.supervisor') || 'Expert',
             count: (summary['Awaiting Supervisor'] || 0) + (summary['Confirmed'] || 0) + (summary['Supervisor Rejected'] || 0),
             colorLight: '#9c27b0',
             colorDark: '#c084fc',
