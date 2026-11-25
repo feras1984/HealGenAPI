@@ -68,7 +68,7 @@ const DelayFlagChip: React.FC<DelayFlagChipProps> = ({
     }
     if (delaySummary?.stages?.inspectionToSupervision) {
         stageEntries.push({
-            label: t('delay.inspectionToSupervision') || 'Inspection → Supervision',
+            label: t('delay.inspectionToSupervision') || 'Inspection → Expert Review',
             stage: delaySummary.stages.inspectionToSupervision,
         });
     }

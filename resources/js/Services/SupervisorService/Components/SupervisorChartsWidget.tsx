@@ -25,7 +25,7 @@ export const SupervisorChartsWidget: React.FC = () => {
                 <Grid item xs={12} md={8}>
                     <ActionActivityChart
                         data={trend}
-                        title={t('supervisor.activityTrend') || "Supervisor Confirmation Activity Trend"}
+                        title={t('supervisor.activityTrend') || "Expert Confirmation Activity Trend"}
                         subtitle={t('supervisor.hourlyTrendSubtitle') || "Hourly confirmed vs rejected decisions today"}
                         loading={loading}
                         height={280}
@@ -41,7 +41,7 @@ export const SupervisorChartsWidget: React.FC = () => {
                     <CategoryBarChart
                         data={breakdown}
                         title={t('supervisor.reviewBreakdown') || "Review Breakdown"}
-                        subtitle={t('supervisor.breakdownSubtitle') || "Processed supervisor reviews"}
+                        subtitle={t('supervisor.breakdownSubtitle') || "Processed expert reviews"}
                         loading={loading}
                         height={280}
                         barColor="#059669"

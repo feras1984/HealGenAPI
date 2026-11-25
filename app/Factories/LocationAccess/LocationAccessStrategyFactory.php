@@ -24,7 +24,7 @@ class LocationAccessStrategyFactory
         $role = strtolower(trim($adminRef?->role ?? ''));
 
         return match ($role) {
-            'administrator', 'supervisor' => new AdminLocationAccessStrategy(),
+            'administrator', 'expert'     => new AdminLocationAccessStrategy(),
             'inspector'                   => new InspectorLocationAccessStrategy($user),
             'employee'                    => new EmployeeLocationAccessStrategy($user),
             default                       => new DenyLocationAccessStrategy(),

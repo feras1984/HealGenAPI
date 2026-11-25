@@ -229,7 +229,7 @@ class LocationInspectorAuthorizationTest extends TestCase
         $adminRef = Admin::create(['first_name' => 'Super', 'last_name' => 'Admin', 'role' => 'Administrator']);
         $this->adminUser = User::create(['email' => 'admin@test.local', 'reference_id' => $adminRef->id, 'reference_type' => Admin::class]);
 
-        $supRef = Admin::create(['first_name' => 'Chief', 'last_name' => 'Supervisor', 'role' => 'Supervisor']);
+        $supRef = Admin::create(['first_name' => 'Chief', 'last_name' => 'Expert', 'role' => 'Expert']);
         $this->supervisorUser = User::create(['email' => 'supervisor@test.local', 'reference_id' => $supRef->id, 'reference_type' => Admin::class]);
 
         $insp1Ref = Admin::create(['first_name' => 'Inspector', 'last_name' => 'Alpha', 'role' => 'Inspector']);
@@ -832,7 +832,7 @@ class LocationInspectorAuthorizationTest extends TestCase
         $allIds = array_column($allResponse->json('data.pendingQueue'), 'patientId');
         $this->assertContains('PID-SUP-INSP-L1', $allIds);
         $this->assertContains('PID-SUP-INSP-L2', $allIds);
-        $this->assertEquals('supervisor', $allResponse->json('data.userRole'));
+        $this->assertEquals('expert', $allResponse->json('data.userRole'));
         $this->assertNull($allResponse->json('data.assignedLocation'));
 
         // 2. Supervisor filters Inspector Queue by Location 2

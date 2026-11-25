@@ -30,7 +30,7 @@ class DashboardRouterController extends Controller
             $locale = 'en';
         }
 
-        if ($role === 'supervisor') {
+        if ($role === 'expert') {
             return redirect()->route('admin.supervisor.dashboard', ['locale' => $locale]);
         }
 

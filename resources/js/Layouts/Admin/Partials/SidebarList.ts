@@ -19,7 +19,7 @@ const SidebarList: CustomTab [] = [
         name: 'Home',
         icon: 'home',
         link: '/',
-        roles: ['administrator', 'supervisor', 'inspector', 'employee'],
+        roles: ['administrator', 'expert', 'inspector', 'employee'],
         children: [],
     },
 
@@ -27,7 +27,7 @@ const SidebarList: CustomTab [] = [
         name: 'Monitor',
         icon: 'dashboard',
         link: '/monitor',
-        roles: ['administrator', 'supervisor', 'inspector'],
+        roles: ['administrator', 'expert', 'inspector'],
         children: [],
     },
 
@@ -35,7 +35,7 @@ const SidebarList: CustomTab [] = [
         name: 'Inspector Queue',
         icon: 'assignment',
         link: '/inspector/dashboard',
-        roles: ['administrator', 'supervisor', 'inspector'],
+        roles: ['administrator', 'expert', 'inspector'],
         children: [],
     },
 
@@ -43,7 +43,7 @@ const SidebarList: CustomTab [] = [
         name: 'Supervisor Queue',
         icon: 'verified',
         link: '/supervisor/dashboard',
-        roles: ['administrator', 'supervisor'],
+        roles: ['administrator', 'expert'],
         children: [],
     },
 
@@ -51,7 +51,7 @@ const SidebarList: CustomTab [] = [
         name: 'Tests',
         icon: 'tests',
         link: '/tests',
-        roles: ['administrator', 'supervisor', 'inspector', 'employee'],
+        roles: ['administrator', 'expert', 'inspector', 'employee'],
         children: [],
     },
 

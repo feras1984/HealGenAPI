@@ -24,7 +24,7 @@ class PatientQueryStrategyFactory
         $role = strtolower(trim($adminRef?->role ?? ''));
 
         return match ($role) {
-            'administrator', 'supervisor' => new AdminPatientQueryStrategy(),
+            'administrator', 'expert'     => new AdminPatientQueryStrategy(),
             'inspector'                   => new InspectorPatientQueryStrategy($user),
             'employee'                    => new EmployeePatientQueryStrategy($user),
             default                       => new DenyPatientQueryStrategy(),

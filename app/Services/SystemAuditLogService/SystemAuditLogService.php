@@ -57,7 +57,7 @@ class SystemAuditLogService
         $query = SystemAuditLog::query();
 
         if (!empty($filters['role'])) {
-            $query->where('role', $filters['role']);
+            $query->whereRaw('LOWER(role) = ?', [strtolower(trim((string) $filters['role']))]);
         }
 
         if (!empty($filters['action'])) {

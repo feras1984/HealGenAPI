@@ -198,7 +198,7 @@ class BulkQueueActionsTest extends TestCase
         $adminRef = Admin::create(['first_name' => 'Super', 'last_name' => 'Admin', 'role' => 'Administrator']);
         $this->adminUser = User::create(['email' => 'admin@test.local', 'reference_id' => $adminRef->id, 'reference_type' => Admin::class]);
 
-        $supRef = Admin::create(['first_name' => 'Lead', 'last_name' => 'Supervisor', 'role' => 'Supervisor']);
+        $supRef = Admin::create(['first_name' => 'Lead', 'last_name' => 'Expert', 'role' => 'Expert']);
         $this->supervisorUser = User::create(['email' => 'supervisor@test.local', 'reference_id' => $supRef->id, 'reference_type' => Admin::class]);
 
         $insp1Ref = Admin::create(['first_name' => 'Inspector', 'last_name' => 'One', 'role' => 'Inspector']);
@@ -471,7 +471,7 @@ class BulkQueueActionsTest extends TestCase
 
         $this->assertEquals('Inspector Accepted', $loc1Test->fresh()->Status);
         $this->assertEquals('Inspector Accepted', $loc2Test->fresh()->Status);
-        $this->assertEquals('Supervisor', PatientTestAction::where('patient_header_id', $loc1Test->Id)->value('role'));
+        $this->assertEquals('Expert', PatientTestAction::where('patient_header_id', $loc1Test->Id)->value('role'));
     }
 
     public function test_administrator_can_bulk_accept_across_all_locations_with_partial_success(): void

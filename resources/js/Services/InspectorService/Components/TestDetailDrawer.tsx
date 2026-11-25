@@ -56,7 +56,7 @@ const TestDetailDrawer: React.FC = () => {
     const pageProps = usePage().props as any;
     const currentUser = pageProps.auth?.user || pageProps.user;
     const userRole = (currentUser?.role || currentUser?.reference?.role || '').toLowerCase();
-    const canInspect = ['inspector', 'supervisor', 'administrator'].includes(userRole);
+    const canInspect = ['inspector', 'expert', 'administrator'].includes(userRole);
 
     // Cache the last selected test so the drawer slides & fades smoothly upon closing without instant unmount
     const lastTestRef = useRef<PatientHeader | null>(null);

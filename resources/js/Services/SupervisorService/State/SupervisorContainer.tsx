@@ -89,7 +89,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
                 console.error("Supervisor poll error:", err);
                 setSnackbar({
                     open: true,
-                    message: "Failed to update supervisor dashboard data.",
+                    message: "Failed to update expert dashboard data.",
                     severity: "error"
                 });
             })
@@ -336,7 +336,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
             <Box className="p-6">
                 <Box className="flex justify-between items-center mb-6">
                     <Typography variant="h4" color="text.primary" className="font-bold">
-                        {t('supervisor.dashboard') || 'Supervisor Dashboard'}
+                        {t('supervisor.dashboard') || 'Expert Dashboard'}
                     </Typography>
                 </Box>
 

@@ -21,8 +21,8 @@ class SupervisorController extends Controller
         $adminRef = $user ? $user->reference()->first() : null;
         $role = strtolower(trim($adminRef?->role ?? ''));
 
-        if (!in_array($role, ['administrator', 'supervisor'], true)) {
-            abort(403, 'Unauthorized access. Only Supervisors and Administrators can access the supervisor queue.');
+        if (!in_array($role, ['administrator', 'expert'], true)) {
+            abort(403, 'Unauthorized access. Only Experts and Administrators can access the expert queue.');
         }
     }
 
@@ -104,7 +104,7 @@ class SupervisorController extends Controller
             if ($confirmedCount === 0) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'None of the selected tests could be confirmed because they are no longer pending supervisor review.',
+                    'message' => 'None of the selected tests could be confirmed because they are no longer pending expert review.',
                     'data' => $result,
                 ], HTTPResponse::HTTP_CONFLICT);
             }

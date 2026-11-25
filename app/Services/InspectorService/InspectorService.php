@@ -220,8 +220,8 @@ class InspectorService
     public function checkInspectorAuthorization(User $user): void
     {
         $role = $this->getUserRole($user);
-        if (!in_array($role, ['inspector', 'supervisor', 'administrator'], true)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Supervisors, or Administrators can accept or reject tests.");
+        if (!in_array($role, ['inspector', 'expert', 'administrator'], true)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Experts, or Administrators can accept or reject tests.");
         }
     }
 
@@ -233,8 +233,8 @@ class InspectorService
     public function verifyInspectorTestAuthorization(User $user, PatientHeader $patientHeader): int
     {
         $role = $this->getUserRole($user);
-        if (!in_array($role, ['inspector', 'supervisor', 'administrator'], true)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Supervisors, or Administrators can accept or reject tests.");
+        if (!in_array($role, ['inspector', 'expert', 'administrator'], true)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Experts, or Administrators can accept or reject tests.");
         }
 
         $patientHeader->loadMissing('device');

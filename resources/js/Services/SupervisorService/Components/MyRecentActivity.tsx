@@ -43,7 +43,7 @@ const MyRecentActivity: React.FC = () => {
                 {activity.length === 0 ? (
                     <Box className="p-6 text-center border rounded-lg" sx={{ backgroundColor: dark ? 'rgba(15,23,42,0.4)' : '#f8fafc' }}>
                         <Typography color="text.secondary">
-                            {t('supervisor.noActivityToday') || 'You have not performed any supervisor actions yet today.'}
+                            {t('supervisor.noActivityToday') || 'You have not performed any expert actions yet today.'}
                         </Typography>
                     </Box>
                 ) : (

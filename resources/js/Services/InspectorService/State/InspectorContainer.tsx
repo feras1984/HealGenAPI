@@ -69,8 +69,8 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
     const currentUser = pageProps?.auth?.user || pageProps?.user;
     const role = String(data.userRole || currentUser?.role || '').toLowerCase();
     const isAdmin = role === 'administrator' || role === 'admin';
-    const isSupervisor = role === 'supervisor';
-    const hasAllLocationsAccess = isAdmin || isSupervisor;
+    const isExpert = role === 'expert';
+    const hasAllLocationsAccess = isAdmin || isExpert;
 
     const filteredDevices = useMemo(() => {
         if (!filters.locationId || filters.locationId === '-1' || filters.locationId === '') {
@@ -290,8 +290,8 @@ const InspectorContainer: React.FC<InspectorContainerProps> = ({
                         <Chip
                             icon={<LocationOnIcon />}
                             label={
-                                isSupervisor
-                                    ? (t('inspector.allLocationsSupervisor') || 'All Locations (Supervisor)')
+                                isExpert
+                                    ? (t('inspector.allLocationsSupervisor') || 'All Locations (Expert)')
                                     : (t('inspector.allLocationsAdmin') || 'All Locations (Administrator)')
                             }
                             color="info"

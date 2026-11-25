@@ -1,6 +1,6 @@
 enum AdminRoleEnum {
     ADMINISTRATOR = 'Administrator',
-    SUPERVISOR = 'Supervisor',
+    EXPERT = 'Expert',
     INSPECTOR = 'Inspector',
     EMPLOYEE = 'Employee',
 }

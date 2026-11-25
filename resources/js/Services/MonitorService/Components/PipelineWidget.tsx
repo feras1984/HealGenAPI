@@ -29,7 +29,7 @@ const PipelineWidget: React.FC = () => {
             color: dark ? '#fb923c' : '#ed6c02',
         },
         {
-            title: t('monitor.pipeline.supervisor') || '3. Supervisor Review',
+            title: t('monitor.pipeline.supervisor') || '3. Expert Review',
             count: (summary['Awaiting Supervisor'] || 0) + (summary['Confirmed'] || 0) + (summary['Supervisor Rejected'] || 0),
             subtext: `${summary['Awaiting Supervisor'] || 0} ${t('monitor.pipeline.pending') || 'pending'}`,
             color: dark ? '#c084fc' : '#9c27b0',

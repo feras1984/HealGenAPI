@@ -168,14 +168,14 @@ export const exportTestDetailsToExcel = (patient: PatientHeader): void => {
                 {
                     index: 1,
                     colSpan: 4,
-                    value: '4. CONFIRMATION ATTRIBUTION (SUPERVISOR / ADMIN)',
+                    value: '4. CONFIRMATION ATTRIBUTION (EXPERT / ADMIN)',
                     style: { bold: true, backColor: '#e2e8f0', fontSize: 11 }
                 }
             ]
         });
 
         const confirmInfo = [
-            ['Supervisor', patient.confirmedBy.name || patient.confirmedBy.email || '-'],
+            ['Expert', patient.confirmedBy.name || patient.confirmedBy.email || '-'],
             ['Role', patient.confirmedBy.role || '-'],
             ['Action Taken', patient.confirmedBy.action || '-'],
             ['Confirm Time', patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'],
@@ -398,12 +398,12 @@ export const exportTestDetailsToPdf = (patient: PatientHeader): void => {
             confirmGrid.columns.add(2);
 
             const cHeaderRow = confirmGrid.headers.add(1)[0];
-            cHeaderRow.cells.getCell(0).value = 'CONFIRMATION ATTRIBUTION (SUPERVISOR / ADMIN)';
+            cHeaderRow.cells.getCell(0).value = 'CONFIRMATION ATTRIBUTION (EXPERT / ADMIN)';
             cHeaderRow.cells.getCell(0).columnSpan = 2;
             cHeaderRow.cells.getCell(0).style.font = boldHeaderFont;
 
             const cRow1 = confirmGrid.rows.addRow();
-            cRow1.cells.getCell(0).value = `Supervisor: ${patient.confirmedBy.name || patient.confirmedBy.email || '-'} (${patient.confirmedBy.role || '-'})`;
+            cRow1.cells.getCell(0).value = `Expert: ${patient.confirmedBy.name || patient.confirmedBy.email || '-'} (${patient.confirmedBy.role || '-'})`;
             cRow1.cells.getCell(1).value = `Decision: ${patient.confirmedBy.action || '-'}`;
 
             const cRow2 = confirmGrid.rows.addRow();

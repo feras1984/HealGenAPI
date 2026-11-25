@@ -37,7 +37,7 @@ const AcceptConfirmDialog: React.FC = () => {
                         <>
                             Are you sure you want to forward test <strong>#{selectedTest.id}</strong> (Patient: {patientLabel})?
                             <br />
-                            This test will be forwarded to the next workflow stage (Supervisor Review).
+                            This test will be forwarded to the next workflow stage (Expert Review).
                         </>
                     )}
                 </DialogContentText>

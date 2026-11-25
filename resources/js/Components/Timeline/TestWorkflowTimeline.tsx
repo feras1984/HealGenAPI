@@ -256,7 +256,7 @@ const TestWorkflowTimeline: React.FC<TestWorkflowTimelineProps> = ({ patient }) 
                                 }
                             />
                             <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 700 }}>
-                                {t('tests.stageConfirmation') || '3. Confirmation (Supervisor / Admin)'}
+                                {t('tests.stageConfirmation') || '3. Confirmation (Expert / Admin)'}
                             </Typography>
                         </Box>
                         {confirmed?.role && (
@@ -286,13 +286,13 @@ const TestWorkflowTimeline: React.FC<TestWorkflowTimelineProps> = ({ patient }) 
                         </>
                     ) : (
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
-                            {t('tests.pendingConfirmation') || 'Pending supervisor confirmation'}
+                            {t('tests.pendingConfirmation') || 'Pending expert confirmation'}
                         </Typography>
                     )}
 
                     {renderStageDelayBadge(
                         inspectionToSupervision,
-                        t('delay.inspectionToSupervision') || 'Inspection → Supervision'
+                        t('delay.inspectionToSupervision') || 'Inspection → Expert Review'
                     )}
                 </Paper>
             </Box>

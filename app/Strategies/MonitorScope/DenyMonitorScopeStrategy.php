@@ -44,7 +44,7 @@ class DenyMonitorScopeStrategy implements MonitorScopeStrategy
             'testOperations' => [],
             'deviceOperations' => [],
             'roleOperations' => [
-                'roles' => ['Administrator' => 0, 'Supervisor' => 0, 'Inspector' => 0, 'Employee' => 0],
+                'roles' => ['Administrator' => 0, 'Expert' => 0, 'Inspector' => 0, 'Employee' => 0],
                 'totalUsers' => 0,
                 'activeUsers' => 0,
                 'assignedDeviceUsers' => 0,

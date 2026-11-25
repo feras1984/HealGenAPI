@@ -25,7 +25,7 @@ class TestAdminSeeder extends Seeder
                 'last_name'  => 'Mitchell',
                 'email'      => 'daniel@email.com',
                 'password'   => 'dK4@Rz8!Tq2M',
-                'role'       => 'Supervisor',
+                'role'       => 'Expert',
             ],
             [
                 'first_name' => 'Michael',

@@ -39,11 +39,11 @@ const QuickActionCards: React.FC = () => {
             color: 'warning' as const,
         },
         {
-            title: t('nav.supervisorQueue') || 'Supervisor Queue',
+            title: t('nav.supervisorQueue') || 'Expert Queue',
             desc: isRtl ? 'المراجعة والاعتماد النهائي والإرسال للنظام الصحي' : 'Review, confirm & dispatch to HIS',
             icon: <VerifiedIcon color="secondary" fontSize="large" />,
             link: '/supervisor/dashboard',
-            btnText: isRtl ? 'قائمة المشرف' : 'Open Supervisor Queue',
+            btnText: isRtl ? 'قائمة الخبير' : 'Open Expert Queue',
             color: 'secondary' as const,
         },
         {
