@@ -58,6 +58,8 @@ class PatientHeader {
     collectionSite: string;
     cupLotNumber: string;
     status: string;
+    ingestionSource?: 'excel' | 'pdf';
+    canManageAttachment?: boolean;
     device?: Device | null;
     tests: PatientTest[];
     reviewedBy?: PatientActionAttribution | null;
@@ -92,6 +94,8 @@ class PatientHeader {
         collectionSite = '',
         cupLotNumber = '',
         status = '',
+        ingestionSource = 'excel' as 'excel' | 'pdf',
+        canManageAttachment = undefined as boolean | undefined,
         device = null as Device | null,
         tests = [] as PatientTest[],
         reviewedBy = null as PatientActionAttribution | null,
@@ -117,6 +121,8 @@ class PatientHeader {
         this.collectionSite = collectionSite;
         this.cupLotNumber = cupLotNumber;
         this.status = status;
+        this.ingestionSource = ingestionSource === 'pdf' ? 'pdf' : 'excel';
+        this.canManageAttachment = canManageAttachment ?? this.ingestionSource !== 'pdf';
         this.device = device ? new Device(device) : null;
         this.tests = [...tests];
         this.reviewedBy = reviewedBy || inspectedBy;

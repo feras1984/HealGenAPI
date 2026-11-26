@@ -359,6 +359,7 @@ class PatientHeaderService
         $history = $this->buildTestHistory($patientHeader, $file);
         $isDirectExpertDecision = $supervisorAction !== null && $inspectorAction === null;
         $canExpertDecide = in_array($patientHeader->Status, SupervisorService::PENDING_STATUSES, true);
+        $ingestionSource = $patientHeader->getIngestionSourceEnum();
 
         return [
             'id' => $patientHeader->Id,
@@ -367,6 +368,8 @@ class PatientHeaderService
             'collectionSite' => $patientHeader->CollectionSite,
             'cupLotNumber' => $patientHeader->CupLotNumber,
             'status' => $patientHeader->Status,
+            'ingestionSource' => $ingestionSource->value,
+            'canManageAttachment' => $ingestionSource->allowsEmployeeAttachmentManagement(),
             'device' => $deviceModel,
             'tests' => $testsModel,
             'reviewedBy' => $inspectorData,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Enums\IngestionSourceEnum;
 use App\Http\Controllers\Controller;
 use App\Services\DeviceImportService\DeviceImportService;
 use App\Services\PatientService\TestAttachmentStorageService;
@@ -30,6 +31,17 @@ class DeviceImportController extends Controller
                 [$validated, $reportPdf] = $this->validateMultipartPdfRequest($request);
             } else {
                 $validated = $request->validate($this->payloadValidationRules());
+
+                if (
+                    isset($validated['ingestion_source'])
+                    && $validated['ingestion_source'] !== IngestionSourceEnum::EXCEL->value
+                ) {
+                    throw ValidationException::withMessages([
+                        'ingestion_source' => [
+                            'Direct PDF ingestion requires a multipart/form-data request with report_pdf.',
+                        ],
+                    ]);
+                }
             }
         } catch (ValidationException $exception) {
             Log::channel('device')->warning(
@@ -148,6 +160,14 @@ class DeviceImportController extends Controller
         }
 
         if (
+            $validatedPayload !== null
+            && isset($validatedPayload['ingestion_source'])
+            && $validatedPayload['ingestion_source'] !== IngestionSourceEnum::PDF->value
+        ) {
+            $errors['ingestion_source'][] = 'Multipart PDF ingestion must not specify ingestion_source as excel.';
+        }
+
+        if (
             $pdfValidSoFar
             && $validatedPayload !== null
             && !$this->attachmentStorageService->verifySha256($reportPdf, $validatedPayload['file_hash'])
@@ -183,6 +203,8 @@ class DeviceImportController extends Controller
     private function payloadValidationRules(): array
     {
         return [
+            'ingestion_source' => ['nullable', 'string', 'in:' . implode(',', IngestionSourceEnum::values())],
+
             'device_id' => ['nullable', 'integer'],
 
             'device_code' => ['nullable', 'string', 'max:100'],

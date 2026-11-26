@@ -24,6 +24,7 @@ import { useAppSelector } from "@/Redux/Store/hook";
 import { useTranslation } from "react-i18next";
 import DelayFlagChip, { applyDelayedRowAccent, getDelayStatusLabel } from "@/Components/Timeline/DelayFlagChip";
 import QueueDelayBanner from "@/Components/Timeline/QueueDelayBanner";
+import { isPdfIngestedTest } from "@/Utils/IngestionSourceHelper";
 
 const DelayFlagTemplate = (props: any) => (
     <DelayFlagChip delaySummary={props.delaySummary} />
@@ -76,6 +77,18 @@ const AttachmentTemplate = (props: any) => {
             >
                 {props.attachment.isImage ? 'Image' : 'PDF'}
             </Button>
+        );
+    }
+
+    if (isPdfIngestedTest(props) || props.canManageAttachment === false) {
+        return (
+            <Chip
+                label={t('tests.pdfIngestionSource') || 'Direct PDF'}
+                size="small"
+                color="info"
+                variant="outlined"
+                sx={{ fontSize: '0.72rem', fontWeight: 600 }}
+            />
         );
     }
 
@@ -139,6 +152,8 @@ const MyDeviceTestsGrid: React.FC = () => {
             deviceName: pt.device?.name || pt.deviceName || '-',
             locationName: pt.device?.locationName || pt.locationName || '-',
             status: pt.status,
+            ingestionSource: pt.ingestionSource || 'excel',
+            canManageAttachment: pt.canManageAttachment ?? pt.ingestionSource !== 'pdf',
             delaySummary: pt.delaySummary || null,
             delayStatusLabel: getDelayStatusLabel(pt.delaySummary, t),
             attachment: pt.attachment,
@@ -212,7 +227,7 @@ const MyDeviceTestsGrid: React.FC = () => {
                                 <ColumnDirective field="deviceName" headerText={t('tests.deviceName') || 'Device Name'} width="160" textAlign="Center" />
                                 <ColumnDirective field="locationName" headerText={t('tests.location') || 'Location'} width="150" textAlign="Center" />
                                 <ColumnDirective field="status" headerText={t('common.status') || 'Status'} width="170" textAlign="Center" template={StatusTemplate} />
-                                <ColumnDirective field="attachment" headerText={t('tests.uploadDocument') || 'File'} width="130" textAlign="Center" template={AttachmentTemplate} />
+                                <ColumnDirective field="attachment" headerText={t('tests.attachment') || 'Attachment'} width="130" textAlign="Center" template={AttachmentTemplate} />
                                 <ColumnDirective field="capturedAt" headerText={t('tests.capturedTime') || 'Captured Time'} width="190" textAlign="Center" />
                                 <ColumnDirective field="receivedAt" headerText={t('tests.receivedTime') || 'Received Time'} width="190" textAlign="Center" />
                                 <ColumnDirective field="inspectedAt" headerText={t('tests.inspectedTime') || 'Inspection Time'} width="190" textAlign="Center" />

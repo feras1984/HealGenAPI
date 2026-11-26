@@ -4,6 +4,7 @@ namespace App\Services\PatientService;
 
 use App\Models\File;
 use App\Models\PatientHeader;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -26,6 +27,12 @@ class TestAttachmentStorageService
         UploadedFile $uploadedFile,
         bool $replaceExisting = true
     ): File {
+        if ($patient->isPdfIngested()) {
+            throw new AuthorizationException(
+                'Attachments for PDF-ingested tests are provided during device ingestion and cannot be uploaded or replaced.'
+            );
+        }
+
         $extension = strtolower($uploadedFile->getClientOriginalExtension());
         $isImage = in_array($extension, self::IMAGE_EXTENSIONS, true);
         $storedPath = $this->storeUploadedFileOnDisk((int) $patient->Id, $uploadedFile, $extension);

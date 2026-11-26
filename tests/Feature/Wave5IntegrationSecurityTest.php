@@ -142,6 +142,7 @@ class Wave5IntegrationSecurityTest extends TestCase
             $table->string('CupLotNumber')->nullable();
             $table->dateTime('DateTime')->nullable();
             $table->string('SourceFile')->nullable();
+            $table->string('IngestionSource', 20)->default('excel');
             $table->dateTime('ProcessedAt')->nullable();
             $table->string('Status')->default('Imported');
             $table->string('FileHash', 64)->nullable()->unique();

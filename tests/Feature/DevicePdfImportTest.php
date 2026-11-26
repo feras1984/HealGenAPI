@@ -142,6 +142,7 @@ class DevicePdfImportTest extends TestCase
             $table->string('DeviceCode', 100)->nullable();
             $table->dateTime('DateTime')->nullable();
             $table->string('SourceFile')->nullable();
+            $table->string('IngestionSource', 20)->default('excel');
             $table->dateTime('ProcessedAt')->nullable();
             $table->string('Status')->default('Imported');
             $table->string('FileHash')->nullable()->unique();
