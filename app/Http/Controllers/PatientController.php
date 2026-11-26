@@ -7,6 +7,7 @@ use App\Facades\PatientService\PatientTestService;
 use App\Models\DeviceUser;
 use App\Models\File;
 use App\Models\PatientHeader;
+use App\Services\PatientService\TestAttachmentStorageService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PatientController extends Controller
 {
+    public function __construct(
+        private TestAttachmentStorageService $attachmentStorageService
+    ) {}
+
     public function index(Request $request): Response
     {
         $user = $request->user();
@@ -156,28 +161,7 @@ class PatientController extends Controller
 
         try {
             $uploadedFile = $request->file('file');
-            $extension = strtolower($uploadedFile->getClientOriginalExtension());
-            $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'bmp'], true);
-            $filename = 'test_' . $patient->Id . '_' . uniqid() . '.' . $extension;
-            $path = $uploadedFile->storeAs('test_attachments', $filename, 'public');
-
-            // Deactivate or remove any existing attachment for this test
-            $existing = $patient->file;
-            if ($existing) {
-                Storage::disk('public')->delete($existing->url);
-                $existing->delete();
-            }
-
-            $file = File::create([
-                'name' => $uploadedFile->getClientOriginalName(),
-                'url' => $path,
-                'reference_id' => $patient->Id,
-                'reference_type' => PatientHeader::class,
-                'order' => 1,
-                'is_active' => true,
-                'is_image' => $isImage,
-                'description' => $uploadedFile->getClientMimeType(),
-            ]);
+            $file = $this->attachmentStorageService->storeForPatientHeader($patient, $uploadedFile, true);
 
             \App\Facades\SystemAuditLogService\SystemAuditLogService::logAction(
                 $user,

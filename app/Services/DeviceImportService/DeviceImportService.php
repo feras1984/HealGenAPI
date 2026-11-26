@@ -2,22 +2,42 @@
 
 namespace App\Services\DeviceImportService;
 
+use App\Services\PatientService\TestAttachmentStorageService;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class DeviceImportService
 {
+    private TestAttachmentStorageService $attachmentStorageService;
+
+    public function __construct(
+        ?TestAttachmentStorageService $attachmentStorageService = null
+    ) {
+        $this->attachmentStorageService = $attachmentStorageService ?? new TestAttachmentStorageService();
+    }
+
     public function import(
         array $payload,
         ?int $deviceId = null,
-        ?string $deviceCode = null
+        ?string $deviceCode = null,
+        ?UploadedFile $reportPdf = null
     ): array {
-        $fileHash = $payload['file_hash'];
+        $fileHash = strtolower($payload['file_hash']);
+
+        if ($reportPdf !== null && !$this->attachmentStorageService->verifySha256($reportPdf, $fileHash)) {
+            throw ValidationException::withMessages([
+                'report_pdf' => ['The uploaded PDF SHA-256 hash does not match payload.file_hash.'],
+            ]);
+        }
+
+        $storedPdfPath = null;
 
         try {
-            // Fast duplicate check.
+            // Fast duplicate check before any DB write or disk I/O.
             $existing = $this->findByFileHash($fileHash);
 
             if ($existing) {
@@ -30,7 +50,9 @@ class DeviceImportService
                 $payload,
                 $deviceId,
                 $deviceCode,
-                $fileHash
+                $fileHash,
+                $reportPdf,
+                &$storedPdfPath
             ) {
                 // Recheck inside the transaction.
                 $existing = $this->findByFileHash($fileHash);
@@ -39,83 +61,106 @@ class DeviceImportService
                     return $this->duplicateResponse($existing);
                 }
 
-                $now = now();
-                $patient = $payload['patient'];
-                $status = 'Imported';
+                $attemptPdfPath = null;
 
-                // Auto-resolve device details if one of them is missing
-                if (!$deviceId && $deviceCode) {
-                    $device = DB::table('devices')->where('device_code', $deviceCode)->first();
-                    if ($device) {
-                        $deviceId = $device->id;
-                        if (isset($device->is_active) && !$device->is_active) {
-                            $status = 'Blocked';
+                try {
+                    $now = now();
+                    $patient = $payload['patient'];
+                    $status = 'Imported';
+
+                    // Auto-resolve device details if one of them is missing
+                    if (!$deviceId && $deviceCode) {
+                        $device = DB::table('devices')->where('device_code', $deviceCode)->first();
+                        if ($device) {
+                            $deviceId = $device->id;
+                            if (isset($device->is_active) && !$device->is_active) {
+                                $status = 'Blocked';
+                            }
+                        }
+                    } elseif ($deviceId) {
+                        $device = DB::table('devices')->where('id', $deviceId)->first();
+                        if ($device) {
+                            if (!$deviceCode && isset($device->device_code)) {
+                                $deviceCode = $device->device_code;
+                            }
+                            if (isset($device->is_active) && !$device->is_active) {
+                                $status = 'Blocked';
+                            }
                         }
                     }
-                } elseif ($deviceId) {
-                    $device = DB::table('devices')->where('id', $deviceId)->first();
-                    if ($device) {
-                        if (!$deviceCode && isset($device->device_code)) {
-                            $deviceCode = $device->device_code;
-                        }
-                        if (isset($device->is_active) && !$device->is_active) {
-                            $status = 'Blocked';
+
+                    // Update device last_seen_at timestamp if device is found
+                    if ($deviceId) {
+                        try {
+                            DB::table('devices')
+                                ->where('id', $deviceId)
+                                ->update(['last_seen_at' => $now]);
+                        } catch (Throwable) {
+                            // Safe fallback if last_seen_at is unavailable
                         }
                     }
-                }
 
-                // Update device last_seen_at timestamp if device is found
-                if ($deviceId) {
-                    try {
-                        DB::table('devices')
-                            ->where('id', $deviceId)
-                            ->update(['last_seen_at' => $now]);
-                    } catch (Throwable) {
-                        // Safe fallback if last_seen_at is unavailable
+                    $patientHeaderId = DB::table('PatientHeader')
+                        ->insertGetId([
+                            'TestOperator' => $patient['test_operator'] ?? null,
+                            'PatientId' => $patient['patient_id'],
+                            'DonorId' => $patient['donor_id'] ?? null,
+                            'CollectionSite' => $patient['collection_site'] ?? null,
+                            'CupLotNumber' => $patient['cup_lot_number'] ?? null,
+                            'DeviceId' => $deviceId,
+                            'DeviceCode' => $deviceCode,
+                            'DateTime' => $patient['date_time'] ?? null,
+                            'SourceFile' => $payload['file_name'] ?? null,
+                            'ProcessedAt' => $now,
+                            'Status' => $status,
+                            'FileHash' => $fileHash,
+                            'ErrorMessage' => null,
+                            'CreatedAt' => $now,
+                            'UpdatedAt' => $now,
+                        ], 'Id');
+
+                    $tests = [];
+
+                    foreach ($payload['tests'] as $test) {
+                        $tests[] = [
+                            'PatientHeaderId' => $patientHeaderId,
+                            'Substance' => $test['substance'],
+                            'SoftwareResult' => $test['software_result'] ?? null,
+                            'VisualResult' => $test['visual_result'] ?? null,
+                            'CreatedAt' => $now,
+                            'UpdatedAt' => $now,
+                        ];
                     }
-                }
 
-                $patientHeaderId = DB::table('PatientHeader')
-                    ->insertGetId([
-                        'TestOperator' => $patient['test_operator'] ?? null,
-                        'PatientId' => $patient['patient_id'],
-                        'DonorId' => $patient['donor_id'] ?? null,
-                        'CollectionSite' => $patient['collection_site'] ?? null,
-                        'CupLotNumber' => $patient['cup_lot_number'] ?? null,
-                        'DeviceId' => $deviceId,
-                        'DeviceCode' => $deviceCode,
-                        'DateTime' => $patient['date_time'] ?? null,
-                        'SourceFile' => $payload['file_name'] ?? null,
-                        'ProcessedAt' => $now,
-                        'Status' => $status,
-                        'FileHash' => $fileHash,
-                        'ErrorMessage' => null,
-                        'CreatedAt' => $now,
-                        'UpdatedAt' => $now,
-                    ], 'Id');
+                    DB::table('PatientTests')->insert($tests);
 
-                $tests = [];
+                    if ($reportPdf !== null) {
+                        $this->attachmentStorageService->storePdfForImportedPatient(
+                            (int) $patientHeaderId,
+                            $reportPdf,
+                            $payload['file_name'] ?? null,
+                            $attemptPdfPath
+                        );
+                        $storedPdfPath = $attemptPdfPath;
+                    }
 
-                foreach ($payload['tests'] as $test) {
-                    $tests[] = [
-                        'PatientHeaderId' => $patientHeaderId,
-                        'Substance' => $test['substance'],
-                        'SoftwareResult' => $test['software_result'] ?? null,
-                        'VisualResult' => $test['visual_result'] ?? null,
-                        'CreatedAt' => $now,
-                        'UpdatedAt' => $now,
+                    return [
+                        'success' => true,
+                        'duplicate' => false,
+                        'patient_header_id' => $patientHeaderId,
+                        'tests_inserted' => count($tests),
+                        'status' => $status,
                     ];
+                } catch (Throwable $attemptException) {
+                    if ($attemptPdfPath !== null) {
+                        $this->attachmentStorageService->deleteStoredPath($attemptPdfPath);
+                        if ($storedPdfPath === $attemptPdfPath) {
+                            $storedPdfPath = null;
+                        }
+                    }
+
+                    throw $attemptException;
                 }
-
-                DB::table('PatientTests')->insert($tests);
-
-                return [
-                    'success' => true,
-                    'duplicate' => false,
-                    'patient_header_id' => $patientHeaderId,
-                    'tests_inserted' => count($tests),
-                    'status' => $status,
-                ];
             }, 3);
 
             // Log only after the transaction has completed successfully.
@@ -132,12 +177,18 @@ class DeviceImportService
                     'patient_header_id' => $result['patient_header_id'],
                     'tests_inserted' => $result['tests_inserted'],
                     'status' => $result['status'],
+                    'has_pdf_attachment' => $reportPdf !== null,
                 ]
             );
 
             return $result;
 
         } catch (QueryException $exception) {
+            if ($storedPdfPath !== null) {
+                $this->attachmentStorageService->deleteStoredPath($storedPdfPath);
+                $storedPdfPath = null;
+            }
+
             // Check whether another concurrent request imported this file.
             try {
                 $existing = $this->findByFileHash($fileHash);
@@ -174,6 +225,11 @@ class DeviceImportService
             throw $exception;
 
         } catch (Throwable $exception) {
+            if ($storedPdfPath !== null) {
+                $this->attachmentStorageService->deleteStoredPath($storedPdfPath);
+                $storedPdfPath = null;
+            }
+
             Log::channel('device')->error(
                 'Unexpected device import error.',
                 [
