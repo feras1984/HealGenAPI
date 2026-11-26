@@ -20,8 +20,8 @@ class InspectorController extends Controller
         $adminRef = $user ? $user->reference()->first() : null;
         $role = strtolower(trim($adminRef?->role ?? ''));
 
-        if (!in_array($role, ['administrator', 'expert', 'inspector'], true)) {
-            abort(403, 'Unauthorized access. Only Inspectors, Experts, and Administrators can access the inspector queue.');
+        if (!in_array($role, ['administrator', 'inspector'], true)) {
+            abort(403, 'Unauthorized access. Only Inspectors and Administrators can access the inspector queue.');
         }
     }
 

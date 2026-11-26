@@ -31,7 +31,7 @@ class SupervisorController extends Controller
         $this->authorizeSupervisorRole($request);
 
         $user = $request->user();
-        $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
+        $filters = $request->only(['locationId', 'deviceId', 'date', 'search', 'view', 'source']);
 
         $dashboardData = SupervisorService::getSupervisorDashboardData($user, $filters);
         $locations = LocationService::getLocations();
@@ -50,7 +50,7 @@ class SupervisorController extends Controller
         $this->authorizeSupervisorRole($request);
 
         $user = $request->user();
-        $filters = $request->only(['locationId', 'deviceId', 'date', 'search']);
+        $filters = $request->only(['locationId', 'deviceId', 'date', 'search', 'view', 'source']);
         $data = SupervisorService::getSupervisorDashboardData($user, $filters);
 
         return response()->json([
@@ -59,8 +59,37 @@ class SupervisorController extends Controller
         ]);
     }
 
+    public function recordReview(Request $request, PatientHeader $patientHeader): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $result = SupervisorService::recordReview($patientHeader, $user);
+
+            return response()->json([
+                'status' => true,
+                'message' => "Expert review recorded for test #{$patientHeader->Id}.",
+                'data' => $result,
+            ], HTTPResponse::HTTP_OK);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $exception) {
+            return response()->json([
+                'status' => false,
+                'message' => $exception->getMessage(),
+            ], HTTPResponse::HTTP_FORBIDDEN);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error while recording expert review.',
+                'details' => $exception->getMessage(),
+            ], HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public function confirm(Request $request, PatientHeader $patientHeader): JsonResponse
     {
+        $request->validate([
+            'note' => 'nullable|string|max:1000',
+        ]);
+
         try {
             $user = $request->user();
             $note = $request->input('note');
@@ -135,7 +164,7 @@ class SupervisorController extends Controller
     public function reject(Request $request, PatientHeader $patientHeader): JsonResponse
     {
         $request->validate([
-            'reason' => 'required|string|min:3',
+            'reason' => 'required|string|min:3|max:1000',
         ]);
 
         try {

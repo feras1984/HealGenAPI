@@ -31,7 +31,7 @@ const PipelineWidget: React.FC = () => {
         {
             title: t('monitor.pipeline.supervisor') || '3. Expert Review',
             count: (summary['Awaiting Supervisor'] || 0) + (summary['Confirmed'] || 0) + (summary['Supervisor Rejected'] || 0),
-            subtext: `${summary['Awaiting Supervisor'] || 0} ${t('monitor.pipeline.pending') || 'pending'}`,
+            subtext: `${(summary.Imported || 0) + (summary['Awaiting Inspection'] || 0) + (summary['Inspector Accepted'] || 0) + (summary['Awaiting Supervisor'] || 0)} ${t('monitor.pipeline.pending') || 'pending'}`,
             color: dark ? '#c084fc' : '#9c27b0',
         },
         {

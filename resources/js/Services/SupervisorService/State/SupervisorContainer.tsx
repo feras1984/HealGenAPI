@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Container as ServiceContainer } from "typedi";
 import "typedi";
 import SupervisorService from "@/Services/SupervisorService/SupervisorService";
@@ -58,6 +58,16 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
     const [isRejectModalOpen, setIsRejectModalOpen] = useState<boolean>(false);
     const [actionLoading, setActionLoading] = useState<boolean>(false);
 
+    const visibleTests = useMemo(
+        () => data.tests ?? data.pendingQueue ?? [],
+        [data.tests, data.pendingQueue]
+    );
+
+    const eligiblePendingTests = useMemo(
+        () => visibleTests.filter(test => test.canExpertDecide !== false),
+        [visibleTests]
+    );
+
     const {
         selectedIds: selectedTestIds,
         selectedItems: selectedTests,
@@ -68,7 +78,7 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
         isIndeterminate: isSomeTestsSelected,
         removeIds: removeSelectedTestIds,
         clearSelection: clearSelectedTests,
-    } = useBulkSelection<PatientHeader>(data.pendingQueue || []);
+    } = useBulkSelection<PatientHeader>(eligiblePendingTests);
 
     const supervisorService = ServiceContainer.get(SupervisorService);
     const dark = useAppSelector(state => state.theme.dark);
@@ -118,12 +128,15 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
     };
 
     const updateFilter = (key: keyof SupervisorFilterParams, value: any) => {
-        const nextFilters = { ...filters, [key]: value };
+        const nextFilters: SupervisorFilterParams = { ...filters, [key]: value };
+        if (key === 'view' && value !== 'pending') {
+            nextFilters.source = 'all';
+        }
         setFilters(nextFilters);
     };
 
     const clearFilters = () => {
-        setFilters({});
+        setFilters({ view: filters.view || 'pending', source: 'all' });
     };
 
     const refreshData = async () => {
@@ -137,6 +150,19 @@ const SupervisorContainer: React.FC<SupervisorContainerProps> = ({
     const openTestDetails = (test: PatientHeader) => {
         setSelectedTest(test);
         setIsDrawerOpen(true);
+
+        if (test.canExpertDecide !== false) {
+            supervisorService.recordReview(test.id)
+                .then(res => {
+                    const updatedTest = res.data?.data?.test;
+                    if (updatedTest) {
+                        setSelectedTest(prev => (prev && prev.id === test.id ? updatedTest : prev));
+                    }
+                })
+                .catch(() => {
+                    // Non-blocking audit record failure should not prevent viewing details
+                });
+        }
     };
 
     const closeTestDetails = () => {

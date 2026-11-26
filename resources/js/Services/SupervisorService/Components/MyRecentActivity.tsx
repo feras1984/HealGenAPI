@@ -69,7 +69,7 @@ const MyRecentActivity: React.FC = () => {
                             </TableHead>
                             <TableBody>
                                 {activity.map((act) => {
-                                    const isConfirm = act.action === 'SUPERVISOR_CONFIRM';
+                                    const isConfirm = act.action === 'EXPERT_CONFIRM' || act.action === 'SUPERVISOR_CONFIRM';
                                     return (
                                         <TableRow key={act.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                             <TableCell component="th" scope="row" sx={{ color: dark ? '#cbd5e1' : '#334155', fontWeight: 600 }}>
@@ -79,12 +79,23 @@ const MyRecentActivity: React.FC = () => {
                                                 {act.patientCode} {act.donorName ? `(${act.donorName})` : ''}
                                             </TableCell>
                                             <TableCell>
-                                                <Chip
-                                                    label={isConfirm ? (t('status.Confirmed') || 'Confirmed') : (t('common.reject') || 'Rejected')}
-                                                    color={isConfirm ? 'success' : 'error'}
-                                                    size="small"
-                                                    variant="filled"
-                                                />
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+                                                    <Chip
+                                                        label={isConfirm ? (t('status.Confirmed') || 'Confirmed') : (t('common.reject') || 'Rejected')}
+                                                        color={isConfirm ? 'success' : 'error'}
+                                                        size="small"
+                                                        variant="filled"
+                                                    />
+                                                    {act.isDirect && (
+                                                        <Chip
+                                                            label={t('tests.directBadge') || 'Direct'}
+                                                            color="secondary"
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{ height: 20, fontSize: '0.68rem', fontWeight: 600 }}
+                                                        />
+                                                    )}
+                                                </Box>
                                             </TableCell>
                                             <TableCell sx={{ color: dark ? '#cbd5e1' : '#334155' }}>
                                                 <span className="text-xs text-gray-500">{t(`status.${act.previousStatus}`) || act.previousStatus}</span> → <strong className="text-xs">{t(`status.${act.newStatus}`) || act.newStatus}</strong>

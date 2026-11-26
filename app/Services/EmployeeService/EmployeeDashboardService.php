@@ -102,6 +102,7 @@ class EmployeeDashboardService
             'file',
             'latestInspectorAction.user.reference',
             'latestSupervisorAction.user.reference',
+            'actions.user.reference',
         ])
             ->whereIn('DeviceId', $assignedDeviceIds);
 

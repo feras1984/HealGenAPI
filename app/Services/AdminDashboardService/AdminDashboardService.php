@@ -7,6 +7,7 @@ use App\Models\Location;
 use App\Models\PatientHeader;
 use App\Models\User;
 use App\Facades\PatientService\PatientHeaderService;
+use App\Services\SupervisorService\SupervisorService;
 use Carbon\Carbon;
 
 class AdminDashboardService
@@ -25,7 +26,7 @@ class AdminDashboardService
 
         $todayOperations = PatientHeader::whereDate('CreatedAt', $today)->count();
         $pendingInspectorCount = PatientHeader::whereIn('Status', ['Imported', 'Awaiting Inspection'])->count();
-        $pendingSupervisorCount = PatientHeader::whereIn('Status', ['Inspector Accepted', 'Awaiting Supervisor'])->count();
+        $pendingSupervisorCount = PatientHeader::whereIn('Status', SupervisorService::PENDING_STATUSES)->count();
         $sentToHisCount = PatientHeader::where('Status', 'SentToHIS')->count();
 
         return [
@@ -52,6 +53,7 @@ class AdminDashboardService
             'file',
             'latestInspectorAction.user.reference',
             'latestSupervisorAction.user.reference',
+            'actions.user.reference',
         ]);
 
         if (!empty($filters['locationId'])) {

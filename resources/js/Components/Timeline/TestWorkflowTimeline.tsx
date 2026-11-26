@@ -96,7 +96,8 @@ const TestWorkflowTimeline: React.FC<TestWorkflowTimelineProps> = ({ patient }) 
     };
 
     const isInspectorRejected = inspected?.action === 'INSPECTOR_REJECT';
-    const isSupervisorRejected = confirmed?.action === 'SUPERVISOR_REJECT';
+    const isSupervisorRejected = confirmed?.action === 'EXPERT_REJECT' || confirmed?.action === 'SUPERVISOR_REJECT';
+    const isDirectExpertDecision = Boolean(confirmed && !inspected);
 
     return (
         <Box sx={{ mb: 3, direction: isRtl ? 'rtl' : 'ltr' }}>
@@ -229,7 +230,9 @@ const TestWorkflowTimeline: React.FC<TestWorkflowTimelineProps> = ({ patient }) 
                         </>
                     ) : (
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
-                            {t('tests.pendingInspection') || 'Pending inspection'}
+                            {isDirectExpertDecision
+                                ? (t('tests.notInspectedDirect') || 'Not inspected (Direct Expert Review)')
+                                : (t('tests.pendingInspection') || 'Pending inspection')}
                         </Typography>
                     )}
 
@@ -292,7 +295,9 @@ const TestWorkflowTimeline: React.FC<TestWorkflowTimelineProps> = ({ patient }) 
 
                     {renderStageDelayBadge(
                         inspectionToSupervision,
-                        t('delay.inspectionToSupervision') || 'Inspection → Expert Review'
+                        isDirectExpertDecision
+                            ? (t('delay.receivedToExpert') || 'Received → Expert Review')
+                            : (t('delay.inspectionToSupervision') || 'Inspection → Expert Review')
                     )}
                 </Paper>
             </Box>

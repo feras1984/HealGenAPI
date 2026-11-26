@@ -128,6 +128,7 @@ class InspectorService
             'file',
             'latestInspectorAction.user.reference',
             'latestSupervisorAction.user.reference',
+            'actions.user.reference',
         ])
             ->whereIn('Status', self::PENDING_STATUSES);
 
@@ -220,8 +221,8 @@ class InspectorService
     public function checkInspectorAuthorization(User $user): void
     {
         $role = $this->getUserRole($user);
-        if (!in_array($role, ['inspector', 'expert', 'administrator'], true)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Experts, or Administrators can accept or reject tests.");
+        if (!in_array($role, ['inspector', 'administrator'], true)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors or Administrators can accept or reject tests in the inspection queue.");
         }
     }
 
@@ -233,8 +234,8 @@ class InspectorService
     public function verifyInspectorTestAuthorization(User $user, PatientHeader $patientHeader): int
     {
         $role = $this->getUserRole($user);
-        if (!in_array($role, ['inspector', 'expert', 'administrator'], true)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors, Experts, or Administrators can accept or reject tests.");
+        if (!in_array($role, ['inspector', 'administrator'], true)) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Unauthorized action. Only Inspectors or Administrators can accept or reject tests in the inspection queue.");
         }
 
         $patientHeader->loadMissing('device');

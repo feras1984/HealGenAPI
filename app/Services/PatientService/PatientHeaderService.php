@@ -5,9 +5,11 @@ namespace App\Services\PatientService;
 use App\Facades\DeviceService\DeviceService;
 use App\Factories\PatientQuery\PatientQueryStrategyFactory;
 use App\Models\Device;
+use App\Models\File;
 use App\Models\PatientHeader;
 use App\Models\PatientTestAction;
 use App\Facades\PatientService\PatientTestService;
+use App\Services\SupervisorService\SupervisorService;
 use Carbon\Carbon;
 
 class PatientHeaderService
@@ -110,6 +112,7 @@ class PatientHeaderService
         );
 
         // Stage 2 -> 3: Received -> Inspection
+        // Skip ongoing inspection wait when an Expert has already made a direct final decision without an Inspector
         $receiveToInspection = null;
         if ($inspectorCarbon) {
             $receiveToInspection = $this->buildStageDelay(
@@ -119,7 +122,7 @@ class PatientHeaderService
                 false,
                 $thresholdSeconds
             );
-        } elseif (in_array($patientHeader->Status, ['Imported', 'Awaiting Inspection'], true)) {
+        } elseif (!$supervisorCarbon && in_array($patientHeader->Status, ['Imported', 'Awaiting Inspection'], true)) {
             $receiveToInspection = $this->buildStageDelay(
                 'receive_to_inspection',
                 $receivedCarbon,
@@ -218,6 +221,92 @@ class PatientHeaderService
         ];
     }
 
+    /**
+     * Build chronological test audit/history entries distinguishing Employee submission,
+     * file attachment, Inspector actions, Expert review, and Expert Confirm/Reject decisions.
+     */
+    private function buildTestHistory(PatientHeader $patientHeader, ?File $file): array
+    {
+        $history = [];
+
+        $receivedAt = $this->formatTimestamp($patientHeader->CreatedAt) ?? $this->formatTimestamp($patientHeader->DateTime) ?? '';
+        $receivedIso = $this->formatTimestampIso($patientHeader->CreatedAt) ?? $this->formatTimestampIso($patientHeader->DateTime);
+
+        $operatorName = trim((string) ($patientHeader->TestOperator ?? ''));
+        if ($operatorName === '') {
+            $operatorName = $patientHeader->DeviceCode
+                ? "Device {$patientHeader->DeviceCode}"
+                : 'Employee';
+        }
+
+        $history[] = [
+            'id' => "submission-{$patientHeader->Id}",
+            'type' => 'EMPLOYEE_SUBMISSION',
+            'rawAction' => 'EMPLOYEE_SUBMISSION',
+            'actorId' => null,
+            'actorName' => $operatorName,
+            'actorRole' => 'Employee',
+            'previousStatus' => null,
+            'newStatus' => 'Imported',
+            'reason' => $patientHeader->DeviceCode ? "Device: {$patientHeader->DeviceCode}" : null,
+            'isDirect' => false,
+            'at' => $receivedAt,
+            'atIso' => $receivedIso,
+        ];
+
+        if ($file) {
+            $history[] = [
+                'id' => "attachment-{$file->id}",
+                'type' => 'FILE_UPLOADED',
+                'rawAction' => 'TEST_FILE_UPLOADED',
+                'actorId' => null,
+                'actorName' => $operatorName,
+                'actorRole' => 'Employee',
+                'previousStatus' => null,
+                'newStatus' => null,
+                'reason' => $file->name,
+                'isDirect' => false,
+                'at' => $this->formatTimestamp($file->created_at) ?? '',
+                'atIso' => $this->formatTimestampIso($file->created_at),
+            ];
+        }
+
+        $actions = $patientHeader->relationLoaded('actions')
+            ? $patientHeader->actions->sortBy('id')->values()
+            : $patientHeader->actions()->with('user.reference')->orderBy('id', 'asc')->get();
+
+        foreach ($actions as $act) {
+            $attribution = $this->mapActionAttribution($act);
+            $rawAction = (string) $act->action;
+
+            $normalizedType = match ($rawAction) {
+                'SUPERVISOR_CONFIRM', 'EXPERT_CONFIRM' => 'EXPERT_CONFIRM',
+                'SUPERVISOR_REJECT', 'EXPERT_REJECT' => 'EXPERT_REJECT',
+                default => $rawAction,
+            };
+
+            $isDirect = in_array($normalizedType, ['EXPERT_CONFIRM', 'EXPERT_REJECT'], true)
+                && in_array($act->previous_status, SupervisorService::DIRECT_PENDING_STATUSES, true);
+
+            $history[] = [
+                'id' => "action-{$act->id}",
+                'type' => $normalizedType,
+                'rawAction' => $rawAction,
+                'actorId' => $attribution['id'] ?? $act->user_id,
+                'actorName' => $attribution['name'] ?? '',
+                'actorRole' => $attribution['role'] ?? ($act->role ?? ''),
+                'previousStatus' => $act->previous_status,
+                'newStatus' => $act->new_status,
+                'reason' => $act->reason !== null && $act->reason !== '' ? $act->reason : null,
+                'isDirect' => $isDirect,
+                'at' => $attribution['at'] ?? '',
+                'atIso' => $attribution['atIso'] ?? null,
+            ];
+        }
+
+        return $history;
+    }
+
     public function mapPatientModel(PatientHeader $patientHeader): array
     {
         $device = $patientHeader->relationLoaded('device')
@@ -267,6 +356,9 @@ class PatientHeaderService
             ?? $this->formatTimestampIso($patientHeader->CreatedAt);
 
         $delaySummary = $this->buildDelaySummary($patientHeader, $inspectorAction, $supervisorAction);
+        $history = $this->buildTestHistory($patientHeader, $file);
+        $isDirectExpertDecision = $supervisorAction !== null && $inspectorAction === null;
+        $canExpertDecide = in_array($patientHeader->Status, SupervisorService::PENDING_STATUSES, true);
 
         return [
             'id' => $patientHeader->Id,
@@ -290,6 +382,9 @@ class PatientHeaderService
             'confirmedAt' => $supervisorData ? $supervisorData['at'] : null,
             'createdAt' => $receivedAt,
             'delaySummary' => $delaySummary,
+            'history' => $history,
+            'isDirectExpertDecision' => $isDirectExpertDecision,
+            'canExpertDecide' => $canExpertDecide,
         ];
     }
 
@@ -302,6 +397,7 @@ class PatientHeaderService
             'file',
             'latestInspectorAction.user.reference',
             'latestSupervisorAction.user.reference',
+            'actions.user.reference',
         ]);
 
         $strategy = app(PatientQueryStrategyFactory::class)->make($user);

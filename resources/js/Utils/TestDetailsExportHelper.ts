@@ -8,6 +8,15 @@ import {
     PdfFontStyle
 } from "@syncfusion/ej2-pdf-export";
 
+const formatActionLabel = (action?: string): string => {
+    if (!action) return '-';
+    if (action === 'EXPERT_CONFIRM' || action === 'SUPERVISOR_CONFIRM') return 'Confirmed';
+    if (action === 'EXPERT_REJECT' || action === 'SUPERVISOR_REJECT') return 'Expert Rejected';
+    if (action === 'INSPECTOR_ACCEPT') return 'Forwarded';
+    if (action === 'INSPECTOR_REJECT') return 'Retest';
+    return action;
+};
+
 const formatDate = (date: Date = new Date()): string => {
     return date.toISOString().slice(0, 10);
 };
@@ -177,7 +186,8 @@ export const exportTestDetailsToExcel = (patient: PatientHeader): void => {
         const confirmInfo = [
             ['Expert', patient.confirmedBy.name || patient.confirmedBy.email || '-'],
             ['Role', patient.confirmedBy.role || '-'],
-            ['Action Taken', patient.confirmedBy.action || '-'],
+            ['Action Taken', formatActionLabel(patient.confirmedBy.action)],
+            ['Decision Mode', patient.isDirectExpertDecision ? 'Direct Expert Decision (No Inspector)' : 'Post-Inspection Expert Decision'],
             ['Confirm Time', patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'],
             ['Notes / Reason', patient.confirmedBy.reason || '-'],
         ];
@@ -404,7 +414,7 @@ export const exportTestDetailsToPdf = (patient: PatientHeader): void => {
 
             const cRow1 = confirmGrid.rows.addRow();
             cRow1.cells.getCell(0).value = `Expert: ${patient.confirmedBy.name || patient.confirmedBy.email || '-'} (${patient.confirmedBy.role || '-'})`;
-            cRow1.cells.getCell(1).value = `Decision: ${patient.confirmedBy.action || '-'}`;
+            cRow1.cells.getCell(1).value = `Decision: ${formatActionLabel(patient.confirmedBy.action)}${patient.isDirectExpertDecision ? ' (Direct)' : ''}`;
 
             const cRow2 = confirmGrid.rows.addRow();
             cRow2.cells.getCell(0).value = `Confirm Time: ${patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'}`;

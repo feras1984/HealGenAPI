@@ -24,9 +24,21 @@ class SupervisorService {
             cleanParams.search = filters.search.trim();
         }
 
+        if (filters.view) {
+            cleanParams.view = filters.view;
+        }
+
+        if (filters.source && filters.source !== 'all') {
+            cleanParams.source = filters.source;
+        }
+
         return axios.get<{ status: boolean; data: SupervisorDashboardData }>('/supervisor/data', {
             params: cleanParams,
         });
+    };
+
+    recordReview = (patientHeaderId: number): Promise<AxiosResponse<{ status: boolean; message: string; data: { recorded: boolean; test: PatientHeader } }>> => {
+        return axios.post(`/supervisor/tests/${patientHeaderId}/review`);
     };
 
     confirmTest = (patientHeaderId: number, note?: string): Promise<AxiosResponse<{ status: boolean; message: string; data: { test: PatientHeader; kpis: SupervisorKPIs } }>> => {
