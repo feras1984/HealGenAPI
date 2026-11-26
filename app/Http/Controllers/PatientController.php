@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Facades\PatientService\PatientHeaderService;
 use App\Facades\PatientService\PatientTestService;
+use App\Models\Device;
 use App\Models\DeviceUser;
 use App\Models\File;
 use App\Models\PatientHeader;
@@ -139,6 +140,7 @@ class PatientController extends Controller
             'file',
             'latestInspectorAction.user.reference',
             'latestSupervisorAction.user.reference',
+            'actions.user.reference',
         ]);
 
         return Inertia::render('Admin/Patient/PatientDetails', [

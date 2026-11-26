@@ -1,10 +1,17 @@
 import PatientHeader from "@/models/patient/PatientHeader";
 
+export type ExpertQueueView = 'pending' | 'confirmed' | 'rejected' | 'all';
+export type ExpertQueueSource = 'all' | 'direct' | 'inspected';
+
 export interface SupervisorKPIs {
     pendingCount: number;
+    directPendingCount?: number;
+    inspectorForwardedPendingCount?: number;
     confirmedTodayCount: number;
     rejectedTodayCount: number;
     processedTodayCount: number;
+    totalConfirmedCount?: number;
+    totalRejectedCount?: number;
 }
 
 export interface SupervisorActionAudit {
@@ -16,6 +23,7 @@ export interface SupervisorActionAudit {
     previousStatus: string;
     newStatus: string;
     reason?: string;
+    isDirect?: boolean;
     createdAt: string;
 }
 
@@ -24,11 +32,14 @@ export interface SupervisorFilterParams {
     deviceId?: string | number;
     date?: string;
     search?: string;
+    view?: ExpertQueueView;
+    source?: ExpertQueueSource;
 }
 
 export interface BulkSkippedTest {
     id: number;
     reason: string;
+    code?: string;
 }
 
 export interface BulkConfirmResult {
@@ -40,8 +51,10 @@ export interface BulkConfirmResult {
 }
 
 export interface SupervisorDashboardData {
+    activeView?: ExpertQueueView;
     kpis: SupervisorKPIs;
     pendingQueue: PatientHeader[];
+    tests?: PatientHeader[];
     recentActivity: SupervisorActionAudit[];
     activityChart?: {
         breakdown: { name: string; count: number; color: string }[];

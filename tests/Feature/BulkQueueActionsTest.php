@@ -255,12 +255,12 @@ class BulkQueueActionsTest extends TestCase
         $this->assertEquals('Confirmed', $t1->fresh()->Status);
         $this->assertEquals('Confirmed', $t2->fresh()->Status);
 
-        $this->assertEquals(2, PatientTestAction::where('action', 'SUPERVISOR_CONFIRM')->count());
+        $this->assertEquals(2, PatientTestAction::where('action', 'EXPERT_CONFIRM')->count());
         $this->assertEquals(
             'Batch verified routine negatives',
             PatientTestAction::where('patient_header_id', $t1->Id)->value('reason')
         );
-        $this->assertEquals(2, SystemAuditLog::where('action', 'SUPERVISOR_CONFIRM')->count());
+        $this->assertEquals(2, SystemAuditLog::where('action', 'EXPERT_CONFIRM')->count());
 
         Queue::assertPushed(SendPatientToHISJob::class, 2);
         Queue::assertPushed(SendPatientToHISJob::class, fn (SendPatientToHISJob $job) => $job->patientHeaderId === $t1->Id);
@@ -449,13 +449,27 @@ class BulkQueueActionsTest extends TestCase
         $this->assertEquals('Awaiting Inspection', $t1->fresh()->Status);
     }
 
-    public function test_supervisor_can_bulk_accept_across_all_locations(): void
+    public function test_expert_cannot_use_inspector_bulk_accept_and_uses_direct_bulk_confirm_instead(): void
     {
+        Queue::fake();
+
         $loc1Test = $this->createTestHeader('I-451', 'Imported', $this->device1);
         $loc2Test = $this->createTestHeader('I-452', 'Awaiting Inspection', $this->device2);
 
-        $response = $this->actingAs($this->supervisorUser)
+        // Expert must NOT create Inspector actions via Inspector queue
+        $this->actingAs($this->supervisorUser)
             ->postJson('/inspector/tests/bulk-accept', [
+                'ids' => [$loc1Test->Id, $loc2Test->Id],
+            ])
+            ->assertStatus(403);
+
+        $this->assertEquals('Imported', $loc1Test->fresh()->Status);
+        $this->assertEquals('Awaiting Inspection', $loc2Test->fresh()->Status);
+        $this->assertEquals(0, PatientTestAction::where('action', 'INSPECTOR_ACCEPT')->count());
+
+        // Expert directly bulk confirms both tests from Employee submission
+        $response = $this->actingAs($this->supervisorUser)
+            ->postJson('/supervisor/tests/bulk-confirm', [
                 'ids' => [$loc1Test->Id, $loc2Test->Id],
             ]);
 
@@ -463,15 +477,17 @@ class BulkQueueActionsTest extends TestCase
             ->assertJson([
                 'status' => true,
                 'data' => [
-                    'acceptedIds' => [$loc1Test->Id, $loc2Test->Id],
-                    'acceptedCount' => 2,
+                    'confirmedIds' => [$loc1Test->Id, $loc2Test->Id],
+                    'confirmedCount' => 2,
                     'skippedCount' => 0,
                 ],
             ]);
 
-        $this->assertEquals('Inspector Accepted', $loc1Test->fresh()->Status);
-        $this->assertEquals('Inspector Accepted', $loc2Test->fresh()->Status);
-        $this->assertEquals('Expert', PatientTestAction::where('patient_header_id', $loc1Test->Id)->value('role'));
+        $this->assertEquals('Confirmed', $loc1Test->fresh()->Status);
+        $this->assertEquals('Confirmed', $loc2Test->fresh()->Status);
+        $this->assertEquals(2, PatientTestAction::where('action', 'EXPERT_CONFIRM')->count());
+        $this->assertEquals(0, PatientTestAction::where('action', 'INSPECTOR_ACCEPT')->count());
+        Queue::assertPushed(SendPatientToHISJob::class, 2);
     }
 
     public function test_administrator_can_bulk_accept_across_all_locations_with_partial_success(): void

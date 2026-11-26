@@ -29,12 +29,27 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DocumentViewerModal from '@/Components/DocumentViewer/DocumentViewerModal';
 import DelayFlagChip from '@/Components/Timeline/DelayFlagChip';
+import TestHistoryTimeline from '@/Components/Timeline/TestHistoryTimeline';
 import { useSupervisorContext } from "@/Services/SupervisorService/State/SupervisorContext";
 import { useAppSelector } from "@/Redux/Store/hook";
 import { exportTestDetailsToExcel, exportTestDetailsToPdf } from "@/Utils/TestDetailsExportHelper";
 import { usePage } from '@inertiajs/react';
 import { useTranslation } from "react-i18next";
 import PatientHeader from '@/models/patient/PatientHeader';
+
+const statusColorMap: Record<string, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
+    'Imported': 'info',
+    'Awaiting Inspection': 'warning',
+    'Inspector Accepted': 'primary',
+    'Inspector Rejected': 'error',
+    'Awaiting Supervisor': 'secondary',
+    'Confirmed': 'success',
+    'Supervisor Rejected': 'error',
+    'Failed': 'error',
+    'Blocked': 'error',
+    'SentToHIS': 'success',
+    'FailedToSend': 'error',
+};
 
 const TestDetailDrawer: React.FC = () => {
     const {
@@ -173,12 +188,26 @@ const TestDetailDrawer: React.FC = () => {
                                 {t('common.status') || 'Current Status'}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mt: 0.25 }}>
-                                <Chip label={t(`status.${activeTest.status}`) || activeTest.status || 'Imported'} color="warning" size="small" sx={{ fontWeight: 600 }} />
+                                <Chip
+                                    label={t(`status.${activeTest.status}`) || activeTest.status || 'Imported'}
+                                    color={statusColorMap[activeTest.status] || 'default'}
+                                    size="small"
+                                    sx={{ fontWeight: 600 }}
+                                />
+                                {activeTest.isDirectExpertDecision && (
+                                    <Chip
+                                        label={t('supervisor.directReviewBadge') || 'Direct Expert Decision'}
+                                        color="secondary"
+                                        variant="outlined"
+                                        size="small"
+                                        sx={{ fontWeight: 600 }}
+                                    />
+                                )}
                                 <DelayFlagChip delaySummary={activeTest.delaySummary} hideWhenOnTime />
                             </Box>
                         </Box>
                         <Box className="flex gap-2" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-                            {canReview ? (
+                            {canReview && activeTest.canExpertDecide !== false ? (
                                 <>
                                     <Button
                                         variant="contained"
@@ -201,7 +230,7 @@ const TestDetailDrawer: React.FC = () => {
                                         {t('supervisor.rejectTest') || 'Reject Test'}
                                     </Button>
                                 </>
-                            ) : (
+                            ) : !canReview ? (
                                 <Tooltip title={t('supervisor.viewOnlyTooltip') || "View Only: Only Experts can confirm test decisions."}>
                                     <span>
                                         <Chip
@@ -212,7 +241,7 @@ const TestDetailDrawer: React.FC = () => {
                                         />
                                     </span>
                                 </Tooltip>
-                            )}
+                            ) : null}
                         </Box>
                     </Paper>
 
@@ -223,8 +252,87 @@ const TestDetailDrawer: React.FC = () => {
                         {/* Column 1: Text Information, Inspector Attribution, Patient, Device & Document / PDF */}
                         <Grid item xs={12} md={6}>
                             <Stack spacing={2.5}>
-                                {/* Inspector Review Information (if reviewed by Inspector) */}
-                                {activeTest.reviewedBy && (
+                                {/* Expert Decision Attribution (if decided) */}
+                                {activeTest.confirmedBy && (() => {
+                                    const isConfirmDecision =
+                                        activeTest.confirmedBy.action === 'EXPERT_CONFIRM' ||
+                                        activeTest.confirmedBy.action === 'SUPERVISOR_CONFIRM';
+                                    return (
+                                        <Paper
+                                            variant="outlined"
+                                            sx={{
+                                                p: 2,
+                                                borderRadius: 2,
+                                                textAlign: isRtl ? 'right' : 'left',
+                                                backgroundColor: dark ? 'rgba(15, 23, 42, 0.4)' : '#f8fafc',
+                                                borderColor: isConfirmDecision ? 'success.main' : 'error.main',
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, gap: 1 }}>
+                                                <Typography variant="subtitle2" color="text.primary" className="font-semibold">
+                                                    {t('tests.supervisorAttribution') || 'Expert Review Attribution'}
+                                                </Typography>
+                                                {activeTest.isDirectExpertDecision && (
+                                                    <Chip
+                                                        label={t('tests.directBadge') || 'Direct'}
+                                                        size="small"
+                                                        color="secondary"
+                                                        sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                                                    />
+                                                )}
+                                            </Box>
+                                            <Grid container spacing={1.5} sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                                                <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                    <Typography variant="caption" color="text.secondary">{t('tests.supervisor') || 'Expert'}</Typography>
+                                                    <Typography variant="body2" color="text.primary" className="font-semibold">
+                                                        {(activeTest.confirmedBy.name && t(`users.${activeTest.confirmedBy.name}`)) || (activeTest.confirmedBy.email && t(`users.${activeTest.confirmedBy.email}`)) || activeTest.confirmedBy.name || activeTest.confirmedBy.email || '-'}
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                    <Typography variant="caption" color="text.secondary">{t('tests.action') || 'Action'}</Typography>
+                                                    <Box sx={{ mt: 0.5 }}>
+                                                        <Chip
+                                                            label={isConfirmDecision ? (t('status.Confirmed') || 'Confirmed') : (t('status.Supervisor Rejected') || 'Expert Rejected')}
+                                                            color={isConfirmDecision ? 'success' : 'error'}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{ fontWeight: 600 }}
+                                                        />
+                                                    </Box>
+                                                </Grid>
+                                                <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                    <Typography variant="caption" color="text.secondary">{t('tests.confirmedTime') || 'Confirm Time'}</Typography>
+                                                    <Typography variant="body2" color="text.primary">
+                                                        {activeTest.confirmedBy.at || activeTest.confirmedBy.reviewedAt || '-'}
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid item xs={6} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                    <Typography variant="caption" color="text.secondary">{t('common.role') || 'Role'}</Typography>
+                                                    <Box sx={{ mt: 0.5 }}>
+                                                        <Chip
+                                                            label={activeTest.confirmedBy.role ? (t(`roles.${activeTest.confirmedBy.role}`) || activeTest.confirmedBy.role) : '-'}
+                                                            color="secondary"
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{ fontWeight: 600 }}
+                                                        />
+                                                    </Box>
+                                                </Grid>
+                                                {activeTest.confirmedBy.reason && (
+                                                    <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                        <Typography variant="caption" color="text.secondary">{t('tests.reason') || 'Expert Notes / Reason'}</Typography>
+                                                        <Typography variant="body2" color="text.primary">
+                                                            {activeTest.confirmedBy.reason}
+                                                        </Typography>
+                                                    </Grid>
+                                                )}
+                                            </Grid>
+                                        </Paper>
+                                    );
+                                })()}
+
+                                {/* Inspector Review Information (if reviewed by Inspector) OR Direct Review Notice */}
+                                {activeTest.reviewedBy ? (
                                     <Paper
                                         variant="outlined"
                                         sx={{
@@ -284,6 +392,21 @@ const TestDetailDrawer: React.FC = () => {
                                                 </Grid>
                                             )}
                                         </Grid>
+                                    </Paper>
+                                ) : (
+                                    <Paper
+                                        variant="outlined"
+                                        sx={{
+                                            p: 1.5,
+                                            borderRadius: 2,
+                                            textAlign: isRtl ? 'right' : 'left',
+                                            backgroundColor: dark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(2, 132, 199, 0.05)',
+                                            borderColor: dark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(2, 132, 199, 0.2)',
+                                        }}
+                                    >
+                                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                            {t('supervisor.directReviewNote') || 'Direct Expert Review — Submitted by Employee without Inspector intervention.'}
+                                        </Typography>
                                     </Paper>
                                 )}
 
@@ -449,6 +572,9 @@ const TestDetailDrawer: React.FC = () => {
                                         </Box>
                                     </Paper>
                                 )}
+
+                                {/* Chronological Test History & Audit Trail */}
+                                <TestHistoryTimeline history={activeTest.history || []} compact />
                             </Stack>
                         </Grid>
 

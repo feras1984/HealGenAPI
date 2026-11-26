@@ -79,6 +79,7 @@ class MonitorService
             'file',
             'latestInspectorAction.user.reference',
             'latestSupervisorAction.user.reference',
+            'actions.user.reference',
         ]);
 
         if (!empty($filters['status'])) {

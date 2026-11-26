@@ -6,6 +6,7 @@ import axios from 'axios';
 import DocumentViewerModal from '@/Components/DocumentViewer/DocumentViewerModal';
 import { DocumentItem } from '@/Components/DocumentViewer/Interfaces/DocumentViewerTypes';
 import TestWorkflowTimeline from '@/Components/Timeline/TestWorkflowTimeline';
+import TestHistoryTimeline from '@/Components/Timeline/TestHistoryTimeline';
 import useSnackbarHook from "@/Hooks/SnackbarHook";
 import CustomSnackbar from "@/Components/Snackbar/CustomSnackbar";
 import {
@@ -524,62 +525,88 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         })()}
 
                         {/* Expert Confirmation Information (if present) */}
-                        {patient.confirmedBy && (
-                            <>
-                                <Divider className="mb-6" />
-                                <Typography variant="subtitle1" color="text.primary" className="font-semibold mb-3" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                    {t('tests.supervisorAttribution') || 'Expert Confirmation Attribution'}
-                                </Typography>
-                                <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.supervisor') || 'Expert'}</Typography>
-                                        <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            {(patient.confirmedBy.name && t(`users.${patient.confirmedBy.name}`)) || (patient.confirmedBy.email && t(`users.${patient.confirmedBy.email}`)) || patient.confirmedBy.name || patient.confirmedBy.email || '-'}
+                        {patient.confirmedBy && (() => {
+                            const isConfirmDecision =
+                                patient.confirmedBy.action === 'EXPERT_CONFIRM' ||
+                                patient.confirmedBy.action === 'SUPERVISOR_CONFIRM';
+                            return (
+                                <>
+                                    <Divider className="mb-6" />
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
+                                        <Typography variant="subtitle1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            {t('tests.supervisorAttribution') || 'Expert Confirmation Attribution'}
                                         </Typography>
-                                    </Grid>
-                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('common.role') || 'Role'}</Typography>
-                                        <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
+                                        {patient.isDirectExpertDecision && (
                                             <Chip
-                                                label={patient.confirmedBy.role ? (t(`roles.${patient.confirmedBy.role}`) || patient.confirmedBy.role) : '-'}
+                                                label={t('supervisor.directReviewBadge') || 'Direct Expert Decision'}
                                                 color="secondary"
                                                 size="small"
                                                 variant="outlined"
                                                 sx={{ fontWeight: 600 }}
                                             />
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.action') || 'Action'}</Typography>
-                                        <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
-                                            <Chip
-                                                label={
-                                                    patient.confirmedBy.action === 'SUPERVISOR_CONFIRM'
-                                                        ? (t('status.Confirmed') || 'Confirmed')
-                                                        : (t('status.Supervisor Rejected') || 'Expert Rejected')
-                                                }
-                                                color={patient.confirmedBy.action === 'SUPERVISOR_CONFIRM' ? 'success' : 'error'}
-                                                size="small"
-                                                variant="outlined"
-                                                sx={{ fontWeight: 600 }}
-                                            />
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.confirmedTime') || 'Confirm Time'}</Typography>
-                                        <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            {patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'}
-                                        </Typography>
-                                    </Grid>
-                                    {patient.confirmedBy.reason && (
-                                        <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Expert Notes / Reason'}</Typography>
-                                            <Typography variant="body2" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
-                                                {patient.confirmedBy.reason}
+                                        )}
+                                    </Box>
+                                    <Grid container spacing={3} className="mb-6" sx={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.supervisor') || 'Expert'}</Typography>
+                                            <Typography variant="body1" color="text.primary" className="font-semibold" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                {(patient.confirmedBy.name && t(`users.${patient.confirmedBy.name}`)) || (patient.confirmedBy.email && t(`users.${patient.confirmedBy.email}`)) || patient.confirmedBy.name || patient.confirmedBy.email || '-'}
                                             </Typography>
                                         </Grid>
-                                    )}
-                                </Grid>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('common.role') || 'Role'}</Typography>
+                                            <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Chip
+                                                    label={patient.confirmedBy.role ? (t(`roles.${patient.confirmedBy.role}`) || patient.confirmedBy.role) : '-'}
+                                                    color="secondary"
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ fontWeight: 600 }}
+                                                />
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.action') || 'Action'}</Typography>
+                                            <Box sx={{ mt: 0.5, textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Chip
+                                                    label={
+                                                        isConfirmDecision
+                                                            ? (t('status.Confirmed') || 'Confirmed')
+                                                            : (t('status.Supervisor Rejected') || 'Expert Rejected')
+                                                    }
+                                                    color={isConfirmDecision ? 'success' : 'error'}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ fontWeight: 600 }}
+                                                />
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} sm={6} md={3} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.confirmedTime') || 'Confirm Time'}</Typography>
+                                            <Typography variant="body1" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                {patient.confirmedBy.at || patient.confirmedBy.reviewedAt || '-'}
+                                            </Typography>
+                                        </Grid>
+                                        {patient.confirmedBy.reason && (
+                                            <Grid item xs={12} sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isRtl ? 'right' : 'left' }}>{t('tests.reason') || 'Expert Notes / Reason'}</Typography>
+                                                <Typography variant="body2" color="text.primary" sx={{ textAlign: isRtl ? 'right' : 'left' }}>
+                                                    {patient.confirmedBy.reason}
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                </>
+                            );
+                        })()}
+
+                        {/* Chronological Test History & Audit Trail */}
+                        {patient.history && patient.history.length > 0 && (
+                            <>
+                                <Divider className="mb-6" />
+                                <Box className="mb-6">
+                                    <TestHistoryTimeline history={patient.history} />
+                                </Box>
                             </>
                         )}
 

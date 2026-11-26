@@ -20,8 +20,8 @@ const createRejectSchema = (t: (key: string) => string) => z.object({
     reason: z
         .string()
         .trim()
-        .min(3, t('validation.rejectionReasonMin') || "Rejection reason is required (minimum 3 characters).")
-        .max(1000, t('validation.rejectionReasonMax') || "Rejection reason cannot exceed 1000 characters."),
+        .min(3, t('validation.expertRejectionReasonMin') || "Rejection reason is required (minimum 3 characters).")
+        .max(1000, t('validation.expertRejectionReasonMax') || "Rejection reason cannot exceed 1000 characters."),
 });
 
 type RejectFormValues = {
@@ -60,14 +60,14 @@ const RejectModal: React.FC = () => {
         <Dialog open={isRejectModalOpen} onClose={closeRejectModal} maxWidth="sm" fullWidth>
             <DialogTitle className="font-semibold flex items-center space-x-2">
                 <CancelIcon color="error" />
-                <span>{t('dialogs.rejectTestTitle', { id: selectedTest.id }) || `Reject Test #${selectedTest.id}`}</span>
+                <span>{t('dialogs.expertRejectTitle', { id: selectedTest.id }) || `Reject Test #${selectedTest.id}`}</span>
             </DialogTitle>
             <FormProvider {...methods}>
                 <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} noValidate>
                     <DialogContent>
                         <DialogContentText className="mb-4">
-                            {t('dialogs.rejectTestDesc', { id: selectedTest.id }) || (
-                                <>Please provide a detailed rejection reason for test <strong>#{selectedTest.id}</strong>. This reason will be recorded in the audit trail.</>
+                            {t('dialogs.expertRejectDesc', { id: selectedTest.id }) || (
+                                <>Please provide a detailed rejection reason for test <strong>#{selectedTest.id}</strong>. This decision is final and will be recorded in the audit trail as an Expert rejection.</>
                             )}
                         </DialogContentText>
                         <Controller
@@ -80,8 +80,8 @@ const RejectModal: React.FC = () => {
                                     multiline
                                     rows={4}
                                     fullWidth
-                                    label={`${t('forms.rejectionReason') || 'Rejection Reason'} *`}
-                                    placeholder={t('placeholders.rejectionReason') || "Provide explicit reason for rejecting this test..."}
+                                    label={`${t('forms.expertRejectionReason') || 'Rejection Reason'} *`}
+                                    placeholder={t('placeholders.expertRejectionReason') || "Provide explicit clinical or verification reason for rejecting this test..."}
                                     error={!!error}
                                     helperText={error?.message}
                                 />
@@ -98,7 +98,7 @@ const RejectModal: React.FC = () => {
                             variant="contained"
                             color="error"
                         >
-                            {actionLoading ? (t('dialogs.rejecting') || 'Rejecting...') : (t('dialogs.confirmRejectAction') || 'Confirm Rejection')}
+                            {actionLoading ? (t('dialogs.expertRejecting') || 'Rejecting...') : (t('dialogs.expertConfirmRejectAction') || 'Confirm Rejection')}
                         </Button>
                     </DialogActions>
                 </Box>

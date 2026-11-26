@@ -13,6 +13,21 @@ export interface PatientActionAttribution {
     reason?: string;
 }
 
+export interface TestHistoryEntry {
+    id: string;
+    type: 'EMPLOYEE_SUBMISSION' | 'FILE_UPLOADED' | 'INSPECTOR_ACCEPT' | 'INSPECTOR_REJECT' | 'EXPERT_REVIEW' | 'EXPERT_CONFIRM' | 'EXPERT_REJECT' | string;
+    rawAction: string;
+    actorId?: number | null;
+    actorName: string;
+    actorRole: string;
+    previousStatus?: string | null;
+    newStatus?: string | null;
+    reason?: string | null;
+    isDirect?: boolean;
+    at: string;
+    atIso?: string | null;
+}
+
 export interface WorkflowStageDelay {
     key: 'capture_to_receive' | 'receive_to_inspection' | 'inspection_to_supervision';
     seconds: number;
@@ -66,6 +81,9 @@ class PatientHeader {
     confirmedAt?: string | null;
     createdAt: string;
     delaySummary?: WorkflowDelaySummary | null;
+    history?: TestHistoryEntry[];
+    isDirectExpertDecision?: boolean;
+    canExpertDecide?: boolean;
 
     constructor({
         id = -1,
@@ -89,6 +107,9 @@ class PatientHeader {
         confirmedAt = null,
         createdAt = '',
         delaySummary = null as WorkflowDelaySummary | null,
+        history = [] as TestHistoryEntry[],
+        isDirectExpertDecision = false,
+        canExpertDecide = false,
     } = {}) {
         this.id = id;
         this.patientId = patientId;
@@ -111,6 +132,9 @@ class PatientHeader {
         this.confirmedAt = confirmedAt;
         this.createdAt = createdAt;
         this.delaySummary = delaySummary;
+        this.history = [...history];
+        this.isDirectExpertDecision = isDirectExpertDecision;
+        this.canExpertDecide = canExpertDecide;
     }
 }
 

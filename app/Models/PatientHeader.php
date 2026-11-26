@@ -69,7 +69,12 @@ class PatientHeader extends Model
     {
         return $this->hasOne(PatientTestAction::class, 'patient_header_id', 'Id')
             ->ofMany(['id' => 'max'], function ($query) {
-                $query->whereIn('action', ['SUPERVISOR_CONFIRM', 'SUPERVISOR_REJECT']);
+                $query->whereIn('action', [
+                    'EXPERT_CONFIRM',
+                    'EXPERT_REJECT',
+                    'SUPERVISOR_CONFIRM',
+                    'SUPERVISOR_REJECT',
+                ]);
             });
     }
 
