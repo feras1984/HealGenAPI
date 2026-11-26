@@ -45,6 +45,11 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useAppSelector } from "@/Redux/Store/hook";
 import { exportTestDetailsToExcel, exportTestDetailsToPdf } from "@/Utils/TestDetailsExportHelper";
+import {
+    canEmployeeManageTestAttachment,
+    isPdfIngestedTest,
+    resolveDocumentViewerMode,
+} from "@/Utils/IngestionSourceHelper";
 import { useTranslation } from "react-i18next";
 
 const statusColorMap: Record<string, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
@@ -84,6 +89,9 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
     const currentUser = pageProps?.auth?.user || pageProps?.user;
     const userRole = String(currentUser?.role || '').toLowerCase();
     const isEmployee = userRole === 'employee';
+    const isPdfIngested = isPdfIngestedTest(patient);
+    const canManageAttachment = canEmployeeManageTestAttachment(userRole, patient);
+    const viewerMode = resolveDocumentViewerMode(userRole, patient);
 
     const [attachment, setAttachment] = useState(patient.attachment || null);
     const [uploading, setUploading] = useState(false);
@@ -100,6 +108,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const executeUpload = async (file: File) => {
+        if (!canManageAttachment) return;
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -134,6 +144,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!canManageAttachment) return;
+
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -174,10 +186,12 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
     };
 
     const requestDeleteFile = () => {
+        if (!canManageAttachment) return;
         setDeleteModalOpen(true);
     };
 
     const confirmDeleteFile = async () => {
+        if (!canManageAttachment) return;
         setIsDeleting(true);
         setSnackbar({
             open: true,
@@ -656,7 +670,7 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             <Typography variant="body1" fontWeight={700} color="text.primary">
                                                 {attachment.name}
                                             </Typography>
-                                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5, direction: isRtl ? 'rtl' : 'ltr' }}>
+                                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', mt: 0.5, direction: isRtl ? 'rtl' : 'ltr' }}>
                                                 <Chip
                                                     label={attachment.isImage ? (t('tests.imageDocument') || 'Image Document') : (t('tests.pdfDocument') || 'PDF Document')}
                                                     size="small"
@@ -664,8 +678,19 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                                     variant="outlined"
                                                     sx={{ fontSize: '0.75rem', height: 20 }}
                                                 />
+                                                {isPdfIngested && (
+                                                    <Chip
+                                                        label={t('tests.receivedViaPdfIngestion') || 'Received via PDF Ingestion'}
+                                                        size="small"
+                                                        color="info"
+                                                        variant="outlined"
+                                                        sx={{ fontSize: '0.75rem', height: 20, fontWeight: 600 }}
+                                                    />
+                                                )}
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {t('tests.uploaded') || 'Uploaded'}: {attachment.createdAt}
+                                                    {isPdfIngested
+                                                        ? (t('tests.received') || 'Received')
+                                                        : (t('tests.uploaded') || 'Uploaded')}: {attachment.createdAt}
                                                 </Typography>
                                             </Box>
                                         </Box>
@@ -725,8 +750,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                             {t('common.preview') || 'Preview'}
                                         </Button>
 
-                                        {/* Employee-only actions: Replace & Remove */}
-                                        {isEmployee && (
+                                        {/* Employee-only actions for Excel-ingested tests: Replace & Remove */}
+                                        {canManageAttachment && (
                                             <>
                                                 <input
                                                     ref={fileInputRef}
@@ -769,14 +794,16 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                                 </Box>
                             ) : (
                                 <Box className="text-center py-4">
-                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                        {isEmployee
-                                            ? (t('tests.noDocumentAttachedEmployee') || 'No document attached to this test. You can upload a medical result PDF or Image.')
-                                            : (t('tests.noDocumentAttachedOther') || 'No document has been attached to this test by the employee.')}
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: canManageAttachment ? 2 : 0 }}>
+                                        {isPdfIngested
+                                            ? (t('tests.pdfIngestedUnavailable') || 'This test was received via direct PDF ingestion. Manual document upload is not available.')
+                                            : isEmployee
+                                                ? (t('tests.noDocumentAttachedEmployee') || 'No document attached to this test. You can upload a medical result PDF or Image.')
+                                                : (t('tests.noDocumentAttachedOther') || 'No document has been attached to this test by the employee.')}
                                     </Typography>
 
-                                    {/* Upload button strictly for Employee role */}
-                                    {isEmployee && (
+                                    {/* Upload button strictly for Employee role on Excel-ingested tests */}
+                                    {canManageAttachment && (
                                         <>
                                             <input
                                                 ref={fileInputRef}
@@ -872,9 +899,9 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         }
                     }}
                     document={stagedDocument || attachment}
-                    mode={isEmployee ? 'employee' : 'readOnly'}
-                    onUpload={executeUpload}
-                    onDelete={requestDeleteFile}
+                    mode={viewerMode}
+                    onUpload={canManageAttachment ? executeUpload : undefined}
+                    onDelete={canManageAttachment ? requestDeleteFile : undefined}
                     onDownload={() => {
                         setSnackbar({
                             open: true,
@@ -885,7 +912,8 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                     uploading={uploading}
                 />
 
-                {/* Document Removal Confirmation Modal */}
+                {/* Document Removal Confirmation Modal (Excel-ingested Employee workflow only) */}
+                {canManageAttachment && (
                 <Dialog
                     open={deleteModalOpen}
                     onClose={() => !isDeleting && cancelDeleteFile()}
@@ -968,6 +996,7 @@ const PatientDetails: React.FC<{ patient: PatientHeader }> = ({ patient }) => {
                         </Button>
                     </DialogActions>
                 </Dialog>
+                )}
 
                 {/* Standard Unified CustomSnackbar */}
                 <CustomSnackbar

@@ -147,6 +147,7 @@ class PatientTestFileTest extends TestCase
             $table->string('CollectionSite')->nullable();
             $table->string('CupLotNumber')->nullable();
             $table->string('Status')->default('Awaiting Inspection');
+            $table->string('IngestionSource', 20)->default('excel');
             $table->unsignedBigInteger('DeviceId')->nullable();
             $table->string('DeviceCode')->nullable();
             $table->dateTime('CreatedAt')->nullable();

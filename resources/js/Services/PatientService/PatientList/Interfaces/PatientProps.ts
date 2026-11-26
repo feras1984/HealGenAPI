@@ -15,6 +15,8 @@ export interface PatientGridProps {
     collectionSite: string;
     cupLotNumber: string;
     status: string;
+    ingestionSource?: 'excel' | 'pdf';
+    canManageAttachment?: boolean;
     deviceId?: number | null;
     deviceCode?: string | null;
     deviceName?: string | null;

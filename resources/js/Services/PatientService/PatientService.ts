@@ -12,6 +12,8 @@ class PatientService {
             collectionSite : patient.collectionSite,
             cupLotNumber : patient.cupLotNumber,
             status : patient.status,
+            ingestionSource: patient.ingestionSource ?? 'excel',
+            canManageAttachment: patient.canManageAttachment ?? patient.ingestionSource !== 'pdf',
             deviceCode: patient.device?.deviceCode ?? '',
             deviceName: patient.device?.name ?? '',
             locationName: patient.device?.locationName ?? '',

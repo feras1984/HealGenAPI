@@ -2,6 +2,7 @@
 
 namespace App\Services\DeviceImportService;
 
+use App\Enums\IngestionSourceEnum;
 use App\Services\PatientService\TestAttachmentStorageService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
@@ -27,6 +28,22 @@ class DeviceImportService
         ?UploadedFile $reportPdf = null
     ): array {
         $fileHash = strtolower($payload['file_hash']);
+        $ingestionSource = $reportPdf !== null
+            ? IngestionSourceEnum::PDF
+            : IngestionSourceEnum::EXCEL;
+
+        if (isset($payload['ingestion_source']) && $payload['ingestion_source'] !== null && $payload['ingestion_source'] !== '') {
+            $declaredSource = IngestionSourceEnum::tryFromNormalized((string) $payload['ingestion_source']);
+            if ($declaredSource !== $ingestionSource) {
+                throw ValidationException::withMessages([
+                    'ingestion_source' => [
+                        $ingestionSource === IngestionSourceEnum::PDF
+                            ? 'Multipart PDF ingestion must not specify ingestion_source as excel.'
+                            : 'Direct PDF ingestion requires a multipart/form-data request with report_pdf.',
+                    ],
+                ]);
+            }
+        }
 
         if ($reportPdf !== null && !$this->attachmentStorageService->verifySha256($reportPdf, $fileHash)) {
             throw ValidationException::withMessages([
@@ -52,6 +69,7 @@ class DeviceImportService
                 $deviceCode,
                 $fileHash,
                 $reportPdf,
+                $ingestionSource,
                 &$storedPdfPath
             ) {
                 // Recheck inside the transaction.
@@ -111,6 +129,7 @@ class DeviceImportService
                             'DeviceCode' => $deviceCode,
                             'DateTime' => $patient['date_time'] ?? null,
                             'SourceFile' => $payload['file_name'] ?? null,
+                            'IngestionSource' => $ingestionSource->value,
                             'ProcessedAt' => $now,
                             'Status' => $status,
                             'FileHash' => $fileHash,
@@ -150,6 +169,7 @@ class DeviceImportService
                         'patient_header_id' => $patientHeaderId,
                         'tests_inserted' => count($tests),
                         'status' => $status,
+                        'ingestion_source' => $ingestionSource->value,
                     ];
                 } catch (Throwable $attemptException) {
                     if ($attemptPdfPath !== null) {
@@ -177,6 +197,7 @@ class DeviceImportService
                     'patient_header_id' => $result['patient_header_id'],
                     'tests_inserted' => $result['tests_inserted'],
                     'status' => $result['status'],
+                    'ingestion_source' => $ingestionSource->value,
                     'has_pdf_attachment' => $reportPdf !== null,
                 ]
             );
@@ -252,12 +273,16 @@ class DeviceImportService
 
     private function duplicateResponse(object $existing): array
     {
+        $storedSource = IngestionSourceEnum::tryFromNormalized($existing->IngestionSource ?? null)
+            ?? IngestionSourceEnum::EXCEL;
+
         return [
             'success' => true,
             'duplicate' => true,
             'patient_header_id' => $existing->Id,
             'tests_inserted' => 0,
             'status' => $existing->Status,
+            'ingestion_source' => $storedSource->value,
             'message' => 'This file has already been imported.',
         ];
     }

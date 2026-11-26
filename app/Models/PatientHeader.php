@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\IngestionSourceEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,11 +27,30 @@ class PatientHeader extends Model
         'CollectionSite',
         'CupLotNumber',
         'DateTime',
+        'SourceFile',
+        'IngestionSource',
         'ProcessedAt',
         'Status',
+        'FileHash',
         'CreatedAt',
         'UpdatedAt',
     ];
+
+    public function getIngestionSourceEnum(): IngestionSourceEnum
+    {
+        return IngestionSourceEnum::tryFromNormalized($this->attributes['IngestionSource'] ?? null)
+            ?? IngestionSourceEnum::EXCEL;
+    }
+
+    public function isPdfIngested(): bool
+    {
+        return $this->getIngestionSourceEnum() === IngestionSourceEnum::PDF;
+    }
+
+    public function canEmployeeManageAttachment(): bool
+    {
+        return $this->getIngestionSourceEnum()->allowsEmployeeAttachmentManagement();
+    }
 
     public function tests(): HasMany
     {

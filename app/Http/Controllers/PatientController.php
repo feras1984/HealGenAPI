@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\IngestionSourceEnum;
 use App\Facades\PatientService\PatientHeaderService;
 use App\Facades\PatientService\PatientTestService;
 use App\Models\Device;
@@ -149,12 +150,36 @@ class PatientController extends Controller
     }
 
     /**
+     * Reject manual attachment upload, replacement, or deletion when the test
+     * originated from direct PDF device ingestion.
+     */
+    private function rejectIfPdfIngested(PatientHeader $patient): ?JsonResponse
+    {
+        if (!$patient->isPdfIngested()) {
+            return null;
+        }
+
+        return response()->json([
+            'status' => false,
+            'code' => 'PDF_INGESTION_IMMUTABLE',
+            'message' => 'Attachments for PDF-ingested tests are provided during device ingestion and cannot be uploaded, replaced, or deleted.',
+            'ingestionSource' => IngestionSourceEnum::PDF->value,
+        ], HTTPResponse::HTTP_FORBIDDEN);
+    }
+
+    /**
      * Upload an attachment (PDF / Image) for a test record.
-     * Strictly restricted to users with the Employee role assigned to the test's device.
+     * Strictly restricted to users with the Employee role assigned to the test's device,
+     * and only permitted for non-PDF (Excel) ingested tests.
      */
     public function uploadFile(Request $request, PatientHeader $patient): JsonResponse
     {
         $this->authorizePatientAccess($request, $patient, true);
+
+        if ($blocked = $this->rejectIfPdfIngested($patient)) {
+            return $blocked;
+        }
+
         $user = $request->user();
 
         $request->validate([
@@ -257,6 +282,10 @@ class PatientController extends Controller
     public function deleteFile(Request $request, PatientHeader $patient): JsonResponse
     {
         $this->authorizePatientAccess($request, $patient, true);
+
+        if ($blocked = $this->rejectIfPdfIngested($patient)) {
+            return $blocked;
+        }
 
         $file = $patient->file;
         if ($file) {
